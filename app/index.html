@@ -1,0 +1,1578 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fbf8fa" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121017" media="(prefers-color-scheme: dark)">
+<meta name="description" content="Free personal safety app. Your own safety circle, SOS alerts with live location, check-ins, fake call and siren. Private by design.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Shecurity">
+<script src="vendor/supabase.js"></script>
+<!--APP-START-->
+<title>Shecurity</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: calm one-handed phone app. 480px column, soft cards without borders, one pink glow behind SOS. Colours come from the Rose Notch icon: blush pink accents, deep indigo for actions. */
+:root {
+  --bg: #fbf8fa;
+  --surface: #ffffff;
+  --surface-2: #f6f0f4;
+  --ink: #1d1828;
+  --muted: #6d6678;
+  --line: #f0e8ee;
+  --brand: #2a2152;
+  --brand-ink: #ffffff;
+  --brand-soft: #fde9f1;
+  --pink: #e5487f;
+  --pink-ink: #c73a6c;
+  --sos: #d7263d;
+  --sos-ink: #ffffff;
+  --sos-soft: #fde6ea;
+  --safe: #1f8a5f;
+  --safe-soft: #e4f4ec;
+  --warn: #9b6200;
+  --shadow: 0 1px 2px rgba(42, 33, 82, .04), 0 8px 24px rgba(42, 33, 82, .06);
+  --glow: rgba(229, 72, 127, .16);
+  --font: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --r: 20px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121017; --surface: #1b1822; --surface-2: #25212e; --ink: #f2eef6; --muted: #a49cb1; --line: #2c2736;
+    --brand: #ff8db4; --brand-ink: #1d1828; --brand-soft: #36202d; --pink: #ff8db4; --pink-ink: #ff9fc0;
+    --sos: #ff5468; --sos-ink: #ffffff; --sos-soft: #3a1a22; --safe: #4cc690; --safe-soft: #15301f; --warn: #e8b357;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25); --glow: rgba(255, 141, 180, .12);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121017; --surface: #1b1822; --surface-2: #25212e; --ink: #f2eef6; --muted: #a49cb1; --line: #2c2736;
+  --brand: #ff8db4; --brand-ink: #1d1828; --brand-soft: #36202d; --pink: #ff8db4; --pink-ink: #ff9fc0;
+  --sos: #ff5468; --sos-ink: #ffffff; --sos-soft: #3a1a22; --safe: #4cc690; --safe-soft: #15301f; --warn: #e8b357;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25); --glow: rgba(255, 141, 180, .12);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 16px; line-height: 1.5; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: var(--pink-ink); }
+:focus-visible { outline: 2px solid var(--pink); outline-offset: 2px; }
+[hidden] { display: none !important; }
+svg.i { width: 22px; height: 22px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+
+/* top bar */
+.top { position: sticky; top: 0; z-index: 20; background: var(--bg); padding-top: env(safe-area-inset-top, 0px); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.top-inner { max-width: 480px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 60px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; letter-spacing: -0.02em; }
+.brand svg { width: 28px; height: 28px; }
+.exit { border: 0; background: var(--surface-2); border-radius: 999px; padding: 7px 14px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; }
+
+main { max-width: 480px; margin: 0 auto; padding-block: 4px 124px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.view { display: flex; flex-direction: column; gap: 20px; }
+h1, h2, h3 { margin: 0; line-height: 1.2; text-wrap: balance; font-weight: 700; letter-spacing: -0.02em; }
+h1 { font-size: 28px; }
+h2 { font-size: 18px; }
+h3 { font-size: 16px; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.small { font-size: 14px; }
+.xs { font-size: 12px; }
+.section-title { font-size: 13px; font-weight: 700; color: var(--muted); letter-spacing: .01em; margin-bottom: -10px; padding-left: 4px; }
+.back { display: inline-flex; align-items: center; gap: 4px; background: none; border: 0; padding: 4px 0; color: var(--muted); cursor: pointer; font-size: 15px; font-weight: 600; }
+
+.card { background: var(--surface); border: 0; border-radius: var(--r); padding: 18px; display: flex; flex-direction: column; gap: 12px; box-shadow: var(--shadow); }
+.card.sos { background: var(--sos-soft); box-shadow: none; }
+.card.safe { background: var(--safe-soft); box-shadow: none; }
+.card.brand { background: var(--brand-soft); box-shadow: none; }
+.banner { margin: 0 0 16px; font-size: 13px; color: var(--muted); background: var(--surface-2); border-radius: 14px; padding: 10px 14px; }
+
+/* greeting + status */
+.hello { text-align: center; display: flex; flex-direction: column; gap: 2px; }
+.hello b { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+.hello span { font-size: 14px; color: var(--muted); }
+.status { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.chip { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 999px; background: var(--surface); border: 0; box-shadow: var(--shadow); color: var(--muted); cursor: pointer; }
+.chip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); opacity: .6; }
+.chip.on .dot { background: var(--safe); opacity: 1; }
+.chip.on { color: var(--ink); }
+
+/* SOS */
+.sos-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 14px 0 6px; background: radial-gradient(closest-side, var(--glow), transparent) center 58% / 340px 340px no-repeat; }
+.sos-btn { position: relative; width: 216px; height: 216px; max-width: 64vw; max-height: 64vw; border-radius: 50%; border: 0; padding: 0; background: none; cursor: pointer; box-shadow: 0 0 0 12px rgba(229, 72, 127, .12), 0 14px 34px rgba(229, 72, 127, .30); touch-action: none; user-select: none; -webkit-user-select: none; transition: transform .15s ease; }
+.sos-btn svg { display: block; width: 100%; height: 100%; }
+.sos-btn .notch { opacity: .55; }
+.sos-btn .fill { stroke-dasharray: 188.5; stroke-dashoffset: 188.5; }
+.sos-btn.holding { transform: scale(.97); }
+.sos-btn.holding .fill { transition: stroke-dashoffset 1.5s linear; stroke-dashoffset: 0; }
+.hold-hint { font-size: 14px; font-weight: 700; margin: -2px 0 0; }
+
+/* primary actions */
+.actions3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.act { background: var(--surface); border: 0; box-shadow: var(--shadow); border-radius: var(--r); padding: 16px 8px 14px; display: flex; flex-direction: column; align-items: center; gap: 9px; font-size: 13px; font-weight: 700; cursor: pointer; text-align: center; color: var(--ink); }
+.act .ic { width: 44px; height: 44px; border-radius: 15px; background: var(--brand-soft); color: var(--pink-ink); display: grid; place-items: center; }
+.act:active, .li:active { transform: scale(.98); }
+
+/* list rows */
+.list { background: var(--surface); border: 0; box-shadow: var(--shadow); border-radius: var(--r); overflow: hidden; }
+.li { display: flex; align-items: center; gap: 14px; width: 100%; padding: 13px 16px; background: none; border: 0; border-bottom: 1px solid var(--line); text-align: left; cursor: pointer; text-decoration: none; color: var(--ink); transition: transform .1s ease; }
+.li:last-child { border-bottom: 0; }
+.li .t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.li .t b { font-weight: 650; font-size: 15px; }
+.li .t span { font-size: 13px; color: var(--muted); }
+.li > svg.i:first-child { width: 38px; height: 38px; padding: 8px; border-radius: 12px; background: var(--brand-soft); color: var(--pink-ink); }
+.li .chev { color: var(--muted); width: 18px; height: 18px; opacity: .6; }
+
+.trust { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--muted); padding: 4px 6px 0; }
+.trust svg { color: var(--safe); margin-top: 1px; }
+
+/* buttons + forms */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 50px; padding: 10px 18px; border-radius: 16px; border: 0; background: var(--surface-2); text-decoration: none; color: var(--ink); font-weight: 700; cursor: pointer; text-align: center; }
+.btn.primary { background: var(--brand); color: var(--brand-ink); }
+.btn.danger { background: var(--sos); color: var(--sos-ink); }
+.btn.good { background: var(--safe); color: #fff; }
+.btn.ghost { background: transparent; color: var(--muted); }
+.btn.block { width: 100%; }
+.btn.sm { min-height: 36px; padding: 6px 13px; font-size: 14px; border-radius: 12px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; }
+.row > .btn { flex: 1 1 130px; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+label.f { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600; }
+label.f .hint { font-weight: 400; color: var(--muted); font-size: 13px; }
+input[type=text], input[type=tel], input[type=number], select, textarea { width: 100%; min-height: 50px; padding: 12px 14px; border-radius: 14px; border: 1px solid transparent; background: var(--surface-2); color: var(--ink); }
+input::placeholder, textarea::placeholder { color: var(--muted); opacity: .75; }
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--pink); outline-offset: 0; background: var(--surface); }
+textarea { min-height: 88px; resize: vertical; }
+.check { display: flex; gap: 12px; align-items: center; font-size: 15px; }
+.check input { width: 22px; height: 22px; accent-color: var(--pink); flex: none; }
+.code { font-family: var(--mono); font-size: 22px; letter-spacing: .18em; font-weight: 600; text-align: center; padding: 12px; border-radius: 14px; background: var(--surface-2); user-select: all; }
+
+/* people */
+.person { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.person:last-child { border-bottom: 0; }
+.avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--brand-soft); color: var(--pink-ink); display: grid; place-items: center; font-weight: 700; flex: none; }
+.person .t { flex: 1; min-width: 0; }
+.person .t b { display: block; font-weight: 650; }
+.person .t span { font-size: 13px; color: var(--muted); }
+.feed-item { display: flex; flex-direction: column; gap: 10px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.feed-item:first-child { padding-top: 2px; }
+.feed-item:last-child { border-bottom: 0; padding-bottom: 2px; }
+.feed-head { display: flex; gap: 12px; align-items: flex-start; }
+.feed-head .t { flex: 1; min-width: 0; }
+.feed-head b { display: block; }
+.tag { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; background: var(--surface-2); color: var(--muted); white-space: nowrap; }
+.tag.sos { background: var(--sos-soft); color: var(--sos); }
+.tag.safe { background: var(--safe-soft); color: var(--safe); }
+.resp { font-size: 13px; color: var(--muted); }
+.example { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--warn); }
+
+/* plans: story-style strip of the circle, plus one card per active plan */
+.stories { display: flex; gap: 12px; overflow-x: auto; padding: 2px 2px 4px; margin: 0 -2px; scrollbar-width: none; }
+.stories::-webkit-scrollbar { display: none; }
+.story { flex: none; width: 62px; display: flex; flex-direction: column; align-items: center; gap: 6px; background: none; border: 0; padding: 0; cursor: pointer; color: var(--ink); font-size: 12px; font-weight: 600; }
+.story .ring { position: relative; width: 58px; height: 58px; border-radius: 50%; padding: 2.5px; background: var(--line); }
+.story.on .ring { background: linear-gradient(135deg, #ff8db4, #e5487f); }
+.story .avatar { width: 100%; height: 100%; border: 2.5px solid var(--surface); font-size: 19px; }
+.story.add .avatar { background: var(--surface-2); color: var(--ink); font-size: 24px; font-weight: 500; }
+.story .live { position: absolute; right: 1px; bottom: 1px; width: 15px; height: 15px; border-radius: 50%; background: var(--safe); border: 2.5px solid var(--surface); }
+.story span { max-width: 62px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.story.quiet span { color: var(--muted); font-weight: 500; }
+.plan { display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); scroll-margin-top: 80px; }
+.plan:last-child { border-bottom: 0; padding-bottom: 2px; }
+.plan .t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.plan .who { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--muted); }
+.plan .who b { color: var(--ink); font-size: 15px; font-weight: 650; }
+.plan .where { font-weight: 650; font-size: 16px; line-height: 1.3; overflow-wrap: anywhere; }
+.plan .with { font-size: 14px; color: var(--muted); overflow-wrap: anywhere; }
+.plan .msg { align-self: flex-start; margin-top: 6px; font-size: 14.5px; background: var(--surface-2); padding: 8px 12px; border-radius: 16px 16px 16px 5px; overflow-wrap: anywhere; }
+.plan .row { margin-top: 8px; }
+.plan.flash { animation: flash 1.2s ease; }
+@keyframes flash { 0%, 40% { background: var(--brand-soft); } 100% { background: transparent; } }
+
+.timer-big { font-family: var(--mono); font-size: 44px; font-weight: 600; font-variant-numeric: tabular-nums; text-align: center; letter-spacing: -0.02em; }
+details { background: var(--surface); border: 0; box-shadow: var(--shadow); border-radius: var(--r); padding: 15px 18px; }
+details summary { cursor: pointer; font-weight: 650; }
+details[open] summary { margin-bottom: 10px; }
+details ol, details ul { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 6px; font-size: 15px; }
+.hotline { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.hotline:last-child { border-bottom: 0; }
+.hotline div { min-width: 0; }
+.hotline .num { font-family: var(--mono); font-size: 14px; color: var(--muted); user-select: all; }
+.msg-preview { font-family: var(--mono); font-size: 12px; white-space: pre-wrap; word-break: break-word; background: var(--surface-2); border-radius: 12px; padding: 10px 12px; max-height: 150px; overflow: auto; color: var(--muted); }
+
+/* tabs */
+nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--surface); box-shadow: 0 -1px 0 var(--line), 0 -8px 24px rgba(42, 33, 82, .05); padding-bottom: env(safe-area-inset-bottom, 0px); padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
+nav.tabs .in { max-width: 480px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); padding: 6px 8px 4px; }
+nav.tabs button { position: relative; background: none; border: 0; padding: 6px 2px 8px; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; font-weight: 600; color: var(--muted); cursor: pointer; }
+nav.tabs button svg { padding: 3px 16px; width: 54px; height: 30px; border-radius: 999px; box-sizing: border-box; }
+nav.tabs button[aria-current="page"] { color: var(--pink-ink); }
+nav.tabs button[aria-current="page"] svg { background: var(--brand-soft); }
+nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9px; height: 9px; border-radius: 50%; background: var(--sos); border: 2px solid var(--surface); }
+
+/* overlays */
+.overlay { position: fixed; inset: 0; z-index: 50; background: var(--bg); overflow-y: auto; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.overlay .in { max-width: 480px; margin: 0 auto; padding-block: 28px; display: flex; flex-direction: column; gap: 14px; min-height: 100%; }
+.steps { display: flex; flex-direction: column; gap: 10px; }
+.step { display: flex; gap: 10px; align-items: center; font-size: 15px; font-weight: 500; }
+.step .s { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); color: var(--muted); flex: none; }
+.step.done .s { background: var(--safe); color: #fff; }
+.step.fail .s { background: var(--warn); color: #fff; }
+.step .s svg { width: 14px; height: 14px; stroke-width: 2.5; }
+.siren-screen { background: #e01a33; color: #fff; display: grid; place-items: center; text-align: center; cursor: pointer; }
+.siren-screen.flash { background: #ffffff; color: #111; }
+.siren-screen h1 { font-size: 40px; letter-spacing: .08em; }
+
+.call { background: #0d0d10; color: #fff; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.call .in { justify-content: space-between; align-items: center; text-align: center; padding-block: 72px 48px; }
+.call .who { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.call .big-avatar { width: 96px; height: 96px; border-radius: 50%; background: #3a3a44; display: grid; place-items: center; font-size: 40px; font-weight: 500; }
+.call .name { font-size: 32px; font-weight: 400; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.call .sub { color: #b9b9c4; font-size: 16px; }
+.call .actions { display: flex; justify-content: space-around; width: 100%; max-width: 320px; }
+.call .round { width: 74px; height: 74px; border-radius: 50%; border: 0; display: grid; place-items: center; cursor: pointer; color: #fff; }
+.call .round svg { width: 32px; height: 32px; }
+.call .decline { background: #ff3b30; }
+.call .accept { background: #34c759; }
+.call .cap { font-size: 13px; color: #d0d0d8; margin-top: 8px; }
+
+.toast { position: fixed; left: 50%; bottom: calc(92px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 60; background: var(--ink); color: var(--bg); padding: 11px 18px; border-radius: 999px; font-size: 14px; font-weight: 600; max-width: calc(100% - 32px); text-align: center; box-shadow: var(--shadow); }
+@media (prefers-reduced-motion: reduce) { .sos-btn.holding .fill { transition-duration: 0s; } .sos-btn, .li, .act { transition: none; } }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-walk" viewBox="0 0 24 24"><circle cx="13" cy="4" r="2"/><path d="m9 20 3-6 3 3v4M6 12l2-4 4-1 3 4 3 1"/></symbol>
+  <symbol id="i-timer" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></symbol>
+  <symbol id="i-siren" viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4V5zM15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></symbol>
+  <symbol id="i-plan" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5 13.6 13.6 8.5 15.5 10.4 10.4z"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+  <symbol id="i-car" viewBox="0 0 24 24"><path d="M5 17h14v-5l-2-5H7l-2 5v5z"/><circle cx="8" cy="17" r="2"/><circle cx="16" cy="17" r="2"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></symbol>
+  <symbol id="i-place" viewBox="0 0 24 24"><path d="M3 21h18M5 21V9l7-5 7 5v12M10 21v-5h4v5"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/></symbol>
+  <symbol id="i-people" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6.5 6.5 0 0 1 4 6"/></symbol>
+  <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01"/></symbol>
+  <symbol id="i-me" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4l2-2zM10 20a2 2 0 0 0 4 0"/></symbol>
+</svg>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <svg viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="brandG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8db4"/><stop offset="1" stop-color="#e5487f"/></linearGradient></defs><rect width="100" height="100" rx="22.5" fill="url(#brandG)"/><path d="M60.26 21.81 A30 30 0 1 1 39.74 21.81" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round"/><circle cx="50" cy="50" r="11" fill="#2a2152"/></svg>
+      Shecurity
+    </div>
+    <button class="exit" id="quickExit" type="button" aria-label="Quick exit: leave this app and open a weather page">Quick exit</button>
+  </div>
+</header>
+
+<main>
+  <p class="banner" id="previewBanner" hidden>Preview. Location, texts, calls and the live network are switched off on this page. The circle below shows example people. Everything works once the app is opened from its own web address.</p>
+
+  <!-- HOME -->
+  <section class="view" data-view="home">
+    <div class="card sos" id="incomingCard" hidden></div>
+
+    <div class="card safe" id="timerCard" hidden>
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <span class="small" id="timerCardLabel">Check-in running</span>
+        <span class="small muted" id="timerCardShare"></span>
+      </div>
+      <div class="timer-big" id="timerCardTime">00:00</div>
+      <p class="small" id="timerCardNote"></p>
+      <div class="row">
+        <button class="btn good" type="button" data-action="timer-safe">I'm safe</button>
+        <button class="btn" type="button" data-action="timer-add">+15 min</button>
+      </div>
+    </div>
+
+    <div class="hello"><b id="helloTitle">Hi there</b><span id="helloSub">Your safety, one tap away</span></div>
+    <div class="sos-wrap">
+      <div class="status">
+        <button class="chip" type="button" id="chipCircle" data-go="circle"><span class="dot"></span><span>Set up your circle</span></button>
+        <button class="chip" type="button" id="chipAlerts" data-go="circle"><span class="dot"></span><span>Alerts off</span></button>
+      </div>
+      <button class="sos-btn" id="sosBtn" type="button" aria-label="SOS. Press and hold until the ring closes to alert your circle">
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <defs><linearGradient id="sosG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8db4"/><stop offset="1" stop-color="#e5487f"/></linearGradient></defs>
+          <circle cx="50" cy="50" r="50" fill="url(#sosG)"/>
+          <path class="notch" d="M60.26 21.81 A30 30 0 1 1 39.74 21.81" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"/>
+          <circle class="fill" cx="50" cy="50" r="30" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" transform="rotate(-90 50 50)"/>
+          <circle cx="50" cy="50" r="19" fill="#2a2152"/>
+          <text x="50" y="53.6" text-anchor="middle" fill="#fff" font-size="10.5" font-weight="700" letter-spacing="1" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif">SOS</text>
+        </svg>
+      </button>
+      <p class="hold-hint" id="holdHint">Press and hold until the ring closes</p>
+      <p class="small muted" style="text-align:center;max-width:30ch">Alerts your circle with your live location. Nothing is sent if you let go early.</p>
+    </div>
+
+    <div class="actions3">
+      <button class="act" type="button" data-go="walk"><span class="ic"><svg class="i"><use href="#i-walk"/></svg></span>Walk with me</button>
+      <button class="act" type="button" data-go="timer"><span class="ic"><svg class="i"><use href="#i-timer"/></svg></span>Check-in</button>
+      <button class="act" type="button" data-go="fakecall"><span class="ic"><svg class="i"><use href="#i-phone"/></svg></span>Fake call</button>
+    </div>
+
+    <div id="homeCircle" hidden>
+      <span class="section-title">Your circle now</span>
+      <button class="card" type="button" data-go="circle" style="margin-top:16px;width:100%;min-width:0;overflow:hidden;text-align:left;cursor:pointer;border:0;color:inherit;font:inherit">
+        <span class="stories" id="homeStories"></span>
+        <span class="small muted" id="homeCircleText"></span>
+      </button>
+    </div>
+
+    <span class="section-title">More tools</span>
+    <div class="list">
+      <button class="li" type="button" data-go="plan"><svg class="i"><use href="#i-plan"/></svg><span class="t"><b>Share my plans</b><span>Where you're going and who with, for a few hours</span></span><svg class="i chev"><use href="#i-chev"/></svg></button>
+      <button class="li" type="button" data-action="siren"><svg class="i"><use href="#i-siren"/></svg><span class="t"><b>Loud siren</b><span>Alarm sound and flashing screen</span></span><svg class="i chev"><use href="#i-chev"/></svg></button>
+      <button class="li" type="button" data-action="share-location"><svg class="i"><use href="#i-pin"/></svg><span class="t"><b>Send my location</b><span>Let your circle know where you are, no alarm</span></span><svg class="i chev"><use href="#i-chev"/></svg></button>
+      <button class="li" type="button" data-go="ride"><svg class="i"><use href="#i-car"/></svg><span class="t"><b>Ride check</b><span>Share the car and driver before you get in</span></span><svg class="i chev"><use href="#i-chev"/></svg></button>
+      <button class="li" type="button" data-go="date"><svg class="i"><use href="#i-heart"/></svg><span class="t"><b>Date safety</b><span>Tell a friend who you're meeting and where</span></span><svg class="i chev"><use href="#i-chev"/></svg></button>
+      <button class="li" type="button" data-go="record"><svg class="i"><use href="#i-mic"/></svg><span class="t"><b>Record</b><span>Audio you can send to someone right away</span></span><svg class="i chev"><use href="#i-chev"/></svg></button>
+      <button class="li" type="button" data-go="places"><svg class="i"><use href="#i-place"/></svg><span class="t"><b>Safe places nearby</b><span>Police, hospital, open pharmacy</span></span><svg class="i chev"><use href="#i-chev"/></svg></button>
+    </div>
+
+    <p class="trust"><svg class="i"><use href="#i-lock"/></svg><span>Free forever, no ads. Only people you invite can see you, and your location is shared only when you choose.</span></p>
+  </section>
+
+  <!-- CIRCLE -->
+  <section class="view" data-view="circle" hidden>
+    <h1>Your circle</h1>
+
+    <div class="card brand" id="netJoin" hidden>
+      <h2>Build your safety network</h2>
+      <p class="small">Invite the people you trust. When you press SOS, miss a check-in or walk home, they're alerted on their phones and can see where you are. You'll do the same for them.</p>
+      <label class="f">Your first name<span class="hint">This is what your circle sees.</span><input type="text" id="jnName" maxlength="40" autocomplete="given-name"></label>
+      <label class="f">Your mobile number (optional)<span class="hint">So your circle can call you from an alert.</span><input type="tel" id="jnPhone" maxlength="24" placeholder="+31 6 1234 5678" autocomplete="tel"></label>
+      <button class="btn primary block" type="button" data-action="net-join">Continue</button>
+      <p class="xs muted">No email or password needed. Your account lives on this phone.</p>
+    </div>
+
+    <div class="card" id="netOffline" hidden>
+      <h2>The network isn't reachable</h2>
+      <p class="small muted" id="netOfflineMsg">Check your internet connection. SOS still works by text message.</p>
+    </div>
+
+    <div id="netArea" class="view" hidden>
+      <div class="card" id="pushCard">
+        <div class="row" style="align-items:center;gap:12px;flex-wrap:nowrap">
+          <span class="avatar" style="background:var(--surface-2);color:var(--ink)"><svg class="i"><use href="#i-bell"/></svg></span>
+          <div style="flex:1;min-width:0"><b id="pushTitle">Turn on alerts</b><p class="small muted" id="pushText">So your phone tells you when someone in your circle needs help.</p></div>
+        </div>
+        <button class="btn primary block" type="button" id="pushBtn" data-action="push-on">Turn on alerts</button>
+      </div>
+
+      <div>
+        <span class="section-title">What everyone's up to</span>
+        <div class="card" style="margin-top:16px">
+          <div class="stories" id="circleStories"></div>
+          <div id="planList"></div>
+          <button class="btn primary block" type="button" data-go="plan" id="planBtn">Share my plans</button>
+        </div>
+      </div>
+
+      <div id="liveWrap" hidden>
+        <span class="section-title">Sharing location now</span>
+        <div class="card" id="liveList" style="margin-top:16px"></div>
+      </div>
+
+      <div>
+        <span class="section-title">Recent</span>
+        <div class="card" id="feed" style="margin-top:16px"></div>
+      </div>
+
+      <div id="circleList" class="view"></div>
+
+      <div class="card">
+        <h2>Add a circle</h2>
+        <div class="stack">
+          <label class="f">Name it<input type="text" id="ccName" placeholder="Family, Best friends, Flatmates" maxlength="40"></label>
+          <button class="btn primary" type="button" data-action="circle-create">Create and invite</button>
+        </div>
+        <div class="stack" style="border-top:1px solid var(--line);padding-top:14px">
+          <label class="f">Got an invite code?<input type="text" id="jcCode" placeholder="8 letters" maxlength="12" autocapitalize="characters" autocomplete="off"></label>
+          <button class="btn" type="button" data-action="circle-join">Join circle</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PLANS -->
+  <section class="view" data-view="plan" hidden>
+    <button class="back" type="button" data-go="circle"><svg class="i"><use href="#i-back"/></svg>Back</button>
+    <h1>Share my plans</h1>
+    <p class="muted">Let your circle know where you're going and who you're with. It shows on their app until the time you pick, then disappears.</p>
+    <div class="card brand" id="planJoin" hidden>
+      <h2>Join the network first</h2>
+      <p class="small">Plans are shared with your circle, so you need a circle first. It takes a minute and needs no email.</p>
+      <button class="btn primary block" type="button" data-go="circle">Set up my circle</button>
+    </div>
+    <div class="card" id="planMine" hidden></div>
+    <div class="card stack" id="planForm">
+      <label class="f">Where are you going?<input type="text" id="plWhere" placeholder="Jules' party on Oudegracht" maxlength="100"></label>
+      <label class="f">Who are you with?<input type="text" id="plWith" placeholder="Sara and Tom" maxlength="100"></label>
+      <label class="f">Short message<span class="hint">Optional</span><input type="text" id="plMsg" placeholder="Back around 1, text me if you need me" maxlength="140"></label>
+      <label class="f">Show it for
+        <select id="plHours"><option value="1">1 hour</option><option value="3">3 hours</option><option value="6">6 hours</option><option value="12">12 hours</option><option value="24" selected>24 hours</option><option value="48">2 days</option></select>
+      </label>
+      <label class="check"><input type="checkbox" id="plLoc"> Add where I am now</label>
+      <button class="btn primary block" type="button" data-action="plan-post" id="plPost">Share with my circle</button>
+    </div>
+    <p class="small muted">Only people in your circles can see your plans. Want them to follow you live? Use Walk with me or Check-in.</p>
+  </section>
+
+  <!-- WALK -->
+  <section class="view" data-view="walk" hidden>
+    <button class="back" type="button" data-go="home"><svg class="i"><use href="#i-back"/></svg>Back</button>
+    <h1>Walk with me</h1>
+    <p class="muted">Your circle follows your live location until you arrive. If you don't tap "I've arrived" in time, they're alerted.</p>
+    <div class="card stack" id="walkSetup">
+      <label class="f">Where are you going?<input type="text" id="wkTo" placeholder="Home from the station" maxlength="100"></label>
+      <label class="f">How long will it take?
+        <select id="wkMins"><option value="10">10 minutes</option><option value="15" selected>15 minutes</option><option value="20">20 minutes</option><option value="30">30 minutes</option><option value="45">45 minutes</option><option value="60">1 hour</option></select>
+      </label>
+      <button class="btn primary block" type="button" data-action="walk-start">Start walking</button>
+    </div>
+    <p class="small muted">Keep Shecurity open while you walk. The screen stays on so your location keeps updating.</p>
+  </section>
+
+  <!-- TIMER -->
+  <section class="view" data-view="timer" hidden>
+    <button class="back" type="button" data-go="home"><svg class="i"><use href="#i-back"/></svg>Back</button>
+    <h1>Check-in</h1>
+    <p class="muted">Set how long you'll be. If you don't check in, your phone asks if you're OK, then alerts your circle with where you said you'd be.</p>
+    <div class="card stack" id="timerSetup">
+      <label class="f">Where are you, or who are you with?<input type="text" id="tmNote" placeholder="At a party at Lisa's" maxlength="140"></label>
+      <label class="f">Check in after
+        <select id="tmMinutes"><option value="10">10 minutes</option><option value="20">20 minutes</option><option value="30" selected>30 minutes</option><option value="60">1 hour</option><option value="120">2 hours</option><option value="180">3 hours</option></select>
+      </label>
+      <label class="check"><input type="checkbox" id="tmTell" checked> Let my circle know I started</label>
+      <button class="btn primary block" type="button" data-action="timer-start">Start check-in</button>
+    </div>
+    <p class="small muted">Keep Shecurity open. A locked or dead phone can't raise the alarm, so tell someone your plan too.</p>
+  </section>
+
+  <!-- FAKE CALL -->
+  <section class="view" data-view="fakecall" hidden>
+    <button class="back" type="button" data-go="home"><svg class="i"><use href="#i-back"/></svg>Back</button>
+    <h1>Fake call</h1>
+    <p class="muted">Your phone rings with a realistic call. Answer it and a voice talks to you, so you have a reason to leave.</p>
+    <div class="card stack">
+      <label class="f">Caller name<input type="text" id="fcName" value="Mom" maxlength="30"></label>
+      <label class="f">What they say
+        <select id="fcScript"><option value="mom">Family: "Come home now"</option><option value="friend">Friend: "I'm outside"</option><option value="work">Work: "We need you"</option><option value="silent">Nothing, you talk</option></select>
+      </label>
+      <label class="f">Ring in
+        <select id="fcDelay"><option value="5">5 seconds</option><option value="30">30 seconds</option><option value="60">1 minute</option><option value="300">5 minutes</option></select>
+      </label>
+      <button class="btn primary block" type="button" data-action="fakecall-start">Schedule call</button>
+    </div>
+    <p class="small muted">Keep Shecurity open and your volume up.</p>
+  </section>
+
+  <!-- RIDE -->
+  <section class="view" data-view="ride" hidden>
+    <button class="back" type="button" data-go="home"><svg class="i"><use href="#i-back"/></svg>Back</button>
+    <h1>Ride check</h1>
+    <p class="muted">Before you get in, share the car and driver with your circle. Your location is shared for the trip.</p>
+    <div class="card stack">
+      <label class="f">Service<input type="text" id="rdService" placeholder="Uber, Bolt, taxi" maxlength="40"></label>
+      <label class="f">Car<input type="text" id="rdCar" placeholder="Grey Toyota Corolla" maxlength="60"></label>
+      <label class="f">Number plate<input type="text" id="rdPlate" placeholder="AB-123-C" maxlength="20" autocapitalize="characters"></label>
+      <label class="f">Driver's name<input type="text" id="rdDriver" maxlength="40"></label>
+      <label class="f">Trip length in minutes<input type="number" id="rdMins" inputmode="numeric" min="1" max="240" placeholder="25"></label>
+      <button class="btn primary block" type="button" data-action="ride-send">Share ride</button>
+    </div>
+  </section>
+
+  <!-- DATE -->
+  <section class="view" data-view="date" hidden>
+    <button class="back" type="button" data-go="home"><svg class="i"><use href="#i-back"/></svg>Back</button>
+    <h1>Date safety</h1>
+    <p class="muted">Meeting someone new? Tell your circle who and where, and set a time to check in.</p>
+    <div class="card stack">
+      <label class="f">Their name<input type="text" id="dtName" maxlength="40"></label>
+      <label class="f">Their phone or profile link<input type="text" id="dtProfile" maxlength="120"></label>
+      <label class="f">Where you're meeting<input type="text" id="dtPlace" maxlength="100"></label>
+      <label class="f">Photo of them<span class="hint">Optional. Sent only to the friend you pick.</span><input type="file" id="dtPhoto" accept="image/*"></label>
+      <label class="f">Check in after
+        <select id="dtMinutes"><option value="0">No check-in</option><option value="60">1 hour</option><option value="120" selected>2 hours</option><option value="180">3 hours</option><option value="240">4 hours</option></select>
+      </label>
+      <button class="btn primary block" type="button" data-action="date-send">Share date details</button>
+    </div>
+  </section>
+
+  <!-- RECORD -->
+  <section class="view" data-view="record" hidden>
+    <button class="back" type="button" data-go="home"><svg class="i"><use href="#i-back"/></svg>Back</button>
+    <h1>Record</h1>
+    <p class="muted">Record audio, then send it straight to someone you trust, so it's safe even if your phone is taken.</p>
+    <div class="card stack">
+      <div class="timer-big" id="recTime">00:00</div>
+      <button class="btn primary block" type="button" id="recBtn" data-action="record-toggle">Start recording</button>
+      <div class="row" id="recDone" hidden>
+        <button class="btn" type="button" data-action="record-share">Send recording</button>
+        <a class="btn" id="recSave" download="shecurity-recording.webm" href="#">Save to phone</a>
+      </div>
+    </div>
+    <p class="small muted">Recording laws differ by place. In some US states and countries everyone in a conversation must agree to be recorded.</p>
+  </section>
+
+  <!-- PLACES -->
+  <section class="view" data-view="places" hidden>
+    <button class="back" type="button" data-go="home"><svg class="i"><use href="#i-back"/></svg>Back</button>
+    <h1>Safe places nearby</h1>
+    <p class="muted">Opens your maps app with the nearest places. Busy, well-lit places with staff are best for waiting.</p>
+    <div class="list">
+      <a class="li" target="_blank" rel="noopener" href="https://www.google.com/maps/search/police+station+near+me"><svg class="i"><use href="#i-place"/></svg><span class="t"><b>Police station</b></span><svg class="i chev"><use href="#i-chev"/></svg></a>
+      <a class="li" target="_blank" rel="noopener" href="https://www.google.com/maps/search/hospital+emergency+near+me"><svg class="i"><use href="#i-place"/></svg><span class="t"><b>Hospital</b></span><svg class="i chev"><use href="#i-chev"/></svg></a>
+      <a class="li" target="_blank" rel="noopener" href="https://www.google.com/maps/search/24+hour+pharmacy+near+me"><svg class="i"><use href="#i-place"/></svg><span class="t"><b>24-hour pharmacy</b></span><svg class="i chev"><use href="#i-chev"/></svg></a>
+      <a class="li" target="_blank" rel="noopener" href="https://www.google.com/maps/search/open+cafe+near+me"><svg class="i"><use href="#i-place"/></svg><span class="t"><b>Open café or restaurant</b></span><svg class="i chev"><use href="#i-chev"/></svg></a>
+      <a class="li" target="_blank" rel="noopener" href="https://www.google.com/maps/search/gas+station+near+me"><svg class="i"><use href="#i-place"/></svg><span class="t"><b>Petrol station</b></span><svg class="i chev"><use href="#i-chev"/></svg></a>
+      <a class="li" target="_blank" rel="noopener" href="https://www.google.com/maps/search/hotel+near+me"><svg class="i"><use href="#i-place"/></svg><span class="t"><b>Hotel lobby</b></span><svg class="i chev"><use href="#i-chev"/></svg></a>
+    </div>
+  </section>
+
+  <!-- HELP -->
+  <section class="view" data-view="help" hidden>
+    <h1>Help lines</h1>
+    <label class="f">Country<select id="hlCountry"></select></label>
+    <div class="card" id="hlList" style="padding-block:4px"></div>
+    <span class="section-title">Free safety features already on your phone</span>
+    <details><summary>iPhone: Emergency SOS</summary><ol><li>Open Settings, then Emergency SOS.</li><li>Turn on "Call with Hold and Release" or "Call with 5 Button Presses".</li><li>Add emergency contacts in the Health app under Medical ID. They get a text with your location after an SOS call.</li></ol></details>
+    <details><summary>iPhone: Check In in Messages</summary><ol><li>In a chat, tap +, then More, then Check In.</li><li>If you don't arrive in time, your friend gets your location and battery automatically.</li><li>Needs iOS 17 or newer on both phones.</li></ol></details>
+    <details><summary>Android: Emergency SOS</summary><ol><li>Open Settings, then Safety &amp; emergency, then Emergency SOS.</li><li>Pressing the power button 5 times calls emergency services and can share your location.</li><li>On some phones: Settings, Advanced features, Send SOS messages.</li></ol></details>
+    <span class="section-title">One-tap SOS from your home screen</span>
+    <div class="card stack">
+      <p class="small">Your SOS link. Opening it starts a 5-second countdown you can cancel, then alerts your circle.</p>
+      <div class="msg-preview" id="sosLink" style="user-select:all"></div>
+      <button class="btn sm" type="button" data-action="copy-sos-link" style="align-self:flex-start">Copy link</button>
+    </div>
+    <details><summary>iPhone: SOS widget or button on the home screen</summary><ol><li>Copy your SOS link above.</li><li>Open the Shortcuts app, tap +, then Add Action, and choose "Open URLs". Paste the link.</li><li>Name the shortcut "SOS" and tap Done.</li><li>For a home-screen button: tap the shortcut's share icon, then "Add to Home Screen".</li><li>For a widget: long-press the home screen, tap Edit, then Add Widget, pick Shortcuts and choose "SOS".</li></ol></details>
+    <details><summary>iPhone: double-tap the back of your phone for SOS</summary><ol><li>Make the "SOS" shortcut above first.</li><li>Open Settings, then Accessibility, then Touch, then Back Tap.</li><li>Pick Double Tap or Triple Tap and choose "SOS".</li><li>On iPhone 15 Pro and newer you can also set the Action Button to the "SOS" shortcut in Settings, then Action Button.</li></ol></details>
+    <details><summary>Android: SOS, Walk with me and Fake call shortcuts</summary><ol><li>Install Shecurity from Chrome first (three dots, then Install app).</li><li>Long-press the Shecurity icon. You'll see SOS, Walk with me, Check-in and Fake call.</li><li>Drag any of them onto your home screen to get its own one-tap button.</li></ol></details>
+    <details><summary>Add Shecurity to your home screen</summary><ul><li><b>iPhone (Safari):</b> tap Share, then "Add to Home Screen". Needed for alerts on iPhone.</li><li><b>Android (Chrome):</b> tap the three dots, then "Install app".</li></ul></details>
+  </section>
+
+  <!-- ME -->
+  <section class="view" data-view="me" hidden>
+    <h1>You</h1>
+    <div class="card stack" id="meProfile" hidden>
+      <h2>Your profile</h2>
+      <label class="f">First name<input type="text" id="mpName" maxlength="40"></label>
+      <label class="f">Mobile number<span class="hint">Visible only to your circle.</span><input type="tel" id="mpPhone" maxlength="24"></label>
+      <button class="btn" type="button" data-action="profile-save">Save profile</button>
+    </div>
+    <div class="card">
+      <h2>Text message backup</h2>
+      <p class="small muted">For people who don't have Shecurity, or when there's no internet. They get your SOS as a normal text.</p>
+      <div id="contactList"></div>
+      <div class="stack">
+        <label class="f">Name<input type="text" id="ctName" maxlength="40" autocomplete="off"></label>
+        <label class="f">Mobile number with country code<input type="tel" id="ctPhone" placeholder="+1 555 123 4567" maxlength="24" autocomplete="off"></label>
+        <button class="btn" type="button" data-action="contact-add">Add backup contact</button>
+      </div>
+    </div>
+    <div class="card stack">
+      <h2>SOS settings</h2>
+      <label class="f">Your SOS message<textarea id="stTemplate" maxlength="300"></textarea></label>
+      <label class="check"><input type="checkbox" id="stSiren"> Sound the siren when I press SOS</label>
+      <label class="f">Country, for emergency numbers<select id="stCountry"></select></label>
+      <button class="btn" type="button" data-action="settings-save">Save settings</button>
+    </div>
+    <div class="card stack">
+      <h2>Free forever</h2>
+      <p class="small">Every safety feature in Shecurity is free and always will be: SOS, your circle, live location, check-ins, fake call and siren. No ads, ever, because nothing should get in the way in an emergency.</p>
+    </div>
+    <div class="card brand stack">
+      <div class="row" style="justify-content:space-between;align-items:center"><h2>Shecurity Plus</h2><span class="tag">Coming later</span></div>
+      <p class="small">Optional extras for people who want more, about $2.99 a month. They help keep the free app running.</p>
+      <ul class="small" style="margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:6px">
+        <li>Automatic texts to people who don't have Shecurity</li>
+        <li>24/7 professional help that can send emergency services</li>
+        <li>Recordings and alert history kept for a year</li>
+        <li>A friendly AI voice that keeps you company on the walk home</li>
+      </ul>
+      <button class="btn primary" type="button" id="plusBtn" data-action="plus-interest">Tell me when Plus launches</button>
+    </div>
+    <div class="card stack">
+      <h2>Privacy</h2>
+      <ul class="small" style="margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:6px">
+        <li>Only people in your circles can see your name, alerts and location.</li>
+        <li>Your location is shared only during an SOS, a walk, a ride or a missed check-in, and stops automatically.</li>
+        <li>Alerts are deleted after 30 days. Backup contacts and settings stay on this phone.</li>
+        <li>No ads, no tracking, no selling data. Ever.</li>
+      </ul>
+      <button class="btn" type="button" data-action="wipe">Delete my account and data</button>
+    </div>
+  </section>
+</main>
+
+<nav class="tabs" aria-label="Main">
+  <div class="in">
+    <button type="button" data-go="home" aria-current="page"><svg class="i"><use href="#i-home"/></svg>Home</button>
+    <button type="button" data-go="circle"><svg class="i"><use href="#i-people"/></svg>Circle<span class="badge" id="circleBadge" hidden></span></button>
+    <button type="button" data-go="help"><svg class="i"><use href="#i-help"/></svg>Help lines</button>
+    <button type="button" data-go="me"><svg class="i"><use href="#i-me"/></svg>You</button>
+  </div>
+</nav>
+
+<!-- SOS COUNTDOWN (from the home-screen shortcut) -->
+<div class="overlay" id="sosCountdown" hidden role="alertdialog" aria-modal="true" aria-labelledby="cdTitle">
+  <div class="in" style="justify-content:center;text-align:center">
+    <h1 id="cdTitle">Sending SOS to your circle</h1>
+    <div class="timer-big" id="cdTime" style="font-size:88px;color:var(--sos)">5</div>
+    <button class="btn danger block" type="button" data-action="cd-now">Send now</button>
+    <button class="btn block" type="button" data-action="cd-cancel" style="min-height:64px">Cancel</button>
+  </div>
+</div>
+
+<!-- SOS SHEET -->
+<div class="overlay" id="sosSheet" hidden role="dialog" aria-modal="true" aria-labelledby="sosTitle">
+  <div class="in">
+    <h1 id="sosTitle">Help is on the way</h1>
+    <div class="steps" id="sosSteps"></div>
+    <div class="card" id="sosResponses" hidden></div>
+    <button class="btn good block" type="button" id="sosSafe" data-action="sos-safe">I'm safe now</button>
+    <div class="row">
+      <a class="btn" id="sosCall" href="tel:112">Call 112</a>
+      <a class="btn" id="sosSms" href="#">Send as text</a>
+    </div>
+    <div class="row">
+      <button class="btn" type="button" data-action="siren">Siren</button>
+      <button class="btn" type="button" data-action="sos-share">Share another way</button>
+    </div>
+    <details><summary class="small">Message being sent</summary><div class="msg-preview" id="sosMsg"></div></details>
+    <button class="btn ghost block" type="button" data-action="sos-close">Close this screen</button>
+  </div>
+</div>
+
+<div class="overlay siren-screen" id="sirenScreen" hidden role="dialog" aria-label="Siren is sounding. Tap to stop."><div><h1>HELP</h1><p>Tap anywhere to stop</p></div></div>
+
+<div class="overlay" id="graceScreen" hidden role="alertdialog" aria-modal="true" aria-labelledby="graceTitle">
+  <div class="in" style="justify-content:center;text-align:center">
+    <h1 id="graceTitle" style="font-size:32px">Are you OK?</h1>
+    <p class="muted">Your check-in time is up. If you don't answer, your circle is alerted in</p>
+    <div class="timer-big" id="graceTime">60</div>
+    <button class="btn good block" type="button" data-action="timer-safe">I'm safe</button>
+    <button class="btn danger block" type="button" data-action="grace-help">I need help</button>
+  </div>
+</div>
+
+<div class="overlay call" id="callIncoming" hidden role="dialog" aria-label="Incoming call">
+  <div class="in">
+    <div class="who"><div class="big-avatar" id="ciInitial">M</div><div class="name" id="ciName">Mom</div><div class="sub">mobile</div></div>
+    <div class="actions">
+      <div><button class="round decline" type="button" data-action="call-decline" aria-label="Decline"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-3.5 0-6.6 1.1-9 3l2.4 3 3-1.2V11c1.1-.4 2.3-.6 3.6-.6s2.5.2 3.6.6v2.8l3 1.2L21 12c-2.4-1.9-5.5-3-9-3z"/></svg></button><div class="cap">Decline</div></div>
+      <div><button class="round accept" type="button" data-action="call-accept" aria-label="Accept"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1l-2.3 2.2z"/></svg></button><div class="cap">Accept</div></div>
+    </div>
+  </div>
+</div>
+<div class="overlay call" id="callActive" hidden role="dialog" aria-label="Call in progress">
+  <div class="in">
+    <div class="who"><div class="big-avatar" id="caInitial">M</div><div class="name" id="caName">Mom</div><div class="sub" id="caTime">00:00</div></div>
+    <div class="actions"><div><button class="round decline" type="button" data-action="call-end" aria-label="End call"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-3.5 0-6.6 1.1-9 3l2.4 3 3-1.2V11c1.1-.4 2.3-.6 3.6-.6s2.5.2 3.6.6v2.8l3 1.2L21 12c-2.4-1.9-5.5-3-9-3z"/></svg></button><div class="cap">End</div></div></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  "use strict";
+  var PREVIEW = /*PREVIEW*/false;
+  var CONFIG = {
+    url: "https://cgihqwekhbyhhadoizeb.supabase.co",
+    key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnaWhxd2VraGJ5aGhhZG9pemViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NDU3MzQsImV4cCI6MjEwODQyMTczNH0.jfeNmxsolNk9MHommYBRxAivYRblUr2WH9b4flQ0lzs",
+    vapid: "BNuIDldD61kvS8FIeYuGuYMivKCMwHYf-KpHRYEuuafVAEWfKtxRR1YhzYrG9Jqa7BmU10Gvo8_jG_gVgoN8nko"
+  };
+
+  // ---------- local storage (this phone only) ----------
+  var KEY = "shecurity.v2";
+  var defaults = { contacts: [], template: "I need help. Please call me, and call emergency services if you can't reach me.", sirenOnSos: false, country: "NL", timer: null, sharingUntil: 0, pendingJoin: null };
+  function load() { try { var raw = localStorage.getItem(KEY); if (raw) return Object.assign({}, defaults, JSON.parse(raw)); } catch (e) {} return Object.assign({}, defaults); }
+  var state = load();
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+  var COUNTRIES = {
+    NL: { name: "Netherlands", emergency: "112", lines: [["Emergency", "112"], ["Veilig Thuis (domestic violence)", "0800 2000"], ["Centrum Seksueel Geweld", "0800 0188"], ["113 Suicide prevention", "0800 0113"]] },
+    US: { name: "United States", emergency: "911", lines: [["Emergency", "911"], ["National Domestic Violence Hotline", "1-800-799-7233"], ["DV Hotline by text: text START to", "88788"], ["RAINN Sexual Assault Hotline", "1-800-656-4673"], ["Suicide & Crisis Lifeline", "988"]] },
+    GB: { name: "United Kingdom", emergency: "999", lines: [["Emergency", "999"], ["Silent call: dial 999, then press", "55"], ["Refuge National DV Helpline", "0808 2000 247"], ["Samaritans", "116 123"]] },
+    CA: { name: "Canada", emergency: "911", lines: [["Emergency", "911"], ["Suicide Crisis Helpline", "988"]] },
+    AU: { name: "Australia", emergency: "000", lines: [["Emergency", "000"], ["1800RESPECT", "1800 737 732"], ["Lifeline", "13 11 14"]] },
+    EU: { name: "Europe (other)", emergency: "112", lines: [["Emergency, anywhere in the EU", "112"]] }
+  };
+
+  // ---------- helpers ----------
+  var $ = function (id) { return document.getElementById(id); };
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function toast(msg) { var t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(function () { t.hidden = true; }, 3400); }
+  function vibrate(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+  function isIOS() { return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); }
+  function nums() { return state.contacts.map(function (c) { return c.phone.replace(/[^\d+]/g, ""); }).filter(Boolean); }
+  function smsHref(body, list) {
+    var n = list || nums(), enc = encodeURIComponent(body);
+    if (isIOS()) return n.length ? "sms:/open?addresses=" + n.join(",") + "&body=" + enc : "sms:&body=" + enc;
+    return "sms:" + n.join(",") + "?body=" + enc;
+  }
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function mmss(sec) { sec = Math.max(0, Math.round(sec)); var h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = sec % 60; return (h ? h + ":" + pad(m) : pad(m)) + ":" + pad(s); }
+  function hhmm(d) { return (d || new Date()).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); }
+  function ago(iso) { var s = (Date.now() - new Date(iso).getTime()) / 1000; if (s < 60) return "just now"; if (s < 3600) return Math.floor(s / 60) + " min ago"; if (s < 86400) return Math.floor(s / 3600) + " h ago"; return new Date(iso).toLocaleDateString(); }
+  function initial(n) { return (n || "?").trim().charAt(0).toUpperCase() || "?"; }
+  function mapLink(lat, lng) { return "https://maps.google.com/?q=" + lat + "," + lng; }
+  function emergencyNo() { return (COUNTRIES[state.country] || COUNTRIES.NL).emergency; }
+
+  function getLocation(ms) {
+    return new Promise(function (resolve) {
+      if (PREVIEW || !navigator.geolocation) return resolve(null);
+      var done = false, t = setTimeout(function () { if (!done) { done = true; resolve(null); } }, ms || 9000);
+      try {
+        navigator.geolocation.getCurrentPosition(function (p) { if (done) return; done = true; clearTimeout(t); resolve({ lat: +p.coords.latitude.toFixed(5), lng: +p.coords.longitude.toFixed(5), acc: Math.round(p.coords.accuracy) }); },
+          function () { if (!done) { done = true; clearTimeout(t); resolve(null); } }, { enableHighAccuracy: true, timeout: ms || 9000, maximumAge: 20000 });
+      } catch (e) { if (!done) { done = true; clearTimeout(t); resolve(null); } }
+    });
+  }
+  function getBattery() { if (!navigator.getBattery) return Promise.resolve(null); return navigator.getBattery().then(function (b) { return Math.round(b.level * 100); }).catch(function () { return null; }); }
+  function locLine(loc) { return loc ? "My location: " + mapLink(loc.lat, loc.lng) + " (within about " + loc.acc + " m)" : "My location couldn't be found. Please call me."; }
+
+  // ---------- network (Supabase) ----------
+  var net = { sb: null, ready: false, me: null, profile: null, circles: [], people: {}, feed: [], responses: {}, live: [], plans: [], channel: null, error: null };
+  function netOn() { return net.ready && net.me && net.profile; }
+  function mates() { var ids = {}; net.circles.forEach(function (c) { c.members.forEach(function (m) { if (m !== net.me) ids[m] = 1; }); }); return Object.keys(ids); }
+
+  function netInit() {
+    if (PREVIEW) { demoNetwork(); return; }
+    if (!window.supabase || !window.supabase.createClient) { net.error = "offline"; renderNet(); return; }
+    net.sb = window.supabase.createClient(CONFIG.url, CONFIG.key, { auth: { persistSession: true, autoRefreshToken: true, storageKey: "shecurity.auth" } });
+    net.sb.auth.getSession().then(function (r) {
+      var s = r.data && r.data.session;
+      net.ready = true;
+      if (!s) { renderNet(); return; }
+      net.me = s.user.id;
+      return refreshAll().then(subscribe);
+    }).catch(function () { net.error = "offline"; renderNet(); });
+  }
+  function refreshAll() {
+    return Promise.all([loadProfile(), loadCircles()]).then(function () { return Promise.all([loadFeed(), loadLive(), loadPlans()]); }).then(function () {
+      if (state.pendingJoin && net.profile) { var code = state.pendingJoin; state.pendingJoin = null; save(); return joinCircle(code); }
+    }).then(renderNet).catch(function (e) { net.error = (e && e.message) || "offline"; renderNet(); });
+  }
+  function loadProfile() {
+    return net.sb.from("profiles").select("*").eq("id", net.me).maybeSingle().then(function (r) { if (r.error) throw r.error; net.profile = r.data; });
+  }
+  function loadCircles() {
+    return net.sb.from("circle_members").select("circle_id, circles(id,name,owner_id,invite_code)").eq("user_id", net.me).then(function (r) {
+      if (r.error) throw r.error;
+      var list = (r.data || []).map(function (x) { return x.circles; }).filter(Boolean);
+      var ids = list.map(function (c) { return c.id; });
+      if (!ids.length) { net.circles = []; return; }
+      return net.sb.from("circle_members").select("circle_id,user_id").in("circle_id", ids).then(function (m) {
+        if (m.error) throw m.error;
+        list.forEach(function (c) { c.members = m.data.filter(function (x) { return x.circle_id === c.id; }).map(function (x) { return x.user_id; }); });
+        net.circles = list;
+        var uids = {}; m.data.forEach(function (x) { uids[x.user_id] = 1; });
+        return net.sb.from("profiles").select("id,display_name,phone").in("id", Object.keys(uids)).then(function (p) {
+          if (p.error) throw p.error; net.people = {}; p.data.forEach(function (x) { net.people[x.id] = x; });
+        });
+      });
+    });
+  }
+  function loadFeed() {
+    var since = new Date(Date.now() - 86400000).toISOString();
+    return net.sb.from("alerts").select("*").gte("created_at", since).order("created_at", { ascending: false }).limit(30).then(function (r) {
+      if (r.error) throw r.error; net.feed = r.data || [];
+      var ids = net.feed.map(function (a) { return a.id; });
+      if (!ids.length) { net.responses = {}; return; }
+      return net.sb.from("alert_responses").select("*").in("alert_id", ids).then(function (x) {
+        net.responses = {}; (x.data || []).forEach(function (rr) { (net.responses[rr.alert_id] = net.responses[rr.alert_id] || []).push(rr); });
+      });
+    });
+  }
+  function loadLive() {
+    return net.sb.from("live_locations").select("*").gt("sharing_until", new Date().toISOString()).then(function (r) { net.live = (r.data || []).filter(function (l) { return l.user_id !== net.me; }); });
+  }
+  function loadPlans() {
+    return net.sb.from("plans").select("*").gt("expires_at", new Date().toISOString()).then(function (r) { if (!r.error) net.plans = r.data || []; });
+  }
+  function subscribe() {
+    if (!net.sb || net.channel) return;
+    var refresh = debounce(function () { Promise.all([loadFeed(), loadLive(), loadPlans()]).then(renderNet); }, 400);
+    net.channel = net.sb.channel("circle")
+      .on("postgres_changes", { event: "*", schema: "public", table: "alerts" }, function (p) {
+        var a = p.new;
+        if (p.eventType === "INSERT" && a && a.sender_id !== net.me && (a.kind === "sos" || a.kind === "missed_checkin")) incomingAlarm(a);
+        refresh();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "alert_responses" }, function (p) {
+        if (p.new && p.new.user_id !== net.me && sos.alertId && p.new.alert_id === sos.alertId) { vibrate([150, 80, 150]); }
+        refresh();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "live_locations" }, refresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "plans" }, refresh)
+      .subscribe();
+  }
+  function debounce(fn, ms) { var t; return function () { clearTimeout(t); t = setTimeout(fn, ms); }; }
+  function notify(type, alertId) {
+    if (!net.sb) return Promise.resolve(null);
+    return net.sb.functions.invoke("notify", { body: { type: type, alert_id: alertId } }).then(function (r) { return r.data; }).catch(function () { return null; });
+  }
+
+  function joinNetwork() {
+    var name = $("jnName").value.trim(), phone = $("jnPhone").value.trim();
+    if (!name) { toast("Add your first name."); return; }
+    if (PREVIEW) { toast("Works in the live app."); return; }
+    if (!net.sb) { toast("Can't reach the network. Check your connection."); return; }
+    $("jnName").disabled = true;
+    net.sb.auth.signInAnonymously().then(function (r) {
+      if (r.error) throw r.error;
+      net.me = r.data.user.id;
+      return net.sb.from("profiles").insert({ id: net.me, display_name: name, phone: phone || null });
+    }).then(function (r) {
+      if (r && r.error) throw r.error;
+      return refreshAll();
+    }).then(function () { subscribe(); toast("Welcome, " + name); })
+      .catch(function (e) { toast(/anonymous/i.test(e.message || "") ? "The network is still being switched on. Try again later." : "Couldn't join: " + (e.message || "connection problem")); })
+      .then(function () { $("jnName").disabled = false; });
+  }
+  function createCircle() {
+    var n = $("ccName").value.trim(); if (!n) { toast("Give your circle a name."); return; }
+    if (PREVIEW) { toast("Works in the live app."); return; }
+    net.sb.rpc("create_circle", { p_name: n }).then(function (r) {
+      if (r.error) throw r.error; $("ccName").value = "";
+      return loadCircles().then(function () { renderNet(); invite(r.data); });
+    }).catch(function (e) { toast(e.message || "Couldn't create the circle."); });
+  }
+  function joinCircle(code) {
+    code = (code || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+    if (code.length < 6) { toast("Enter the 8-letter code."); return Promise.resolve(); }
+    if (PREVIEW) { toast("Works in the live app."); return Promise.resolve(); }
+    return net.sb.rpc("join_circle", { p_code: code }).then(function (r) {
+      if (r.error) throw r.error; $("jcCode").value = "";
+      toast("You joined " + r.data.name);
+      return loadCircles().then(function () { return Promise.all([loadFeed(), loadLive(), loadPlans()]); }).then(renderNet);
+    }).catch(function (e) { toast(e.message || "Couldn't join."); });
+  }
+  function appUrl() { return location.origin + location.pathname; }
+  function invite(c) {
+    var text = "Join my Shecurity circle \"" + c.name + "\" so we can look out for each other. Open " + appUrl() + "#join-" + c.invite_code + " or enter the code " + c.invite_code + ".";
+    shareText(text);
+  }
+  function leaveCircle(c) {
+    var owner = c.owner_id === net.me;
+    var q = owner ? net.sb.from("circles").delete().eq("id", c.id) : net.sb.from("circle_members").delete().eq("circle_id", c.id).eq("user_id", net.me);
+    q.then(function (r) { if (r.error) throw r.error; toast(owner ? "Circle deleted" : "You left " + c.name); return loadCircles(); }).then(renderNet).catch(function (e) { toast(e.message); });
+  }
+  function respond(alert, response) {
+    if (PREVIEW) { toast("Works in the live app."); return; }
+    net.sb.from("alert_responses").upsert({ alert_id: alert.id, user_id: net.me, response: response }).then(function (r) {
+      if (r.error) throw r.error; notify("response", alert.id); toast("Sent. They'll see it right away.");
+      return loadFeed();
+    }).then(renderNet).catch(function (e) { toast(e.message); });
+  }
+  function sendAlert(kind, message, loc, bat) {
+    if (!netOn() || !mates().length) return Promise.resolve(null);
+    var row = { kind: kind, message: message || null, lat: loc ? loc.lat : null, lng: loc ? loc.lng : null, accuracy: loc ? loc.acc : null, battery: bat };
+    return net.sb.from("alerts").insert(row).select().single().then(function (r) {
+      if (r.error) throw r.error;
+      return notify("alert", r.data.id).then(function (n) { r.data._push = n; return r.data; });
+    }).catch(function () { return null; });
+  }
+  function resolveAlert(id) {
+    if (!netOn() || !id) return Promise.resolve();
+    return net.sb.from("alerts").update({ status: "resolved", resolved_at: new Date().toISOString() }).eq("id", id).then(function () {});
+  }
+
+  // live location
+  var watch = { id: null, last: 0, pending: null };
+  function startSharing(minutes, note) {
+    state.sharingUntil = Date.now() + minutes * 60000; state.sharingNote = note || ""; save();
+    if (!netOn() || PREVIEW || !navigator.geolocation) return;
+    if (watch.id != null) return;
+    try {
+      watch.id = navigator.geolocation.watchPosition(function (p) {
+        if (Date.now() > state.sharingUntil) { stopSharing(); return; }
+        if (Date.now() - watch.last < 15000) return;
+        watch.last = Date.now();
+        getBattery().then(function (bat) {
+          net.sb.from("live_locations").upsert({ user_id: net.me, lat: +p.coords.latitude.toFixed(5), lng: +p.coords.longitude.toFixed(5), accuracy: Math.round(p.coords.accuracy), battery: bat, note: state.sharingNote || null, sharing_until: new Date(state.sharingUntil).toISOString(), updated_at: new Date().toISOString() });
+        });
+      }, function () {}, { enableHighAccuracy: true, maximumAge: 10000 });
+    } catch (e) {}
+    keepAwake();
+  }
+  function stopSharing() {
+    state.sharingUntil = 0; save();
+    if (watch.id != null) { try { navigator.geolocation.clearWatch(watch.id); } catch (e) {} watch.id = null; }
+    if (netOn()) net.sb.from("live_locations").delete().eq("user_id", net.me).then(function () {});
+    if (!state.timer) releaseAwake();
+  }
+
+  // plans: one current plan per person, visible to circle mates until it expires
+  function activePlans() { return net.plans.filter(function (p) { return new Date(p.expires_at).getTime() > Date.now(); }); }
+  function planOf(id) { return activePlans().filter(function (p) { return p.user_id === id; })[0] || null; }
+  function liveOf(id) { return net.live.filter(function (l) { return l.user_id === id && new Date(l.sharing_until).getTime() > Date.now(); })[0] || null; }
+  function untilText(iso) {
+    var d = new Date(iso), left = (d.getTime() - Date.now()) / 3600000;
+    if (left < 1) return "for " + Math.max(1, Math.round(left * 60)) + " more min";
+    var sameDay = d.toDateString() === new Date().toDateString();
+    return "until " + (sameDay ? "" : d.toLocaleDateString([], { weekday: "short" }) + " ") + hhmm(d);
+  }
+  function postPlan() {
+    var where = v("plWhere"), withWhom = v("plWith"), msg = v("plMsg"), hours = parseInt($("plHours").value, 10) || 24;
+    if (!where && !withWhom) { toast("Add where you're going or who you're with."); $("plWhere").focus(); return; }
+    if (!netOn()) { go("circle"); return; }
+    var btn = $("plPost"); btn.disabled = true;
+    var row = { user_id: net.me, place: where || null, with_whom: withWhom || null, message: msg || null, lat: null, lng: null, expires_at: new Date(Date.now() + hours * 3600000).toISOString() };
+    ($("plLoc").checked ? getLocation(8000) : Promise.resolve(null)).then(function (loc) {
+      if (loc) { row.lat = loc.lat; row.lng = loc.lng; }
+      if (PREVIEW) { row.created_at = new Date().toISOString(); net.plans = net.plans.filter(function (p) { return p.user_id !== net.me; }).concat([row]); return; }
+      return net.sb.from("plans").upsert(row).then(function (r) { if (r.error) throw r.error; return loadPlans(); });
+    }).then(function () {
+      renderNet(); go("circle");
+      toast(mates().length ? "Your circle can see your plans " + untilText(row.expires_at) + "." : "Saved. Invite people so they can see it.");
+    }).catch(function (e) { toast(e.message || "Couldn't share your plans."); })
+      .then(function () { btn.disabled = false; });
+  }
+  function endPlan() {
+    var done = function () { net.plans = net.plans.filter(function (p) { return p.user_id !== net.me; }); renderNet(); renderPlanForm(); toast("Your plans are no longer shown."); };
+    if (PREVIEW || !netOn()) { done(); return; }
+    net.sb.from("plans").delete().eq("user_id", net.me).then(function (r) { if (r.error) throw r.error; done(); }).catch(function (e) { toast(e.message); });
+  }
+  function planRow(p) {
+    var me = p.user_id === net.me, person = net.people[p.user_id] || {};
+    var row = el("div", "plan"); row.id = "plan-" + p.user_id;
+    row.appendChild(el("span", "avatar", me ? selfInitial() : initial(nameOf(p.user_id))));
+    var t = el("div", "t"), who = el("div", "who");
+    who.appendChild(el("b", null, me ? "You" : nameOf(p.user_id)));
+    who.appendChild(el("span", null, untilText(p.expires_at)));
+    t.appendChild(who);
+    if (p.place) t.appendChild(el("div", "where", p.place));
+    if (p.with_whom) t.appendChild(el("div", p.place ? "with" : "where", "With " + p.with_whom));
+    if (p.message) t.appendChild(el("div", "msg", p.message));
+    var acts = el("div", "row"), live = liveOf(p.user_id);
+    if (live || p.lat != null) { var m = el("a", "btn sm", live ? "Live location" : "Map"); m.href = live ? mapLink(live.lat, live.lng) : mapLink(p.lat, p.lng); m.target = "_blank"; m.rel = "noopener"; acts.appendChild(m); }
+    if (!me && person.phone) { var c = el("a", "btn sm", "Call"); c.href = "tel:" + person.phone.replace(/[^\d+]/g, ""); acts.appendChild(c); }
+    if (me) { var e = el("button", "btn sm", "Edit"); e.type = "button"; e.addEventListener("click", function () { go("plan"); }); acts.appendChild(e); }
+    if (acts.childNodes.length) t.appendChild(acts);
+    row.appendChild(t);
+    return row;
+  }
+  function selfInitial() { return initial(net.profile && net.profile.display_name); }
+  function storyEl(id, tag) {
+    var me = id === net.me, plan = planOf(id), live = liveOf(id);
+    var b = el(tag, "story" + (plan ? " on" : "") + (me && !plan ? " add" : "") + (!plan && !live && !me ? " quiet" : ""));
+    if (tag === "button") b.type = "button";
+    var ring = el("span", "ring"); ring.appendChild(el("span", "avatar", me && !plan ? "+" : me ? selfInitial() : initial(nameOf(id))));
+    if (live) ring.appendChild(el("span", "live"));
+    b.appendChild(ring); b.appendChild(el("span", null, me ? "You" : nameOf(id)));
+    b.title = me ? (plan ? "Your plans" : "Share your plans") : nameOf(id) + (plan ? ": " + (plan.place || "with " + plan.with_whom) : live ? ": sharing live location" : ": no plans shared");
+    if (tag === "button") b.addEventListener("click", function () {
+      if (me && !plan) { go("plan"); return; }
+      var r = $("plan-" + id);
+      if (r) { r.scrollIntoView({ behavior: "smooth", block: "center" }); r.classList.remove("flash"); void r.offsetWidth; r.classList.add("flash"); }
+      else toast(live ? nameOf(id) + " is sharing her live location below." : nameOf(id) + " hasn't shared any plans right now.");
+    });
+    return b;
+  }
+  function circleOrder() {
+    // people with plans first, then live, then everyone else; you always first
+    return mates().sort(function (a, b) {
+      var sa = planOf(a) ? 0 : liveOf(a) ? 1 : 2, sb = planOf(b) ? 0 : liveOf(b) ? 1 : 2;
+      return sa - sb || nameOf(a).localeCompare(nameOf(b));
+    });
+  }
+  function renderPlans() {
+    var ids = [net.me].concat(circleOrder());
+    var cs = $("circleStories"); cs.innerHTML = ""; ids.forEach(function (id) { cs.appendChild(storyEl(id, "button")); });
+    var list = $("planList"); list.innerHTML = "";
+    var plans = activePlans().slice().sort(function (a, b) { return (b.user_id === net.me) - (a.user_id === net.me) || new Date(b.created_at) - new Date(a.created_at); });
+    if (!plans.length) list.appendChild(el("p", "small muted", mates().length ? "Nobody has shared plans right now. Share yours so your circle knows where you are." : "When people join your circle, you'll see where they're going and who they're with here."));
+    plans.forEach(function (p) { list.appendChild(planRow(p)); });
+    $("planBtn").textContent = planOf(net.me) ? "Update my plans" : "Share my plans";
+
+    var hc = $("homeCircle"), m = mates();
+    hc.hidden = !m.length;
+    if (m.length) {
+      var hs = $("homeStories"); hs.innerHTML = "";
+      [net.me].concat(circleOrder()).slice(0, 4).forEach(function (id) { hs.appendChild(storyEl(id, "span")); });
+      var withPlans = m.filter(planOf).length, liveN = m.filter(liveOf).length;
+      $("homeCircleText").textContent = (withPlans ? withPlans + (withPlans === 1 ? " friend has" : " friends have") + " shared plans" : "No plans shared right now") + (liveN ? " · " + liveN + " sharing live location" : "") + ". Tap to see.";
+    }
+  }
+  function renderPlanForm() {
+    var joined = netOn();
+    $("planJoin").hidden = joined; $("planForm").hidden = !joined;
+    var mine = joined ? planOf(net.me) : null, box = $("planMine");
+    box.hidden = !mine; box.innerHTML = "";
+    if (mine) {
+      box.appendChild(el("p", "small muted", "Your circle sees this now"));
+      box.appendChild(planRow(mine));
+      box.querySelectorAll(".plan .row").forEach(function (r) { r.remove(); });
+      var end = el("button", "btn block", "Stop showing my plans"); end.type = "button"; end.addEventListener("click", endPlan); box.appendChild(end);
+      $("plWhere").value = mine.place || ""; $("plWith").value = mine.with_whom || ""; $("plMsg").value = mine.message || "";
+    }
+    $("plPost").textContent = mine ? "Update my plans" : "Share with my circle";
+  }
+
+  // push notifications
+  function urlB64(b) { var p = "=".repeat((4 - b.length % 4) % 4), s = (b + p).replace(/-/g, "+").replace(/_/g, "/"), raw = atob(s), out = new Uint8Array(raw.length); for (var i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i); return out; }
+  function pushSupported() { return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window; }
+  function pushState() {
+    if (PREVIEW) return Promise.resolve("example");
+    if (!pushSupported()) return Promise.resolve(isIOS() ? "ios-install" : "unsupported");
+    if (Notification.permission === "denied") return Promise.resolve("denied");
+    return navigator.serviceWorker.ready.then(function (reg) { return reg.pushManager.getSubscription(); }).then(function (s) { return s ? "on" : "off"; }).catch(function () { return "off"; });
+  }
+  function enablePush() {
+    if (PREVIEW) { toast("Works in the live app."); return; }
+    if (!pushSupported()) { toast(isIOS() ? "On iPhone, add Shecurity to your home screen first." : "This browser can't show alerts."); return; }
+    Notification.requestPermission().then(function (perm) {
+      if (perm !== "granted") throw new Error("Alerts are blocked. Allow notifications for Shecurity in your phone settings.");
+      return navigator.serviceWorker.ready;
+    }).then(function (reg) {
+      return reg.pushManager.getSubscription().then(function (s) { return s || reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64(CONFIG.vapid) }); });
+    }).then(function (sub) {
+      var j = sub.toJSON();
+      return net.sb.from("push_subscriptions").upsert({ endpoint: j.endpoint, user_id: net.me, p256dh: j.keys.p256dh, auth: j.keys.auth });
+    }).then(function (r) { if (r && r.error) throw r.error; toast("Alerts are on."); renderNet(); })
+      .catch(function (e) { toast(e.message || "Couldn't turn on alerts."); });
+  }
+
+  // ---------- rendering ----------
+  function nameOf(id) { if (id === net.me) return "You"; var p = net.people[id]; return (p && p.display_name) || "Someone"; }
+  var KIND = { sos: ["SOS", "needs help", "sos"], missed_checkin: ["Missed check-in", "missed a check-in", "sos"], checkin_started: ["Check-in", "started a check-in", ""], walk: ["Walking", "is walking home", ""], location: ["Location", "shared her location", ""], safe: ["Safe", "is safe", "safe"] };
+  var RESP = { seen: "has seen it", on_my_way: "is on the way", calling: "is calling", called_police: "called emergency services" };
+
+  function renderNet() {
+    var joined = netOn();
+    $("netJoin").hidden = joined || !!net.error && !PREVIEW;
+    $("netOffline").hidden = !(net.error && !joined && !PREVIEW);
+    $("netArea").hidden = !joined;
+    $("meProfile").hidden = !joined;
+    if (joined) { $("mpName").value = net.profile.display_name; $("mpPhone").value = net.profile.phone || ""; }
+
+    var count = mates().length;
+    var hr = new Date().getHours(), part = hr < 5 ? "Good night" : hr < 12 ? "Good morning" : hr < 18 ? "Good afternoon" : "Good evening";
+    $("helloTitle").textContent = part + (joined && net.profile.display_name ? ", " + net.profile.display_name : "");
+    $("helloSub").textContent = joined ? (count ? "Your circle has your back" : "Invite the people you trust") : "Your safety, one tap away";
+    var chipC = $("chipCircle");
+    chipC.classList.toggle("on", joined && count > 0);
+    chipC.lastChild.textContent = joined ? (count ? count + " in your circle" : "Invite your people") : "Set up your circle";
+
+    pushState().then(function (s) {
+      var chipA = $("chipAlerts");
+      chipA.hidden = !joined;
+      chipA.classList.toggle("on", s === "on" || s === "example");
+      chipA.lastChild.textContent = (s === "on" || s === "example") ? "Alerts on" : "Alerts off";
+      var card = $("pushCard"), btn = $("pushBtn");
+      card.hidden = s === "on" || s === "example";
+      $("pushTitle").textContent = s === "denied" ? "Alerts are blocked" : s === "ios-install" ? "Add to home screen for alerts" : "Turn on alerts";
+      $("pushText").textContent = s === "denied" ? "Allow notifications for Shecurity in your phone settings, then come back." : s === "ios-install" ? "On iPhone, alerts work once Shecurity is on your home screen: tap Share, then Add to Home Screen, and open it from there." : s === "unsupported" ? "This browser can't show alerts. Try Chrome or Safari." : "So your phone tells you when someone in your circle needs help, even when the app is closed.";
+      btn.hidden = s === "denied" || s === "ios-install" || s === "unsupported";
+    });
+    if (!joined) { $("homeCircle").hidden = true; renderIncoming(); return; }
+
+    renderPlans();
+
+    // live
+    var live = net.live.filter(function (l) { return new Date(l.sharing_until).getTime() > Date.now(); });
+    $("liveWrap").hidden = !live.length;
+    var ll = $("liveList"); ll.innerHTML = "";
+    live.forEach(function (l) {
+      var row = el("div", "person"); row.appendChild(el("span", "avatar", initial(nameOf(l.user_id))));
+      var t = el("div", "t"); t.appendChild(el("b", null, nameOf(l.user_id))); t.appendChild(el("span", null, (l.note ? l.note + " · " : "") + "updated " + ago(l.updated_at) + (l.battery != null ? " · " + l.battery + "% battery" : ""))); row.appendChild(t);
+      var a = el("a", "btn sm", "Map"); a.href = mapLink(l.lat, l.lng); a.target = "_blank"; a.rel = "noopener"; row.appendChild(a);
+      ll.appendChild(row);
+    });
+
+    // feed
+    var feed = $("feed"); feed.innerHTML = "";
+    var items = net.feed.filter(function (a) { return a.kind !== "checkin_started" || a.sender_id !== net.me; });
+    if (!items.length) feed.appendChild(el("p", "small muted", "Nothing in the last 24 hours. That's a good thing."));
+    items.forEach(function (a) {
+      var k = KIND[a.kind] || [a.kind, a.kind, ""];
+      var it = el("div", "feed-item"), head = el("div", "feed-head");
+      head.appendChild(el("span", "avatar", initial(nameOf(a.sender_id))));
+      var t = el("div", "t"); t.appendChild(el("b", null, nameOf(a.sender_id) + " " + (a.sender_id === net.me ? k[1].replace("needs", "asked for").replace("is ", "were ").replace("her", "your") : k[1])));
+      t.appendChild(el("span", "small muted", ago(a.created_at) + (a.status === "resolved" && a.kind !== "safe" ? " · resolved" : "") + (a.message ? " · " + a.message : "")));
+      head.appendChild(t);
+      if (a._example) head.appendChild(el("span", "example", "Example"));
+      else head.appendChild(el("span", "tag " + k[2], k[0]));
+      it.appendChild(head);
+      var rs = net.responses[a.id] || [];
+      if (rs.length) it.appendChild(el("p", "resp", rs.map(function (r) { return nameOf(r.user_id) + " " + RESP[r.response]; }).join(" · ")));
+      if (a.sender_id !== net.me && (a.kind === "sos" || a.kind === "missed_checkin") && a.status === "active") it.appendChild(responseRow(a));
+      else if (a.lat != null) { var m = el("a", "btn sm", "See location"); m.href = mapLink(a.lat, a.lng); m.target = "_blank"; m.rel = "noopener"; m.style.alignSelf = "flex-start"; it.appendChild(m); }
+      feed.appendChild(it);
+    });
+
+    // circles
+    var cl = $("circleList"); cl.innerHTML = "";
+    if (!net.circles.length) {
+      var c0 = el("div", "card brand"); c0.appendChild(el("h2", null, "Invite your first people"));
+      c0.appendChild(el("p", "small", "Create a circle below and send the invite to 3 to 5 people you trust. They install Shecurity and join with your code."));
+      cl.appendChild(c0);
+    }
+    net.circles.forEach(function (c) {
+      var card = el("div", "card");
+      var hd = el("div", "row"); hd.style.justifyContent = "space-between"; hd.style.alignItems = "center";
+      hd.appendChild(el("h2", null, c.name)); hd.appendChild(el("span", "small muted", c.members.length + (c.members.length === 1 ? " person" : " people")));
+      card.appendChild(hd);
+      var list = el("div");
+      c.members.forEach(function (m) {
+        var p = net.people[m] || {}; var row = el("div", "person");
+        row.appendChild(el("span", "avatar", initial(p.display_name)));
+        var t = el("div", "t"); t.appendChild(el("b", null, m === net.me ? (p.display_name || "You") + " (you)" : (p.display_name || "Someone"))); t.appendChild(el("span", null, m === c.owner_id ? "Created this circle" : "Member")); row.appendChild(t);
+        if (m !== net.me && p.phone) { var a = el("a", "btn sm", "Call"); a.href = "tel:" + p.phone.replace(/[^\d+]/g, ""); row.appendChild(a); }
+        list.appendChild(row);
+      });
+      card.appendChild(list);
+      if (c.invite_code) {
+        card.appendChild(el("p", "small muted", "Invite code"));
+        card.appendChild(el("div", "code", c.invite_code));
+      }
+      var r = el("div", "row");
+      var inv = el("button", "btn primary", "Invite people"); inv.type = "button"; inv.addEventListener("click", function () { invite(c); }); r.appendChild(inv);
+      var lv = el("button", "btn", c.owner_id === net.me ? "Delete circle" : "Leave"); lv.type = "button";
+      lv.addEventListener("click", function () { if (lv.getAttribute("data-armed") !== "1") { lv.setAttribute("data-armed", "1"); lv.textContent = "Tap again to confirm"; return; } leaveCircle(c); });
+      r.appendChild(lv); card.appendChild(r);
+      cl.appendChild(card);
+    });
+    renderIncoming();
+  }
+  function responseRow(a) {
+    var row = el("div", "row");
+    [["on_my_way", "I'm on my way", "btn sm primary"], ["calling", "I'm calling her", "btn sm"], ["called_police", "I called " + emergencyNo(), "btn sm"]].forEach(function (x) {
+      var b = el("button", x[2], x[1]); b.type = "button"; b.addEventListener("click", function () { respond(a, x[0]); }); row.appendChild(b);
+    });
+    if (a.lat != null) { var m = el("a", "btn sm", "See location"); m.href = mapLink(a.lat, a.lng); m.target = "_blank"; m.rel = "noopener"; row.appendChild(m); }
+    return row;
+  }
+  function activeIncoming() {
+    return net.feed.filter(function (a) { return a.sender_id !== net.me && (a.kind === "sos" || a.kind === "missed_checkin") && a.status === "active" && Date.now() - new Date(a.created_at).getTime() < 6 * 3600000 && !a._example; });
+  }
+  function renderIncoming() {
+    var act = netOn() ? activeIncoming() : [];
+    $("circleBadge").hidden = !act.length;
+    var card = $("incomingCard"); card.innerHTML = ""; card.hidden = !act.length;
+    act.slice(0, 2).forEach(function (a) {
+      var k = KIND[a.kind];
+      card.appendChild(el("h2", null, nameOf(a.sender_id) + " " + k[1]));
+      var live = net.live.filter(function (l) { return l.user_id === a.sender_id; })[0];
+      card.appendChild(el("p", "small", ago(a.created_at) + (a.message ? " · " + a.message : "") + (live ? " · live location on" : "")));
+      var rs = net.responses[a.id] || [];
+      if (rs.length) card.appendChild(el("p", "resp", rs.map(function (r) { return nameOf(r.user_id) + " " + RESP[r.response]; }).join(" · ")));
+      card.appendChild(responseRow(live ? Object.assign({}, a, { lat: live.lat, lng: live.lng }) : a));
+    });
+  }
+  function incomingAlarm(a) {
+    vibrate([600, 200, 600, 200, 600]);
+    try { var AC = window.AudioContext || window.webkitAudioContext, ctx = new AC(); [0, 0.5, 1].forEach(function (d) { var o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = 880; g.gain.value = 0.4; o.connect(g); g.connect(ctx.destination); o.start(ctx.currentTime + d); o.stop(ctx.currentTime + d + 0.3); }); } catch (e) {}
+    toast(nameOf(a.sender_id) + " needs help");
+  }
+
+  // ---------- demo data for the preview ----------
+  function demoNetwork() {
+    var now = Date.now(), iso = function (m) { return new Date(now - m * 60000).toISOString(); };
+    net.ready = true; net.me = "me"; net.profile = { id: "me", display_name: "Ava", phone: "" };
+    net.people = { me: { display_name: "Ava" }, mia: { display_name: "Mia", phone: "+31600000000" }, sam: { display_name: "Sam", phone: "+31600000001" }, lena: { display_name: "Lena" }, mom: { display_name: "Mom", phone: "+31600000002" } };
+    net.circles = [{ id: "c1", name: "Best friends", owner_id: "me", invite_code: "K7MQ2XPA", members: ["me", "mia", "sam", "lena"] }, { id: "c2", name: "Family", owner_id: "mom", invite_code: null, members: ["me", "mom"] }];
+    net.live = [{ user_id: "mia", lat: 52.3702, lng: 4.8952, battery: 64, note: "Walking home from the station", updated_at: iso(0.3), sharing_until: new Date(now + 900000).toISOString() }];
+    net.feed = [
+      { id: "f1", sender_id: "mia", kind: "walk", message: "Walking home from the station", created_at: iso(4), status: "active", lat: 52.37, lng: 4.895, _example: true },
+      { id: "f2", sender_id: "lena", kind: "safe", message: "Home safe", created_at: iso(95), status: "active", _example: true },
+      { id: "f3", sender_id: "sam", kind: "missed_checkin", message: "Was at a party at Jules'", created_at: iso(140), status: "resolved", _example: true }
+    ];
+    net.plans = [
+      { user_id: "sam", place: "Jules' birthday party, Oudegracht", with_whom: "Lena and Tom", message: "Back around 1, text me if you need me", lat: 52.0907, lng: 5.1214, created_at: iso(50), expires_at: new Date(now + 5 * 3600000).toISOString() },
+      { user_id: "mom", place: "Dinner at Grandma's", with_whom: "Dad", message: null, lat: null, lng: null, created_at: iso(180), expires_at: new Date(now + 3 * 3600000).toISOString() },
+      { user_id: "mia", place: "Heading home from the station", with_whom: null, message: null, lat: null, lng: null, created_at: iso(5), expires_at: new Date(now + 3600000).toISOString() }
+    ];
+    net.responses = { f3: [{ user_id: "me", response: "calling" }, { user_id: "lena", response: "on_my_way" }] };
+    renderNet();
+  }
+
+  // ---------- navigation ----------
+  var TABS = { home: "home", circle: "circle", help: "help", me: "me", plan: "circle" };
+  function go(view) {
+    document.querySelectorAll(".view[data-view]").forEach(function (v) { v.hidden = v.getAttribute("data-view") !== view; });
+    var tab = TABS[view] || "home";
+    document.querySelectorAll("nav.tabs button").forEach(function (b) { if (b.getAttribute("data-go") === tab) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
+    window.scrollTo(0, 0);
+    if (view === "me") renderMe();
+    if (view === "circle" && net.sb && netOn()) Promise.all([loadFeed(), loadLive(), loadPlans()]).then(renderNet);
+    if (view === "plan") renderPlanForm();
+  }
+
+  // ---------- SOS ----------
+  var sos = { alertId: null, message: "", poll: null };
+  function step(id, text, st) {
+    var box = $("sosSteps"), s = $(id);
+    if (!s) { s = el("div", "step"); s.id = id; s.appendChild(el("span", "s")); s.appendChild(el("span")); box.appendChild(s); }
+    s.className = "step" + (st ? " " + st : "");
+    s.firstChild.innerHTML = st === "done" ? '<svg class="i"><use href="#i-check"/></svg>' : st === "fail" ? "!" : "";
+    s.lastChild.textContent = text;
+  }
+  function openSos(opts) {
+    opts = opts || {};
+    $("sosSteps").innerHTML = ""; $("sosResponses").hidden = true;
+    $("sosTitle").textContent = opts.title || "Getting you help";
+    $("sosCall").href = "tel:" + emergencyNo(); $("sosCall").textContent = "Call " + emergencyNo();
+    $("sosSafe").hidden = opts.kind === "location";
+    $("sosSheet").hidden = false;
+    vibrate([200, 100, 200]);
+    if (opts.siren) startSiren();
+    var head = opts.body || state.template, kind = opts.kind || "sos";
+    setSosMessage(head + "\nSent " + hhmm() + " from Shecurity.");
+    step("st-loc", "Finding your location", "");
+    var networked = netOn() && mates().length > 0;
+    if (networked) step("st-net", "Alerting your circle", "");
+    else if (!PREVIEW) step("st-net", netOn() ? "Your circle is empty. Send as text instead." : "Not in a circle yet. Send as text instead.", "fail");
+    if (PREVIEW) { step("st-loc", "Location found (example)", "done"); step("st-net", "3 people alerted (example)", "done"); step("st-live", "Sharing your live location for 1 hour (example)", "done"); return; }
+    Promise.all([getLocation(), getBattery()]).then(function (r) {
+      var loc = r[0], bat = r[1];
+      step("st-loc", loc ? "Location found" : "Couldn't find your location", loc ? "done" : "fail");
+      setSosMessage(head + "\n" + locLine(loc) + (bat != null ? "\nBattery: " + bat + "%" : "") + "\nSent " + hhmm() + " from Shecurity.");
+      if (!networked) return;
+      return sendAlert(kind, opts.netMessage || (kind === "sos" ? null : head), loc, bat).then(function (a) {
+        if (!a) { step("st-net", "Couldn't reach your circle. Send as text.", "fail"); return; }
+        sos.alertId = a.id;
+        var n = mates().length, pushed = a._push && a._push.sent;
+        step("st-net", n + (n === 1 ? " person" : " people") + " alerted" + (pushed ? " on their phones" : ""), "done");
+        if (kind !== "location") { startSharing(60, "SOS"); step("st-live", "Sharing your live location for 1 hour", "done"); }
+        watchResponses();
+      });
+    });
+  }
+  function setSosMessage(m) { sos.message = m; $("sosMsg").textContent = m; $("sosSms").href = smsHref(m); }
+  function watchResponses() {
+    clearInterval(sos.poll);
+    function show() {
+      var rs = (net.responses[sos.alertId] || []);
+      var box = $("sosResponses"); box.innerHTML = ""; box.hidden = !rs.length;
+      rs.forEach(function (r) { var row = el("div", "person"); row.appendChild(el("span", "avatar", initial(nameOf(r.user_id)))); var t = el("div", "t"); t.appendChild(el("b", null, nameOf(r.user_id) + " " + RESP[r.response])); t.appendChild(el("span", null, ago(r.created_at))); row.appendChild(t); box.appendChild(row); });
+    }
+    show(); sos.poll = setInterval(function () { if ($("sosSheet").hidden) { clearInterval(sos.poll); return; } show(); }, 1500);
+  }
+  function markSafe() {
+    var id = sos.alertId; sos.alertId = null;
+    stopSiren(); stopSharing(); $("sosSheet").hidden = true;
+    if (netOn() && id) {
+      resolveAlert(id).then(function () { return sendAlert("safe", "Marked safe at " + hhmm(), null, null); }).then(function () { return loadFeed(); }).then(renderNet);
+      toast("Your circle has been told you're safe.");
+    } else toast("Glad you're safe.");
+  }
+  function shareText(text, files) {
+    var data = { text: text };
+    if (files && files.length && navigator.canShare && navigator.canShare({ files: files })) data.files = files;
+    if (navigator.share && !PREVIEW) return navigator.share(data).catch(function () {});
+    copy(text); return Promise.resolve();
+  }
+  function copy(text) { try { navigator.clipboard.writeText(text).then(function () { toast("Copied. Paste it into a message."); }, function () { toast("Couldn't copy here."); }); } catch (e) { toast("Couldn't copy here."); } }
+
+  (function holdToSos() {
+    var btn = $("sosBtn"), t = null;
+    function start(e) { if (e.button && e.button !== 0) return; btn.classList.add("holding"); vibrate(30); t = setTimeout(function () { btn.classList.remove("holding"); t = null; openSos({ siren: state.sirenOnSos }); }, 1500); }
+    function cancel() { btn.classList.remove("holding"); if (t) { clearTimeout(t); t = null; } }
+    btn.addEventListener("pointerdown", start);
+    ["pointerup", "pointerleave", "pointercancel"].forEach(function (ev) { btn.addEventListener(ev, cancel); });
+    btn.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+    btn.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openSos({ siren: state.sirenOnSos }); } });
+  })();
+
+  // ---------- siren ----------
+  var siren = null;
+  function startSiren() {
+    if (siren) return;
+    var screen = $("sirenScreen"); screen.hidden = false;
+    var ctx = null, osc = null, up = true;
+    try { var AC = window.AudioContext || window.webkitAudioContext; ctx = new AC(); osc = ctx.createOscillator(); var g = ctx.createGain(); osc.type = "square"; osc.frequency.value = 800; g.gain.value = 1; osc.connect(g); g.connect(ctx.destination); osc.start(); } catch (e) { ctx = null; }
+    var iv = setInterval(function () { up = !up; if (ctx && osc) osc.frequency.linearRampToValueAtTime(up ? 1600 : 700, ctx.currentTime + 0.45); screen.classList.toggle("flash"); vibrate(400); }, 450);
+    siren = { ctx: ctx, osc: osc, iv: iv };
+  }
+  function stopSiren() {
+    if (!siren) return; clearInterval(siren.iv);
+    try { siren.osc && siren.osc.stop(); siren.ctx && siren.ctx.close(); } catch (e) {}
+    siren = null; vibrate(0); var s = $("sirenScreen"); s.hidden = true; s.classList.remove("flash");
+  }
+  $("sirenScreen").addEventListener("click", stopSiren);
+
+  // ---------- fake call ----------
+  var SCRIPTS = {
+    mom: ["Hi sweetheart, where are you right now?", "Okay. I need you to come home now, something's come up.", "I'll explain when you get here. Can you leave right away?", "Good. Stay on the phone with me while you walk.", "I'll wait for you."],
+    friend: ["Hey! I'm outside, where are you?", "I'm right at the entrance. Just come out now, I'm waiting.", "Yeah, I'm in the car right in front. Come now.", "Okay, see you in a second."],
+    work: ["Hi, sorry to call so late. We have an urgent problem.", "I need you to deal with it right now. Can you step away?", "Thanks. Call me back when you're somewhere quiet."],
+    silent: []
+  };
+  var call = { ring: null, ctx: null, timer: null, clock: null, started: 0 };
+  function scheduleCall() {
+    var delay = parseInt($("fcDelay").value, 10) || 5, name = ($("fcName").value || "Mom").trim();
+    toast("Your phone will ring in " + (delay < 60 ? delay + " seconds" : delay / 60 + " min"));
+    try { var AC = window.AudioContext || window.webkitAudioContext; call.ctx = new AC(); } catch (e) {}
+    try { if (window.speechSynthesis) { var u = new SpeechSynthesisUtterance(" "); u.volume = 0; speechSynthesis.speak(u); } } catch (e) {}
+    clearTimeout(call.timer); call.timer = setTimeout(function () { incomingCall(name); }, delay * 1000);
+    go("home");
+  }
+  function incomingCall(name) {
+    $("ciName").textContent = $("caName").textContent = name;
+    $("ciInitial").textContent = $("caInitial").textContent = initial(name);
+    $("callIncoming").hidden = false;
+    var ctx = call.ctx;
+    function burst() { vibrate([800, 400, 800]); if (!ctx) return; try { if (ctx.state === "suspended") ctx.resume(); [440, 480].forEach(function (f) { var o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = f; g.gain.value = 0.25; o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 2); }); } catch (e) {} }
+    burst(); call.ring = setInterval(burst, 4000);
+  }
+  function stopRing() { clearInterval(call.ring); call.ring = null; vibrate(0); }
+  function acceptCall() {
+    stopRing(); $("callIncoming").hidden = true; $("callActive").hidden = false; call.started = Date.now();
+    call.clock = setInterval(function () { $("caTime").textContent = mmss((Date.now() - call.started) / 1000); }, 1000);
+    var lines = SCRIPTS[$("fcScript").value] || [], i = 0;
+    function next() { if (!call.clock || i >= lines.length || !window.speechSynthesis) return; var u = new SpeechSynthesisUtterance(lines[i++]); u.rate = 0.95; u.onend = function () { setTimeout(next, 3500); }; speechSynthesis.speak(u); }
+    setTimeout(next, 1200);
+  }
+  function endCall() { stopRing(); clearInterval(call.clock); call.clock = null; try { window.speechSynthesis && speechSynthesis.cancel(); } catch (e) {} $("callIncoming").hidden = true; $("callActive").hidden = true; $("caTime").textContent = "00:00"; }
+
+  // ---------- check-in / walk timer ----------
+  var tick = null, grace = null, wakeLock = null;
+  function keepAwake() { try { if (navigator.wakeLock && !wakeLock) navigator.wakeLock.request("screen").then(function (l) { wakeLock = l; l.addEventListener("release", function () { wakeLock = null; }); }).catch(function () {}); } catch (e) {} }
+  function releaseAwake() { try { wakeLock && wakeLock.release(); } catch (e) {} wakeLock = null; }
+  document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible" && (state.timer || state.sharingUntil > Date.now())) keepAwake(); });
+
+  function startTimer(o) {
+    state.timer = { end: Date.now() + o.minutes * 60000, note: o.note || "", label: o.label || "Check-in", share: !!o.share, alertId: null };
+    save(); keepAwake(); runTimer();
+    if (o.share) startSharing(o.minutes + 15, o.note);
+    var tell = o.tell !== false;
+    if (tell && netOn() && mates().length) {
+      getLocation(6000).then(function (loc) {
+        return sendAlert(o.kind || "checkin_started", o.netMessage || ((o.note ? o.note + " · " : "") + "check in by " + hhmm(new Date(state.timer.end))), loc, null);
+      }).then(function (a) { if (a && state.timer) { state.timer.alertId = a.id; save(); } });
+    } else if (tell && !netOn() && state.contacts.length && !PREVIEW) {
+      getLocation(6000).then(function (loc) { window.location.href = smsHref("Heads up: I've started a " + o.minutes + "-minute safety check-in. " + (o.note || "") + "\n" + locLine(loc)); });
+    }
+    toast(o.toast || "Started. Tap \"I'm safe\" when you're OK.");
+    go("home");
+  }
+  function runTimer() {
+    clearInterval(tick);
+    function update() {
+      var t = state.timer; $("timerCard").hidden = !t;
+      if (!t) return;
+      var left = (t.end - Date.now()) / 1000;
+      $("timerCardTime").textContent = mmss(left); $("timerCardNote").textContent = t.note;
+      $("timerCardLabel").textContent = t.label + " running";
+      $("timerCardShare").textContent = t.share && netOn() ? "Circle can see your location" : "";
+      if (left <= 0) { clearInterval(tick); tick = null; startGrace(); }
+    }
+    update(); if (state.timer) tick = setInterval(update, 1000);
+  }
+  function startGrace() {
+    $("graceScreen").hidden = false;
+    var left = 60, ctx = null;
+    try { var AC = window.AudioContext || window.webkitAudioContext; ctx = new AC(); } catch (e) {}
+    function beep() { vibrate([500, 200, 500]); if (!ctx) return; try { if (ctx.state === "suspended") ctx.resume(); var o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = 1000; g.gain.value = 0.6; o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.4); } catch (e) {} }
+    beep(); $("graceTime").textContent = left;
+    grace = { iv: setInterval(function () {
+      left--; $("graceTime").textContent = left; if (left % 3 === 0) beep();
+      if (left <= 0) {
+        var t = state.timer; endGrace(); finishTimer(false);
+        openSos({ kind: "missed_checkin", title: "Your circle is being alerted", body: "I didn't check in when I said I would. I may need help." + (t && t.note ? " I was: " + t.note + "." : ""), netMessage: t && t.note ? t.note : null, siren: state.sirenOnSos });
+      }
+    }, 1000), ctx: ctx };
+  }
+  function endGrace() { if (grace) { clearInterval(grace.iv); try { grace.ctx && grace.ctx.close(); } catch (e) {} grace = null; } $("graceScreen").hidden = true; vibrate(0); }
+  function finishTimer(safe) {
+    var t = state.timer; state.timer = null; save(); clearInterval(tick); tick = null; runTimer();
+    if (t && t.alertId) resolveAlert(t.alertId);
+    if (safe) {
+      if (t && t.share) stopSharing();
+      if (t && netOn() && mates().length && (t.share || t.alertId)) sendAlert("safe", t.label === "Walk" ? "Arrived safely" : "Checked in safe", null, null).then(function () { return loadFeed(); }).then(renderNet);
+      if (!state.sharingUntil) releaseAwake();
+    }
+  }
+
+  // ---------- recording ----------
+  var rec = { mr: null, chunks: [], blob: null, start: 0, iv: null };
+  function toggleRecord() {
+    if (rec.mr) { rec.mr.stop(); return; }
+    if (PREVIEW || !navigator.mediaDevices || !window.MediaRecorder) { toast("Recording isn't available here."); return; }
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+      rec.chunks = []; rec.mr = new MediaRecorder(stream);
+      rec.mr.ondataavailable = function (e) { if (e.data && e.data.size) rec.chunks.push(e.data); };
+      rec.mr.onstop = function () {
+        stream.getTracks().forEach(function (t) { t.stop(); }); clearInterval(rec.iv);
+        rec.blob = new Blob(rec.chunks, { type: rec.mr.mimeType || "audio/webm" });
+        $("recSave").href = URL.createObjectURL(rec.blob); $("recSave").download = "shecurity-recording-" + Date.now() + (/mp4/.test(rec.blob.type) ? ".m4a" : ".webm");
+        $("recDone").hidden = false; $("recBtn").textContent = "Start a new recording"; rec.mr = null;
+      };
+      rec.mr.start(1000); rec.start = Date.now(); $("recDone").hidden = true; $("recBtn").textContent = "Stop recording";
+      rec.iv = setInterval(function () { $("recTime").textContent = mmss((Date.now() - rec.start) / 1000); }, 500);
+    }).catch(function () { toast("Allow the microphone to record."); });
+  }
+
+  // ---------- ride, date, location ----------
+  function v(id) { return $(id).value.trim(); }
+  function rideSend() {
+    var parts = [v("rdService"), v("rdCar"), v("rdPlate") && "plate " + v("rdPlate").toUpperCase(), v("rdDriver") && "driver " + v("rdDriver")].filter(Boolean);
+    var mins = parseInt(v("rdMins"), 10) || 30, desc = parts.join(", ") || "a ride";
+    if (netOn() && mates().length) {
+      startTimer({ minutes: mins + 10, note: "In " + desc, label: "Ride", share: true, kind: "walk", netMessage: "In a ride: " + desc, toast: "Your circle can follow your ride." });
+    } else {
+      startTimer({ minutes: mins + 10, note: "In " + desc, label: "Ride", tell: false });
+      getLocation(6000).then(function (loc) { var body = "I'm getting into " + desc + ". Should take about " + mins + " min.\n" + locLine(loc); if (PREVIEW) toast("Works in the live app."); else window.location.href = smsHref(body); });
+    }
+  }
+  function dateSend() {
+    var mins = parseInt($("dtMinutes").value, 10), who = v("dtName") || "someone new";
+    var text = "Date safety: I'm meeting " + who + (v("dtPlace") ? " at " + v("dtPlace") : "") + "." + (v("dtProfile") ? " Their phone or profile: " + v("dtProfile") + "." : "") + (mins ? " If you don't hear from me by " + hhmm(new Date(Date.now() + mins * 60000)) + ", please call me." : "");
+    if (mins) startTimer({ minutes: mins, note: "Date with " + who + (v("dtPlace") ? " at " + v("dtPlace") : ""), label: "Date check-in" });
+    var f = $("dtPhoto").files && $("dtPhoto").files[0];
+    shareText(text, f ? [f] : null);
+  }
+  function shareLocation() {
+    openSos({ kind: "location", title: "Sharing your location", body: "Just letting you know where I am." });
+  }
+
+  // ---------- settings ----------
+  function fillCountries(sel) { sel.innerHTML = ""; Object.keys(COUNTRIES).forEach(function (k) { var o = el("option", null, COUNTRIES[k].name); o.value = k; sel.appendChild(o); }); sel.value = state.country; }
+  function renderMe() {
+    var list = $("contactList"); list.innerHTML = "";
+    state.contacts.forEach(function (c, i) {
+      var row = el("div", "person"); row.appendChild(el("span", "avatar", initial(c.name)));
+      var t = el("div", "t"); t.appendChild(el("b", null, c.name)); t.appendChild(el("span", null, c.phone)); row.appendChild(t);
+      var x = el("button", "btn sm", "Remove"); x.type = "button"; x.addEventListener("click", function () { state.contacts.splice(i, 1); save(); renderMe(); }); row.appendChild(x);
+      list.appendChild(row);
+    });
+    renderPlus();
+    $("stTemplate").value = state.template; $("stSiren").checked = !!state.sirenOnSos; fillCountries($("stCountry"));
+  }
+  function renderPlus() { var b = $("plusBtn"); if (!b) return; b.disabled = !!state.plusInterest; b.textContent = state.plusInterest ? "You're on the list" : "Tell me when Plus launches"; }
+  function renderHelp() {
+    var c = COUNTRIES[$("hlCountry").value] || COUNTRIES.NL, box = $("hlList"); box.innerHTML = "";
+    c.lines.forEach(function (l) {
+      var row = el("div", "hotline"), d = el("div"); d.appendChild(el("b", null, l[0])); d.appendChild(el("div", "num", l[1])); row.appendChild(d);
+      var a = el("a", "btn sm", /text/i.test(l[0]) ? "Text" : "Call");
+      a.href = /text/i.test(l[0]) ? "sms:" + l[1] + (isIOS() ? "&" : "?") + "body=START" : "tel:" + l[1].replace(/[^\d+]/g, "");
+      row.appendChild(a); box.appendChild(row);
+    });
+  }
+  function wipe(btn) {
+    if (btn.getAttribute("data-armed") !== "1") { btn.setAttribute("data-armed", "1"); btn.textContent = "Tap again to delete everything"; return; }
+    var done = function () {
+      try { localStorage.removeItem(KEY); localStorage.removeItem("shecurity.auth"); } catch (e) {}
+      state = Object.assign({}, defaults); state.contacts = []; net.me = null; net.profile = null; net.circles = []; net.feed = []; net.live = [];
+      btn.removeAttribute("data-armed"); btn.textContent = "Delete my account and data"; renderMe(); renderNet(); runTimer(); toast("Everything deleted");
+    };
+    stopSharing();
+    if (netOn() && !PREVIEW) net.sb.rpc("delete_my_account").then(function () { return net.sb.auth.signOut(); }).then(done, done); else done();
+  }
+
+  // ---------- events ----------
+  document.addEventListener("click", function (e) {
+    var g = e.target.closest("[data-go]"); if (g) { go(g.getAttribute("data-go")); return; }
+    var a = e.target.closest("[data-action]"); if (!a) return;
+    switch (a.getAttribute("data-action")) {
+      case "siren": startSiren(); break;
+      case "sos-close": $("sosSheet").hidden = true; break;
+      case "sos-safe": markSafe(); break;
+      case "sos-share": shareText(sos.message); break;
+      case "fakecall-start": scheduleCall(); break;
+      case "call-accept": acceptCall(); break;
+      case "call-decline": case "call-end": endCall(); break;
+      case "timer-start": startTimer({ minutes: parseInt($("tmMinutes").value, 10), note: v("tmNote"), tell: $("tmTell").checked }); break;
+      case "walk-start":
+        var wm = parseInt($("wkMins").value, 10), to = v("wkTo");
+        startTimer({ minutes: wm, note: to ? "Walking: " + to : "Walking", label: "Walk", share: true, kind: "walk", netMessage: to || null, tell: true, toast: netOn() && mates().length ? "Your circle is walking with you." : "Timer started. Join a circle so people can follow you." });
+        break;
+      case "timer-safe": endGrace(); finishTimer(true); toast("Glad you're safe."); break;
+      case "timer-add": if (state.timer) { state.timer.end += 15 * 60000; if (state.timer.share) state.sharingUntil += 15 * 60000; save(); runTimer(); } break;
+      case "grace-help": var gt = state.timer; endGrace(); finishTimer(false); openSos({ body: state.template + (gt && gt.note ? " I was: " + gt.note + "." : ""), siren: state.sirenOnSos }); break;
+      case "ride-send": rideSend(); break;
+      case "date-send": dateSend(); break;
+      case "plan-post": postPlan(); break;
+      case "record-toggle": toggleRecord(); break;
+      case "record-share": if (rec.blob) shareText("Recording from Shecurity, " + new Date().toLocaleString(), [new File([rec.blob], "shecurity-recording" + (/mp4/.test(rec.blob.type) ? ".m4a" : ".webm"), { type: rec.blob.type })]); break;
+      case "share-location": shareLocation(); break;
+      case "net-join": joinNetwork(); break;
+      case "circle-create": createCircle(); break;
+      case "circle-join": joinCircle(v("jcCode")); break;
+      case "push-on": enablePush(); break;
+      case "profile-save":
+        if (PREVIEW) { toast("Works in the live app."); break; }
+        net.sb.from("profiles").update({ display_name: v("mpName") || net.profile.display_name, phone: v("mpPhone") || null }).eq("id", net.me).then(function (r) { if (r.error) throw r.error; return loadProfile().then(loadCircles); }).then(function () { renderNet(); toast("Saved"); }).catch(function (e2) { toast(e2.message); });
+        break;
+      case "contact-add":
+        var n = v("ctName"), p = v("ctPhone");
+        if (!n || p.replace(/\D/g, "").length < 6) { toast("Add a name and a full mobile number."); break; }
+        if (state.contacts.length >= 5) { toast("You can add up to 5 backup contacts."); break; }
+        state.contacts.push({ name: n, phone: p }); save(); $("ctName").value = ""; $("ctPhone").value = ""; renderMe(); toast(n + " added"); break;
+      case "settings-save":
+        state.template = v("stTemplate") || defaults.template; state.sirenOnSos = $("stSiren").checked; state.country = $("stCountry").value; save();
+        $("hlCountry").value = state.country; renderHelp(); toast("Saved"); break;
+      case "wipe": wipe(a); break;
+      case "plus-interest":
+        state.plusInterest = true; save(); renderPlus();
+        if (netOn() && !PREVIEW) net.sb.from("profiles").update({ plus_interest: true }).eq("id", net.me).then(function () {});
+        toast("Thanks! We'll let you know in the app.");
+        break;
+      case "cd-cancel": stopCountdown(); toast("Cancelled. Nothing was sent."); break;
+      case "cd-now": stopCountdown(); openSos({ siren: state.sirenOnSos }); break;
+      case "copy-sos-link": copy(sosLink()); break;
+    }
+  });
+  $("quickExit").addEventListener("click", function () { endCall(); stopSiren(); window.location.replace("https://www.google.com/search?q=weather+today"); });
+  $("hlCountry").addEventListener("change", renderHelp);
+
+  // ---------- home-screen shortcuts ----------
+  var cd = { iv: null };
+  function startCountdown() {
+    if (!$("sosSheet").hidden) return;
+    var left = 5; $("cdTime").textContent = left; $("sosCountdown").hidden = false; vibrate([300]);
+    clearInterval(cd.iv);
+    cd.iv = setInterval(function () { left--; $("cdTime").textContent = left; vibrate(150); if (left <= 0) { stopCountdown(); openSos({ siren: state.sirenOnSos }); } }, 1000);
+  }
+  function stopCountdown() { clearInterval(cd.iv); cd.iv = null; $("sosCountdown").hidden = true; }
+  function route(h) {
+    h = (h || "").replace(/^#/, "");
+    if (!h) return false;
+    if (/^join-/i.test(h)) return false;
+    try { history.replaceState(null, "", location.pathname); } catch (e) {}
+    if (h === "sos") { go("home"); startCountdown(); return true; }
+    if (h === "fakecall-now") { $("fcDelay").value = "5"; scheduleCall(); return true; }
+    if (["walk", "timer", "fakecall", "circle", "help", "me", "places", "ride", "date", "record", "plan"].indexOf(h) >= 0) { go(h); return true; }
+    return false;
+  }
+  window.addEventListener("hashchange", function () { route(location.hash); });
+  function sosLink() { return location.origin + location.pathname + "#sos"; }
+
+  // ---------- start ----------
+  var hash = (location.hash || "").replace(/^#/, "");
+  if (/^join-/i.test(hash)) { state.pendingJoin = hash.slice(5); save(); try { history.replaceState(null, "", location.pathname); } catch (e) {} }
+  if (PREVIEW) $("previewBanner").hidden = false;
+  fillCountries($("hlCountry")); renderHelp(); runTimer(); renderNet();
+  if (state.timer) keepAwake();
+  if (!PREVIEW && "serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(function () {});
+  netInit();
+  $("sosLink").textContent = PREVIEW ? "https://your-app-address/#sos" : sosLink();
+  if (state.pendingJoin) { go("circle"); if (!PREVIEW) toast("Add your name to join the circle you were invited to."); }
+  else route(hash);
+  if (state.sharingUntil > Date.now()) setTimeout(function () { if (netOn()) startSharing((state.sharingUntil - Date.now()) / 60000, state.sharingNote); }, 2500);
+  setInterval(function () { if (netOn() && !document.hidden) { loadLive().then(renderNet); } }, 60000);
+})();
+</script>
+<!--APP-END-->
+</body>
+</html>
