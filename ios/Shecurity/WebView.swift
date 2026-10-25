@@ -21,6 +21,9 @@ func createWebView(container: UIView, WKSMH: WKScriptMessageHandler, WKND: WKNav
     userContentController.add(WatchBridge.shared, name: "watch-config")
     #endif
     userContentController.addUserScript(WKUserScript(source: NativeGeolocation.script, injectionTime: .atDocumentStart, forMainFrameOnly: true))
+    // the phone's region setting, so the app shows the right emergency number
+    let region = (Locale.current.regionCode ?? "").filter { $0.isLetter }.prefix(2)
+    userContentController.addUserScript(WKUserScript(source: "window.SHECURITY_REGION = '\(region)';", injectionTime: .atDocumentStart, forMainFrameOnly: true))
 
     config.userContentController = userContentController
     config.setURLSchemeHandler(localApp, forURLScheme: appScheme)
