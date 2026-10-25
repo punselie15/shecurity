@@ -23,8 +23,10 @@ func createWebView(container: UIView, WKSMH: WKScriptMessageHandler, WKND: WKNav
     userContentController.addUserScript(WKUserScript(source: NativeGeolocation.script, injectionTime: .atDocumentStart, forMainFrameOnly: true))
 
     config.userContentController = userContentController
+    config.setURLSchemeHandler(localApp, forURLScheme: appScheme)
 
-    config.limitsNavigationsToAppBoundDomains = true;
+    // the app is local now, so no domain list is needed
+    config.limitsNavigationsToAppBoundDomains = false;
     config.allowsInlineMediaPlayback = true
     config.preferences.javaScriptCanOpenWindowsAutomatically = true
     config.preferences.setValue(true, forKey: "standalone")
@@ -49,7 +51,7 @@ func createWebView(container: UIView, WKSMH: WKScriptMessageHandler, WKND: WKNav
     let deviceModel = UIDevice.current.model
     let osVersion = UIDevice.current.systemVersion
     webView.configuration.applicationNameForUserAgent = "Safari/604.1"
-    webView.customUserAgent = "Mozilla/5.0 (\(deviceModel); CPU \(deviceModel) OS \(osVersion.replacingOccurrences(of: ".", with: "_")) like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/\(osVersion) Mobile/15E148 Safari/604.1 PWAShell"
+    webView.customUserAgent = "Mozilla/5.0 (\(deviceModel); CPU \(deviceModel) OS \(osVersion.replacingOccurrences(of: ".", with: "_")) like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/\(osVersion) Mobile/15E148 Safari/604.1 PWAShell ShecurityApp/4"
 
     webView.addObserver(NSO, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: NSKeyValueObservingOptions.new, context: nil)
     
@@ -128,6 +130,12 @@ extension ViewController: WKUIDelegate, WKDownloadDelegate {
         }
 
         if let requestUrl = navigationAction.request.url{
+            if requestUrl.scheme == appScheme { return decisionHandler(.allow) }
+            if requestUrl.host == "shecurity.app", requestUrl.path.hasPrefix("/app") {
+                decisionHandler(.cancel)
+                webView.load(URLRequest(url: localURL(for: requestUrl)))
+                return
+            }
             // Schemes that should always be handed off to the system/other apps rather than
             // being processed as in-app navigation (e.g. phone calls, email, maps, FaceTime, etc.)
             let externalSchemes = ["tel", "telprompt", "mailto", "facetime", "facetime-audio", "fb", "fb-messenger", "sms", "itms-services", "itms-apps", "itms", "maps"]
@@ -151,7 +159,7 @@ extension ViewController: WKUIDelegate, WKDownloadDelegate {
                     return
                 }
 
-                let matchingHostOrigin = allowedOrigins.first(where: { requestHost.range(of: $0) != nil })
+                let matchingHostOrigin: String? = nil // every website opens in Safari
                 if (matchingHostOrigin != nil) {
                     // Open in main webview
                     decisionHandler(.allow)
@@ -176,9 +184,8 @@ extension ViewController: WKUIDelegate, WKDownloadDelegate {
 
 
                 if ["http", "https"].contains(requestUrl.scheme?.lowercased() ?? "") {
-                    // Can open with SFSafariViewController
-                    let safariViewController = SFSafariViewController(url: requestUrl)
-                    self.present(safariViewController, animated: true, completion: nil)
+                    // websites (the donate page, maps) open in the phone's browser
+                    UIApplication.shared.open(requestUrl)
                 } else {
                     // Scheme is not supported or no scheme is given, use openURL
                     if (UIApplication.shared.canOpenURL(requestUrl)) {
@@ -574,8 +581,9 @@ final class EarAudio: NSObject, WKScriptMessageHandler, AVAudioPlayerDelegate {
         case "start": start()
         case "stop": stop()
         case "play":
-            guard let id = body["id"] as? String, let text = body["url"] as? String, let url = URL(string: text),
-                  let host = url.host, allowedOrigins.contains(host) else { return }
+            guard let id = body["id"] as? String, let text = body["url"] as? String, let url = URL(string: text) else { return }
+            if let data = localApp.data(for: url) { playData(id: id, data: data); return }
+            guard let host = url.host, allowedOrigins.contains(host) else { return }
             play(id: id, url: url)
         default: break
         }

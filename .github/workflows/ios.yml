@@ -8,6 +8,12 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: site
+      - name: Bundle the app
+        run: ios/sync-app.sh site/app
       - name: Build for the simulator without signing
         working-directory: ios
         run: |

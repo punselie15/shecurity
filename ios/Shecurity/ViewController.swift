@@ -130,7 +130,7 @@ class ViewController: UIViewController, WKNavigationDelegate, UIDocumentInteract
     }
     
     @objc func loadRootUrl(cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy) {
-        Shecurity.webView.load(URLRequest(url: SceneDelegate.universalLinkToLaunch ?? SceneDelegate.shortcutLinkToLaunch ?? rootUrl, cachePolicy: cachePolicy))
+        Shecurity.webView.load(URLRequest(url: localURL(for: SceneDelegate.universalLinkToLaunch ?? SceneDelegate.shortcutLinkToLaunch), cachePolicy: cachePolicy))
     }
     
     func reloadWebview(
