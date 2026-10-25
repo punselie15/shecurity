@@ -94,6 +94,10 @@ p { margin: 0; }
 .card.sos { background: var(--sos-soft); box-shadow: none; }
 .card.safe { background: var(--safe-soft); box-shadow: none; }
 .card.brand { background: var(--brand-soft); box-shadow: none; }
+.card.free .heart { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--pink); color: #fff; flex: none; }
+.card.free .heart .i { width: 18px; height: 18px; }
+button.trust.link { background: none; border: 0; font: inherit; cursor: pointer; width: 100%; text-align: left; margin-top: 4px; }
+button.trust.link b { color: var(--pink-ink); font-weight: 700; }
 .banner { margin: 0 0 16px; font-size: 13px; color: var(--muted); background: var(--surface-2); border-radius: 14px; padding: 10px 14px; }
 
 /* greeting + status */
@@ -361,6 +365,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     </div>
 
     <p class="trust"><svg class="i"><use href="#i-lock"/></svg><span>Free forever, no ads. Only people you invite can see you, and your location is shared only when you choose.</span></p>
+    <button class="trust link" type="button" data-action="free-info"><svg class="i"><use href="#i-heart"/></svg><span>Safety is always free. <b>Support future upgrades</b></span></button>
   </section>
 
   <!-- CIRCLE -->
@@ -640,9 +645,12 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       <label class="f">Country, for emergency numbers<select id="stCountry"></select></label>
       <button class="btn" type="button" data-action="settings-save">Save settings</button>
     </div>
-    <div class="card stack">
-      <h2>Free forever</h2>
+    <div class="card brand stack free" id="freeCard">
+      <div class="row" style="gap:10px;align-items:center"><span class="heart"><svg class="i"><use href="#i-heart"/></svg></span><h2>Free forever</h2></div>
       <p class="small">Every safety feature in Shecurity is free and always will be: SOS, your circle, live location, check-ins, fake call and siren. No ads, ever, because nothing should get in the way in an emergency.</p>
+      <p class="small">Shecurity is a profit-free project: nobody earns money from it. If you'd like to help pay for future upgrades, you can give any amount you like. Every bit goes into making Shecurity better.</p>
+      <a class="btn primary" target="_blank" rel="noopener" href="https://shecurity.app/support/">Support future upgrades</a>
+      <p class="small muted" style="margin:0">Donating is completely optional and changes nothing in the app.</p>
     </div>
     <div class="card brand stack">
       <div class="row" style="justify-content:space-between;align-items:center"><h2>Shecurity Plus</h2><span class="tag">Coming later</span></div>
@@ -1923,6 +1931,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
         state.template = v("stTemplate") || defaults.template; state.sirenOnSos = $("stSiren").checked; state.country = $("stCountry").value; save();
         $("hlCountry").value = state.country; renderHelp(); renderQuick(); toast("Saved"); break;
       case "wipe": wipe(a); break;
+      case "free-info": go("me"); setTimeout(function () { $("freeCard").scrollIntoView({ behavior: "smooth", block: "center" }); }, 60); break;
       case "plus-interest":
         state.plusInterest = true; save(); renderPlus();
         if (netOn() && !PREVIEW) net.sb.from("profiles").update({ plus_interest: true }).eq("id", net.me).then(function () {});
