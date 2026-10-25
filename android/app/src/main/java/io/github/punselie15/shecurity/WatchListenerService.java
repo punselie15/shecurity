@@ -25,7 +25,7 @@ public class WatchListenerService extends WearableListenerService {
         }
         if (!WidgetSyncActivity.valid(action + ":x|location:x|location:x|location:x")) return;
         // other actions open the app; Android may only allow this while the phone is in use
-        Intent open = new Intent(Intent.ACTION_VIEW, Uri.parse("https://punselie15.github.io/shecurity/app/?android=2#q-" + action),
+        Intent open = new Intent(Intent.ACTION_VIEW, Uri.parse("https://shecurity.app/app/?android=3#q-" + action),
                 this, LauncherActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         try { startActivity(open); } catch (Exception ignored) { }
     }

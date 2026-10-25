@@ -1,16 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="QuickCell">
-        <item name="android:layout_width">0dp</item>
-        <item name="android:layout_height">match_parent</item>
-        <item name="android:layout_weight">1</item>
-        <item name="android:gravity">center</item>
-        <item name="android:drawablePadding">4dp</item>
-        <item name="android:padding">6dp</item>
-        <item name="android:textSize">14sp</item>
+    <style name="QuickLabel">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">16sp</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:maxLines">2</item>
+        <item name="android:textColor">#2A2152</item>
+        <item name="android:maxLines">1</item>
         <item name="android:ellipsize">end</item>
     </style>
-    <string name="widgetDescription">Your four emergency buttons, one tap away. Change them in Shecurity under You.</string>
+    <style name="QuickSub">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">1dp</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">#B32A2152</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+    <string name="widgetDescription">Your four safety buttons, one tap away. Pink ones are for emergencies. Change them in Shecurity under You.</string>
+    <string name="widgetOneTap">One tap does it</string>
+    <string name="widgetChange">Change these in Shecurity › You</string>
 </resources>
