@@ -119,6 +119,11 @@ p { margin: 0; }
 /* primary actions */
 .actions3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .act { background: var(--surface); border: 0; box-shadow: var(--shadow); border-radius: var(--r); padding: 16px 8px 14px; display: flex; flex-direction: column; align-items: center; gap: 9px; font-size: 13px; font-weight: 700; cursor: pointer; text-align: center; color: var(--ink); }
+.edit-quick { display: block; margin: 8px auto 0; background: none; border: 0; color: var(--muted); font: inherit; font-size: 13px; text-decoration: underline; cursor: pointer; padding: 6px; }
+.qprev { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; background: #2a2152; border-radius: 22px; padding: 10px; }
+.qprev span { background: #e5487f; color: #fff; border-radius: 15px; min-height: 58px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 700; text-align: center; padding: 6px; }
+.qprev span:nth-child(2n) { background: #fff; color: #2a2152; }
+.qprev .i { width: 20px; height: 20px; }
 .act .ic { width: 44px; height: 44px; border-radius: 15px; background: var(--brand-soft); color: var(--pink-ink); display: grid; place-items: center; }
 .act:active, .li:active { transform: scale(.98); }
 
@@ -320,11 +325,8 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       <p class="small muted" style="text-align:center;max-width:30ch">Alerts your circle with your live location. Nothing is sent if you let go early.</p>
     </div>
 
-    <div class="actions3">
-      <button class="act" type="button" data-go="walk"><span class="ic"><svg class="i"><use href="#i-walk"/></svg></span>Walk with me</button>
-      <button class="act" type="button" data-go="timer"><span class="ic"><svg class="i"><use href="#i-timer"/></svg></span>Check-in</button>
-      <button class="act" type="button" data-go="fakecall"><span class="ic"><svg class="i"><use href="#i-phone"/></svg></span>Fake call</button>
-    </div>
+    <div class="actions3" id="homeQuick"></div>
+    <button class="edit-quick" type="button" data-action="quick-edit">Change these buttons</button>
 
     <div id="homeCircle" hidden>
       <span class="section-title">Your circle now</span>
@@ -586,6 +588,17 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
         <button class="btn" type="button" data-action="contact-add">Add backup contact</button>
       </div>
     </div>
+    <div class="card stack" id="quickCard">
+      <h2>Your quick buttons</h2>
+      <p class="small muted">Pick what's one tap away. Choose what you'd reach for in a hurry.</p>
+      <b class="small">Under the SOS button</b>
+      <div class="stack" id="qHome"></div>
+      <b class="small">Home-screen widget</b>
+      <div class="stack" id="qWidget"></div>
+      <div class="qprev" id="qPreview" aria-hidden="true"></div>
+      <p class="small muted" id="qWidgetHint">Add the widget: long-press your home screen, tap Edit or +, and choose Shecurity.</p>
+      <button class="btn sm" type="button" data-action="quick-reset" style="align-self:flex-start">Back to the standard buttons</button>
+    </div>
     <div class="card stack">
       <h2>SOS settings</h2>
       <label class="f">Your SOS message<textarea id="stTemplate" maxlength="300"></textarea></label>
@@ -702,7 +715,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
 
   // ---------- local storage (this phone only) ----------
   var KEY = "shecurity.v2";
-  var defaults = { contacts: [], template: "I need help. Please call me, and call emergency services if you can't reach me.", sirenOnSos: false, country: "NL", timer: null, sharingUntil: 0, pendingJoin: null };
+  var defaults = { contacts: [], template: "I need help. Please call me, and call emergency services if you can't reach me.", sirenOnSos: false, country: "NL", timer: null, sharingUntil: 0, pendingJoin: null, quickHome: ["walk", "timer", "fakecall"], quickWidget: ["location", "fakecall-now", "help", "call"] };
   function load() { try { var raw = localStorage.getItem(KEY); if (raw) return Object.assign({}, defaults, JSON.parse(raw)); } catch (e) {} return Object.assign({}, defaults); }
   var state = load();
   function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
@@ -1446,6 +1459,61 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     openSos({ kind: "location", title: "Sharing your location", body: "Just letting you know where I am." });
   }
 
+  // ---------- quick buttons (home and widget) ----------
+  var QUICK = {
+    help: { label: "Send help alert", short: "Send help", icon: "i-bell", run: function () { go("home"); startCountdown(); } },
+    location: { label: "Send my location", short: "My location", icon: "i-pin", run: shareLocation },
+    "fakecall-now": { label: "Fake call in 5 seconds", short: "Call me in 5s", icon: "i-phone", run: function () { $("fcDelay").value = "5"; scheduleCall(); } },
+    call: { label: "Call emergency services", short: "", icon: "i-help", run: function () { location.href = "tel:" + emergencyNo(); } },
+    siren: { label: "Loud siren", short: "Siren", icon: "i-siren", run: startSiren },
+    walk: { label: "Walk with me", short: "Walk with me", icon: "i-walk", run: function () { go("walk"); } },
+    timer: { label: "Check-in timer", short: "Check-in", icon: "i-timer", run: function () { go("timer"); } },
+    fakecall: { label: "Fake call (choose when)", short: "Fake call", icon: "i-phone", run: function () { go("fakecall"); } },
+    plan: { label: "Share my plans", short: "My plans", icon: "i-plan", run: function () { go("plan"); } },
+    ride: { label: "Ride safety", short: "Ride", icon: "i-car", run: function () { go("ride"); } },
+    date: { label: "Date safety", short: "Date", icon: "i-heart", run: function () { go("date"); } },
+    record: { label: "Record audio", short: "Record", icon: "i-mic", run: function () { go("record"); } },
+    lines: { label: "Help lines", short: "Help lines", icon: "i-help", run: function () { go("help"); } }
+  };
+  function quickShort(id) { return id === "call" ? "Call " + emergencyNo() : QUICK[id].short; }
+  function quickList(key, n) {
+    var list = (state[key] || defaults[key]).filter(function (id) { return QUICK[id]; });
+    defaults[key].concat(Object.keys(QUICK)).forEach(function (id) { if (list.length < n && list.indexOf(id) < 0) list.push(id); });
+    return list.slice(0, n);
+  }
+  function iconEl(id) { var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg"), u = document.createElementNS("http://www.w3.org/2000/svg", "use"); svg.setAttribute("class", "i"); u.setAttribute("href", "#" + id); svg.appendChild(u); return svg; }
+  function renderQuick() {
+    var home = $("homeQuick"); home.innerHTML = "";
+    quickList("quickHome", 3).forEach(function (id) {
+      var b = el("button", "act"); b.type = "button"; b.setAttribute("data-quick", id);
+      var ic = el("span", "ic"); ic.appendChild(iconEl(QUICK[id].icon)); b.appendChild(ic); b.appendChild(document.createTextNode(quickShort(id)));
+      home.appendChild(b);
+    });
+    var prev = $("qPreview"); prev.innerHTML = "";
+    quickList("quickWidget", 4).forEach(function (id) { var t = el("span"); t.appendChild(iconEl(QUICK[id].icon)); t.appendChild(document.createTextNode(quickShort(id))); prev.appendChild(t); });
+    pickers("quickHome", 3, $("qHome")); pickers("quickWidget", 4, $("qWidget"));
+    syncWidget();
+  }
+  function pickers(key, n, box) {
+    box.innerHTML = "";
+    var list = quickList(key, n);
+    list.forEach(function (cur, i) {
+      var sel = el("select"); sel.setAttribute("aria-label", (key === "quickHome" ? "Button " : "Widget button ") + (i + 1));
+      Object.keys(QUICK).forEach(function (id) { var o = el("option", null, id === "call" ? "Call " + emergencyNo() : QUICK[id].label); o.value = id; sel.appendChild(o); });
+      sel.value = cur;
+      sel.addEventListener("change", function () {
+        var next = quickList(key, n), j = next.indexOf(sel.value);
+        if (j >= 0) next[j] = next[i]; // already used elsewhere: swap the two
+        next[i] = sel.value; state[key] = next; save(); renderQuick(); toast("Saved");
+      });
+      box.appendChild(sel);
+    });
+  }
+  function syncWidget() {
+    var buttons = quickList("quickWidget", 4).map(function (id) { return { id: id, label: quickShort(id), url: "shecurity://punselie15.github.io/shecurity/app/#q-" + id }; });
+    try { window.webkit.messageHandlers["widget-config"].postMessage({ buttons: buttons }); } catch (e) {}
+  }
+
   // ---------- settings ----------
   function fillCountries(sel) { sel.innerHTML = ""; Object.keys(COUNTRIES).forEach(function (k) { var o = el("option", null, COUNTRIES[k].name); o.value = k; sel.appendChild(o); }); sel.value = state.country; }
   function renderMe() {
@@ -1483,6 +1551,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   // ---------- events ----------
   document.addEventListener("click", function (e) {
     var g = e.target.closest("[data-go]"); if (g) { go(g.getAttribute("data-go")); return; }
+    var q = e.target.closest("[data-quick]"); if (q) { QUICK[q.getAttribute("data-quick")].run(); return; }
     var a = e.target.closest("[data-action]"); if (!a) return;
     switch (a.getAttribute("data-action")) {
       case "siren": startSiren(); break;
@@ -1521,7 +1590,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
         state.contacts.push({ name: n, phone: p }); save(); $("ctName").value = ""; $("ctPhone").value = ""; renderMe(); toast(n + " added"); break;
       case "settings-save":
         state.template = v("stTemplate") || defaults.template; state.sirenOnSos = $("stSiren").checked; state.country = $("stCountry").value; save();
-        $("hlCountry").value = state.country; renderHelp(); toast("Saved"); break;
+        $("hlCountry").value = state.country; renderHelp(); renderQuick(); toast("Saved"); break;
       case "wipe": wipe(a); break;
       case "plus-interest":
         state.plusInterest = true; save(); renderPlus();
@@ -1531,6 +1600,8 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       case "cd-cancel": stopCountdown(); toast("Cancelled. Nothing was sent."); break;
       case "cd-now": stopCountdown(); openSos({ siren: state.sirenOnSos }); break;
       case "copy-sos-link": copy(sosLink()); break;
+      case "quick-edit": go("me"); setTimeout(function () { $("quickCard").scrollIntoView({ behavior: "smooth", block: "start" }); }, 50); break;
+      case "quick-reset": state.quickHome = defaults.quickHome.slice(); state.quickWidget = defaults.quickWidget.slice(); save(); renderQuick(); toast("Standard buttons are back"); break;
     }
   });
   $("quickExit").addEventListener("click", function () { endCall(); stopSiren(); window.location.replace("https://www.google.com/search?q=weather+today"); });
@@ -1552,6 +1623,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     try { history.replaceState(null, "", location.pathname); } catch (e) {}
     if (h === "sos") { go("home"); startCountdown(); return true; }
     if (h === "fakecall-now") { $("fcDelay").value = "5"; scheduleCall(); return true; }
+    if (/^q-/.test(h) && QUICK[h.slice(2)]) { QUICK[h.slice(2)].run(); return true; }
     if (["walk", "timer", "fakecall", "circle", "help", "me", "places", "ride", "date", "record", "plan"].indexOf(h) >= 0) { go(h); return true; }
     return false;
   }
@@ -1562,7 +1634,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   var hash = (location.hash || "").replace(/^#/, "");
   if (/^join-/i.test(hash)) { state.pendingJoin = hash.slice(5); save(); try { history.replaceState(null, "", location.pathname); } catch (e) {} }
   if (PREVIEW) $("previewBanner").hidden = false;
-  fillCountries($("hlCountry")); renderHelp(); runTimer(); renderNet();
+  fillCountries($("hlCountry")); renderHelp(); renderQuick(); runTimer(); renderNet();
   if (state.timer) keepAwake();
   if (!PREVIEW && "serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(function () {});
   netInit();
