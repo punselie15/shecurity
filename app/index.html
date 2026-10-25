@@ -74,9 +74,7 @@ svg.i { width: 22px; height: 22px; flex: none; fill: none; stroke: currentColor;
 
 /* top bar */
 .top { position: sticky; top: 0; z-index: 20; background: var(--bg); padding-top: env(safe-area-inset-top, 0px); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-.top-inner { max-width: 480px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 60px; }
-.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; letter-spacing: -0.02em; }
-.brand svg { width: 28px; height: 28px; }
+.top-inner { max-width: 480px; margin: 0 auto; display: flex; align-items: center; justify-content: flex-end; gap: 12px; height: 52px; }
 .exit { border: 0; background: var(--surface-2); border-radius: 999px; padding: 7px 14px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; }
 
 main { max-width: 480px; margin: 0 auto; padding-block: 4px 124px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
@@ -266,6 +264,19 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
 
 .nudge { position: fixed; left: 50%; bottom: calc(88px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 55; width: min(440px, calc(100% - 32px)); background: var(--surface); border-radius: 24px; padding: 20px; box-shadow: 0 20px 50px rgba(42, 33, 82, .22); display: flex; flex-direction: column; gap: 10px; animation: nudgeIn .35s ease-out; }
 .nudge[hidden] { display: none; }
+.welcome { position: fixed; inset: 0; z-index: 70; background: var(--bg); display: flex; flex-direction: column; justify-content: center; padding: calc(24px + env(safe-area-inset-top, 0px)) 24px calc(24px + env(safe-area-inset-bottom, 0px)); overflow-y: auto; }
+.welcome[hidden] { display: none; }
+.welcome .wbox { max-width: 420px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+.welcome .wart { width: 96px; height: 96px; border-radius: 28px; background: linear-gradient(135deg, #ff8db4, #e5487f); display: grid; place-items: center; box-shadow: 0 18px 40px rgba(229, 72, 127, .28); }
+.welcome .wart .i { width: 44px; height: 44px; color: #fff; }
+.welcome h2 { margin: 6px 0 0; font-size: 26px; letter-spacing: -0.02em; line-height: 1.2; }
+.welcome p { margin: 0; color: var(--muted); line-height: 1.55; }
+.welcome ul, .welcome ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; line-height: 1.5; }
+.welcome .dots { display: flex; gap: 6px; }
+.welcome .dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--line, #e7dfe5); }
+.welcome .dots i.on { background: var(--pink); width: 22px; border-radius: 6px; }
+.welcome .btn { width: 100%; }
+.welcome .skip { background: none; border: 0; color: var(--muted); font: inherit; font-size: 14px; padding: 6px; cursor: pointer; }
 .nudge h3 { margin: 0; font-size: 18px; display: flex; align-items: center; gap: 10px; }
 .nudge h3 .heart { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--pink); color: #fff; flex: none; }
 .nudge h3 .heart .i { width: 16px; height: 16px; }
@@ -303,10 +314,6 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
 
 <header class="top">
   <div class="top-inner">
-    <div class="brand">
-      <svg viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="brandG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8db4"/><stop offset="1" stop-color="#e5487f"/></linearGradient></defs><rect width="100" height="100" rx="22.5" fill="url(#brandG)"/><path d="M60.26 21.81 A30 30 0 1 1 39.74 21.81" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round"/><circle cx="50" cy="50" r="11" fill="#2a2152"/></svg>
-      Shecurity
-    </div>
     <button class="exit" id="quickExit" type="button" aria-label="Quick exit: leave this app and open a weather page">Quick exit</button>
   </div>
 </header>
@@ -757,6 +764,17 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   </div>
 </div>
 
+<div class="welcome" id="welcome" hidden role="dialog" aria-labelledby="wTitle">
+  <div class="wbox">
+    <div class="dots" id="wDots" aria-hidden="true"></div>
+    <div class="wart" aria-hidden="true"><svg class="i" id="wIcon"><use href="#i-heart"/></svg></div>
+    <h2 id="wTitle"></h2>
+    <div id="wBody" class="stack" style="gap:10px"></div>
+    <button class="btn primary" type="button" id="wMain" data-action="welcome-main"></button>
+    <button class="btn" type="button" id="wAlt" data-action="welcome-alt" hidden></button>
+    <button class="skip" type="button" id="wSkip" data-action="welcome-next">Skip</button>
+  </div>
+</div>
 <div class="nudge" id="nudge" hidden role="dialog" aria-labelledby="nudgeTitle">
   <h3 id="nudgeTitle"><span class="heart"><svg class="i"><use href="#i-heart"/></svg></span><span id="nudgeHead">Glad you're home safe</span></h3>
   <p id="nudgeText"></p>
@@ -2009,6 +2027,9 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       case "quick-edit": go("me"); setTimeout(function () { $("quickCard").scrollIntoView({ behavior: "smooth", block: "start" }); }, 50); break;
       case "watch-link": sendAndroidWidget(); break;
       case "widget-add": sendAndroidWidget(true); break;
+      case "welcome-main": welcomeAct("main"); break;
+      case "welcome-alt": welcomeAct("alt"); break;
+      case "welcome-next": welcomeAct("next"); break;
       case "widget-tip-hide": state.widgetTipDone = true; save(); renderWidgetTip(); break;
       case "widget-done": state.widgetTipDone = true; save(); renderWidgetTip(); go("home"); toast("Nice. Help is one tap away now."); break;
       case "quick-reset": state.quickHome = defaults.quickHome.slice(); state.quickWidget = defaults.quickWidget.slice(); save(); renderQuick(); sendAndroidWidget(); toast("Standard buttons are back"); break;
@@ -2040,6 +2061,58 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   window.addEventListener("hashchange", function () { route(location.hash); });
   function sosLink() { return appUrl() + "#sos"; }
 
+
+  // ---------- first start: a short hello, the widget, then the circle ----------
+  var wStep = 0;
+  function welcomeSteps() {
+    var p = platform(), list = ["hello"];
+    if (p === "android-app" || p === "ios-app") list.push("widget");
+    list.push("circle");
+    return list;
+  }
+  function renderWelcome() {
+    var list = welcomeSteps(), step = list[wStep], p = platform();
+    if (!step) { closeWelcome(); return; }
+    $("wDots").innerHTML = list.map(function (x, i) { return '<i class="' + (i === wStep ? "on" : "") + '"></i>'; }).join("");
+    $("wAlt").hidden = true; $("wSkip").textContent = "Skip";
+    var body = $("wBody");
+    if (step === "hello") {
+      $("wIcon").innerHTML = '<use href="#i-heart"/>';
+      $("wTitle").textContent = "Hi, I'm your little helper";
+      body.innerHTML = "<p>For the moments that feel wrong. I'm free, most of me works without internet, and your data stays on your phone unless you share it.</p>" +
+        "<ul><li><b>Hold SOS</b> to alert the people you trust with where you are.</li><li><b>Fake call</b> gives you a reason to leave.</li><li><b>Walk with me</b> and check-ins keep an eye out when you're on your own.</li></ul>";
+      $("wMain").textContent = "Next"; $("wSkip").hidden = true;
+    } else if (step === "widget") {
+      $("wIcon").innerHTML = '<use href="#i-phone"/>';
+      $("wTitle").textContent = "Put me on your home screen";
+      body.innerHTML = "<p>Then help is one tap away, even without opening the app: four buttons for SOS, a fake call, your location and calling " + emergencyNo() + ".</p>" +
+        (p === "ios-app" ? "<ol><li>Touch and hold an empty spot on your home screen until the apps wiggle.</li><li>Tap <b>Edit</b>, then <b>Add Widget</b> (or <b>+</b>).</li><li>Search <b>Shecurity</b>, pick the middle size and tap <b>Add Widget</b>.</li></ol>"
+          : "<p>Tap the button below and choose <b>Add</b>. If your phone doesn't ask, I'll show you the steps.</p>");
+      $("wMain").textContent = p === "android-app" ? "Add it for me" : "I'll do it now";
+      $("wAlt").hidden = false; $("wAlt").textContent = p === "android-app" ? "Show me the steps" : "Show me with pictures";
+      $("wSkip").hidden = false; $("wSkip").textContent = "Later";
+    } else {
+      $("wIcon").innerHTML = '<use href="#i-people"/>';
+      $("wTitle").textContent = "Who should I tell?";
+      body.innerHTML = "<p>Your circle is 3 to 5 people you trust. When you need help, they get an alert with where you are. You can also skip this and use SOS by text message.</p>";
+      $("wMain").textContent = "Set up my circle"; $("wSkip").hidden = false; $("wSkip").textContent = "Maybe later";
+    }
+  }
+  function openWelcome() { wStep = 0; $("welcome").hidden = false; renderWelcome(); }
+  function closeWelcome() { $("welcome").hidden = true; state.welcomed = true; save(); }
+  function welcomeAct(which) {
+    var step = welcomeSteps()[wStep];
+    if (which === "next") { wStep++; renderWelcome(); return; }
+    if (step === "widget") {
+      if (which === "main" && platform() === "android-app") { sendAndroidWidget(true); state.widgetTipDone = true; save(); renderWidgetTip(); wStep++; setTimeout(renderWelcome, 600); return; }
+      if (which === "alt" || platform() === "ios-app" && which === "main") {
+        if (which === "main") { state.widgetTipDone = true; save(); renderWidgetTip(); wStep++; renderWelcome(); return; }
+        closeWelcome(); go("widget"); return;
+      }
+    }
+    if (step === "circle" && which === "main") { closeWelcome(); go("circle"); return; }
+    wStep++; renderWelcome();
+  }
   // ---------- start ----------
   var hash = (location.hash || "").replace(/^#/, "");
   var av = /[?&]android=(\d+)\b/.exec(location.search);
@@ -2053,6 +2126,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   // Firebase can renew the phone's token; keep the saved one current
   if (nativePush() && state.fcmToken) setTimeout(function () { try { var t = ShecurityNative.pushToken(); if (t && t !== state.fcmToken && netOn()) saveNativeToken(0).catch(function () {}); } catch (e) {} }, 4000);
   $("sosLink").textContent = PREVIEW ? "https://your-app-address/#sos" : sosLink();
+  if (!state.welcomed && !PREVIEW && !state.pendingJoin) openWelcome();
   if (state.pendingJoin) { go("circle"); if (!PREVIEW) toast("Add your name to join the circle you were invited to."); }
   else route(hash);
   if (state.sharingUntil > Date.now()) setTimeout(function () { if (netOn()) startSharing((state.sharingUntil - Date.now()) / 60000, state.sharingNote); }, 2500);
