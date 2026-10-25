@@ -1,0 +1,18 @@
+name: iOS compile check
+on:
+  push:
+    branches: [ios]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build for the simulator without signing
+        working-directory: ios
+        run: |
+          xcodebuild -version
+          xcodebuild -workspace Shecurity.xcworkspace -scheme Shecurity -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build | tail -60
+          exit ${PIPESTATUS[0]}
