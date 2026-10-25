@@ -9,9 +9,9 @@ android {
         // same id as the phone app, so the two can talk over the Wear OS data layer
         applicationId "io.github.punselie15.shecurity"
         minSdkVersion 30
-        targetSdkVersion 34
-        versionCode 1004
-        versionName "1.0.3-wear"
+        targetSdkVersion 36
+        versionCode 1005
+        versionName "1.0.4-wear"
     }
     buildTypes {
         release {

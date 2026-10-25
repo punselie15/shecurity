@@ -56,9 +56,9 @@ android {
     defaultConfig {
         applicationId "io.github.punselie15.shecurity"
         minSdkVersion 24
-        targetSdkVersion 35
-        versionCode 4
-        versionName "1.0.3"
+        targetSdkVersion 36
+        versionCode 5
+        versionName "1.0.4"
 
         // The name for the application
         resValue "string", "appName", twaManifest.name
