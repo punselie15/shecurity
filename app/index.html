@@ -16,10 +16,12 @@
 <script src="vendor/supabase.js"></script>
 <!--APP-START-->
 <title>Shecurity</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
 <style>
+.native .webonly { display: none !important; }
+@font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/plus-jakarta-sans-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 500; font-display: swap; src: url("fonts/plus-jakarta-sans-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 600; font-display: swap; src: url("fonts/plus-jakarta-sans-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 700; font-display: swap; src: url("fonts/plus-jakarta-sans-latin-700-normal.woff2") format("woff2"); }
 /* Layout: calm one-handed phone app. 480px column, soft cards without borders, one pink glow behind SOS. Colours come from the Rose Notch icon: blush pink accents, deep indigo for actions. */
 :root {
   --bg: #fbf8fa;
@@ -612,8 +614,8 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     </div>
     <details><summary>iPhone: SOS widget or button on the home screen</summary><ol><li>Copy your SOS link above.</li><li>Open the Shortcuts app, tap +, then Add Action, and choose "Open URLs". Paste the link.</li><li>Name the shortcut "SOS" and tap Done.</li><li>For a home-screen button: tap the shortcut's share icon, then "Add to Home Screen".</li><li>For a widget: long-press the home screen, tap Edit, then Add Widget, pick Shortcuts and choose "SOS".</li></ol></details>
     <details><summary>iPhone: double-tap the back of your phone for SOS</summary><ol><li>Make the "SOS" shortcut above first.</li><li>Open Settings, then Accessibility, then Touch, then Back Tap.</li><li>Pick Double Tap or Triple Tap and choose "SOS".</li><li>On iPhone 15 Pro and newer you can also set the Action Button to the "SOS" shortcut in Settings, then Action Button.</li></ol></details>
-    <details><summary>Android: SOS, Walk with me and Fake call shortcuts</summary><ol><li>Install Shecurity from Chrome first (three dots, then Install app).</li><li>Long-press the Shecurity icon. You'll see SOS, Walk with me, Check-in and Fake call.</li><li>Drag any of them onto your home screen to get its own one-tap button.</li></ol></details>
-    <details><summary>Add Shecurity to your home screen</summary><ul><li><b>iPhone (Safari):</b> tap Share, then "Add to Home Screen". Needed for alerts on iPhone.</li><li><b>Android (Chrome):</b> tap the three dots, then "Install app".</li></ul></details>
+    <details class="webonly"><summary>Android: SOS, Walk with me and Fake call shortcuts</summary><ol><li>Install Shecurity from Chrome first (three dots, then Install app).</li><li>Long-press the Shecurity icon. You'll see SOS, Walk with me, Check-in and Fake call.</li><li>Drag any of them onto your home screen to get its own one-tap button.</li></ol></details>
+    <details class="webonly"><summary>Add Shecurity to your home screen</summary><ul><li><b>iPhone (Safari):</b> tap Share, then "Add to Home Screen". Needed for alerts on iPhone.</li><li><b>Android (Chrome):</b> tap the three dots, then "Install app".</li></ul></details>
   </section>
 
   <!-- ME -->
@@ -767,6 +769,10 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
 (function () {
   "use strict";
   var PREVIEW = /*PREVIEW*/false;
+  // the store apps (Android and iPhone) carry the whole app inside them and say so in the user agent
+  var NATIVE = !!window.ShecurityNative || /ShecurityApp\//.test(navigator.userAgent);
+  var PUBLIC_URL = "https://shecurity.app/app/";
+  if (NATIVE) document.documentElement.classList.add("native");
   var CONFIG = {
     url: "https://cgihqwekhbyhhadoizeb.supabase.co",
     key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnaWhxd2VraGJ5aGhhZG9pemViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NDU3MzQsImV4cCI6MjEwODQyMTczNH0.jfeNmxsolNk9MHommYBRxAivYRblUr2WH9b4flQ0lzs",
@@ -940,7 +946,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       return loadCircles().then(function () { return Promise.all([loadFeed(), loadLive(), loadPlans()]); }).then(renderNet);
     }).catch(function (e) { toast(e.message || "Couldn't join."); });
   }
-  function appUrl() { return location.origin + location.pathname; }
+  function appUrl() { return NATIVE ? PUBLIC_URL : location.origin + location.pathname; }
   function invite(c) {
     var text = "Join my Shecurity circle \"" + c.name + "\" so we can look out for each other. Open " + appUrl() + "#join-" + c.invite_code + " or enter the code " + c.invite_code + ".";
     shareText(text);
@@ -1104,16 +1110,33 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
 
   // push notifications
   function urlB64(b) { var p = "=".repeat((4 - b.length % 4) % 4), s = (b + p).replace(/-/g, "+").replace(/_/g, "/"), raw = atob(s), out = new Uint8Array(raw.length); for (var i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i); return out; }
-  function pushSupported() { return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window; }
+  function nativePush() { try { return !!(window.ShecurityNative && ShecurityNative.pushAvailable()); } catch (e) { return false; } }
+  function pushSupported() { return nativePush() || (!NATIVE && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window); }
+  // in the store app, alerts come through Firebase: the phone gives a token, saved like a web push subscription
+  function saveNativeToken(tries) {
+    var t = ""; try { t = ShecurityNative.pushToken(); } catch (e) {}
+    if (!t) { if (tries > 0) return new Promise(function (r) { setTimeout(r, 700); }).then(function () { return saveNativeToken(tries - 1); }); throw new Error("Couldn't turn on alerts. Check your connection and try again."); }
+    state.fcmToken = t; save();
+    return net.sb.from("push_subscriptions").upsert({ endpoint: "fcm:" + t, user_id: net.me, p256dh: "fcm", auth: "fcm" });
+  }
   function pushState() {
     if (PREVIEW) return Promise.resolve("example");
-    if (!pushSupported()) return Promise.resolve(isIOS() ? "ios-install" : "unsupported");
+    if (nativePush()) return Promise.resolve(ShecurityNative.notifyPermission() === "granted" && state.fcmToken ? "on" : "off");
+    if (!pushSupported()) return Promise.resolve(isIOS() && !NATIVE ? "ios-install" : "unsupported");
     if (Notification.permission === "denied") return Promise.resolve("denied");
     return navigator.serviceWorker.ready.then(function (reg) { return reg.pushManager.getSubscription(); }).then(function (s) { return s ? "on" : "off"; }).catch(function () { return "off"; });
   }
   function enablePush() {
     if (PREVIEW) { toast("Works in the live app."); return; }
-    if (!pushSupported()) { toast(isIOS() ? "On iPhone, add Shecurity to your home screen first." : "This browser can't show alerts."); return; }
+    if (nativePush()) {
+      window.onShecurityNotify = function (ok) {
+        if (!ok) { toast("Alerts are blocked. Allow notifications for Shecurity in your phone settings."); return; }
+        saveNativeToken(10).then(function (r) { if (r && r.error) throw r.error; toast("Alerts are on."); renderNet(); })
+          .catch(function (e) { toast(e.message || "Couldn't turn on alerts."); });
+      };
+      ShecurityNative.askNotify(); return;
+    }
+    if (!pushSupported()) { toast(isIOS() && !NATIVE ? "On iPhone, add Shecurity to your home screen first." : "This phone can't show alerts yet."); return; }
     Notification.requestPermission().then(function (perm) {
       if (perm !== "granted") throw new Error("Alerts are blocked. Allow notifications for Shecurity in your phone settings.");
       return navigator.serviceWorker.ready;
@@ -2015,7 +2038,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     return false;
   }
   window.addEventListener("hashchange", function () { route(location.hash); });
-  function sosLink() { return location.origin + location.pathname + "#sos"; }
+  function sosLink() { return appUrl() + "#sos"; }
 
   // ---------- start ----------
   var hash = (location.hash || "").replace(/^#/, "");
@@ -2025,8 +2048,10 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   if (PREVIEW) $("previewBanner").hidden = false;
   fillCountries($("hlCountry")); renderHelp(); renderQuick(); renderWidgetTip(); runTimer(); renderNet();
   if (state.timer) keepAwake();
-  if (!PREVIEW && "serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(function () {});
+  if (!PREVIEW && !NATIVE && "serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(function () {});
   netInit();
+  // Firebase can renew the phone's token; keep the saved one current
+  if (nativePush() && state.fcmToken) setTimeout(function () { try { var t = ShecurityNative.pushToken(); if (t && t !== state.fcmToken && netOn()) saveNativeToken(0).catch(function () {}); } catch (e) {} }, 4000);
   $("sosLink").textContent = PREVIEW ? "https://your-app-address/#sos" : sosLink();
   if (state.pendingJoin) { go("circle"); if (!PREVIEW) toast("Add your name to join the circle you were invited to."); }
   else route(hash);

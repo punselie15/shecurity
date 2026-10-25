@@ -26,6 +26,48 @@ const RESPONSE_TEXT: Record<string, string> = {
   called_police: "has called emergency services",
 };
 
+
+// Store apps get alerts through Firebase Cloud Messaging (endpoint "fcm:<token>").
+// The service account JSON is the FCM_SERVICE_ACCOUNT function secret.
+let fcmAuth: { token: string; until: number } | null = null;
+async function fcmAccessToken(sa: { client_email: string; private_key: string }) {
+  if (fcmAuth && fcmAuth.until > Date.now() + 60_000) return fcmAuth.token;
+  const b64 = (o: unknown) => btoa(typeof o === "string" ? o : JSON.stringify(o)).replace(/=+$/, "").replace(/\+/g, "-").replace(/\//g, "_");
+  const now = Math.floor(Date.now() / 1000);
+  const unsigned = b64({ alg: "RS256", typ: "JWT" }) + "." + b64({
+    iss: sa.client_email, scope: "https://www.googleapis.com/auth/firebase.messaging",
+    aud: "https://oauth2.googleapis.com/token", iat: now, exp: now + 3600,
+  });
+  const der = Uint8Array.from(atob(sa.private_key.replace(/-----[^-]+-----/g, "").replace(/\s+/g, "")), (c) => c.charCodeAt(0));
+  const key = await crypto.subtle.importKey("pkcs8", der, { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["sign"]);
+  const sig = new Uint8Array(await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, new TextEncoder().encode(unsigned)));
+  const jwt = unsigned + "." + b64(String.fromCharCode(...sig));
+  const r = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=" + jwt,
+  });
+  const j = await r.json();
+  if (!j.access_token) throw new Error("fcm auth failed");
+  fcmAuth = { token: j.access_token, until: Date.now() + (j.expires_in || 3600) * 1000 };
+  return fcmAuth.token;
+}
+async function sendFcm(token: string, msg: { title: string; body: string; tag: string; urgent: boolean }) {
+  const raw = Deno.env.get("FCM_SERVICE_ACCOUNT");
+  if (!raw) return 0; // Firebase not set up yet
+  const sa = JSON.parse(raw);
+  const r = await fetch(`https://fcm.googleapis.com/v1/projects/${sa.project_id}/messages:send`, {
+    method: "POST",
+    headers: { Authorization: "Bearer " + await fcmAccessToken(sa), "Content-Type": "application/json" },
+    body: JSON.stringify({ message: {
+      token,
+      data: { title: msg.title, body: msg.body, tag: String(msg.tag), route: "circle" },
+      android: { priority: "high", ttl: "3600s" },
+      apns: { headers: { "apns-priority": "10" }, payload: { aps: { alert: { title: msg.title, body: msg.body }, sound: "default", "interruption-level": msg.urgent ? "time-sensitive" : "active" } } },
+    } }),
+  });
+  return r.status;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   try {
@@ -87,6 +129,12 @@ Deno.serve(async (req) => {
     const failures: number[] = [];
     await Promise.all(subs.map(async (s) => {
       try {
+        if (s.endpoint.startsWith("fcm:")) {
+          const code = await sendFcm(s.endpoint.slice(4), { title, body, tag: alert.id, urgent });
+          if (code === 200) { sent++; return; }
+          if (code === 0) return;
+          throw Object.assign(new Error("fcm"), { statusCode: code === 404 || code === 400 ? 410 : code });
+        }
         await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload, {
           TTL: 3600,
           urgency: urgent ? "high" : "normal",
