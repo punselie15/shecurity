@@ -549,7 +549,7 @@
 				);
 				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.punselie15.shecurity.watchkitapp;
-				PRODUCT_NAME = Shecurity;
+				PRODUCT_NAME = ShecurityWatch;
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -753,7 +753,7 @@
 				);
 				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.punselie15.shecurity.watchkitapp;
-				PRODUCT_NAME = Shecurity;
+				PRODUCT_NAME = ShecurityWatch;
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;

@@ -13,7 +13,7 @@ jobs:
         run: |
           xcodebuild -version
           xcodebuild -workspace Shecurity.xcworkspace -scheme Shecurity -configuration Debug \
-            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO build > build.log 2>&1 && ok=0 || ok=$?
           grep -E "error:|error -" build.log | sort -u | head -60
           tail -5 build.log
