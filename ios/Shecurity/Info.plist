@@ -81,25 +81,25 @@
 			<key>UIApplicationShortcutItemTitle</key>
 			<string>SOS</string>
 			<key>UIApplicationShortcutItemType</key>
-			<string>https://punselie15.github.io/shecurity/app/#sos</string>
+			<string>https://shecurity.app/app/#sos</string>
 		</dict>
 		<dict>
 			<key>UIApplicationShortcutItemTitle</key>
 			<string>Walk with me</string>
 			<key>UIApplicationShortcutItemType</key>
-			<string>https://punselie15.github.io/shecurity/app/#walk</string>
+			<string>https://shecurity.app/app/#walk</string>
 		</dict>
 		<dict>
 			<key>UIApplicationShortcutItemTitle</key>
 			<string>Check-in</string>
 			<key>UIApplicationShortcutItemType</key>
-			<string>https://punselie15.github.io/shecurity/app/#timer</string>
+			<string>https://shecurity.app/app/#timer</string>
 		</dict>
 		<dict>
 			<key>UIApplicationShortcutItemTitle</key>
 			<string>Fake call</string>
 			<key>UIApplicationShortcutItemType</key>
-			<string>https://punselie15.github.io/shecurity/app/#fakecall-now</string>
+			<string>https://shecurity.app/app/#fakecall-now</string>
 		</dict>
 	</array>
 	<key>UIBackgroundModes</key>
@@ -135,6 +135,7 @@
 	<true/>
 	<key>WKAppBoundDomains</key>
 	<array>
+		<string>shecurity.app</string>
 		<string>punselie15.github.io</string>
 	</array>
 </dict>

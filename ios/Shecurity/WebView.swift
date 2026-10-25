@@ -16,6 +16,7 @@ func createWebView(container: UIView, WKSMH: WKScriptMessageHandler, WKND: WKNav
     userContentController.add(WKSMH, name: "push-token")
     userContentController.add(NativeGeolocation.shared, name: "geo")
     userContentController.add(WidgetBridge.shared, name: "widget-config")
+    userContentController.add(EarAudio.shared, name: "call-audio")
     #if os(iOS) && !targetEnvironment(macCatalyst)
     userContentController.add(WatchBridge.shared, name: "watch-config")
     #endif
@@ -556,3 +557,73 @@ final class WatchBridge: NSObject, WKScriptMessageHandler, WCSessionDelegate {
     }
 }
 #endif
+
+// MARK: - Fake call voice
+// Plays the caller's recorded lines through the ear speaker, like a real call, and blanks the screen at the ear.
+import AVFoundation
+
+final class EarAudio: NSObject, WKScriptMessageHandler, AVAudioPlayerDelegate {
+    static let shared = EarAudio()
+    private var player: AVAudioPlayer?
+    private var playingId: String?
+    private var clips: [URL: Data] = [:]
+
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        guard let body = message.body as? [String: Any], let action = body["action"] as? String else { return }
+        switch action {
+        case "start": start()
+        case "stop": stop()
+        case "play":
+            guard let id = body["id"] as? String, let text = body["url"] as? String, let url = URL(string: text),
+                  let host = url.host, allowedOrigins.contains(host) else { return }
+            play(id: id, url: url)
+        default: break
+        }
+    }
+
+    private func start() {
+        let session = AVAudioSession.sharedInstance()
+        // playAndRecord without defaultToSpeaker routes to the receiver; voiceChat keeps it there and leaves the mic usable
+        try? session.setCategory(.playAndRecord, mode: .voiceChat, options: [.allowBluetooth])
+        try? session.overrideOutputAudioPort(.none)
+        try? session.setActive(true)
+        UIDevice.current.isProximityMonitoringEnabled = true
+    }
+
+    private func stop() {
+        player?.stop(); player = nil
+        if let id = playingId { playingId = nil; done(id, true) }
+        UIDevice.current.isProximityMonitoringEnabled = false
+        try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.mixWithOthers])
+    }
+
+    private func play(id: String, url: URL) {
+        if let data = clips[url] { playData(id: id, data: data); return }
+        URLSession.shared.dataTask(with: url) { data, response, _ in
+            DispatchQueue.main.async {
+                guard let data = data, (response as? HTTPURLResponse)?.statusCode == 200 else { self.done(id, false); return }
+                self.clips[url] = data
+                self.playData(id: id, data: data)
+            }
+        }.resume()
+    }
+
+    private func playData(id: String, data: Data) {
+        guard let p = try? AVAudioPlayer(data: data) else { done(id, false); return }
+        player?.stop()
+        if let old = playingId { done(old, true) }
+        p.delegate = self
+        player = p; playingId = id
+        if !p.play() { player = nil; playingId = nil; done(id, false) }
+    }
+
+    func audioPlayerDidFinishPlaying(_ p: AVAudioPlayer, successfully flag: Bool) {
+        guard p === player, let id = playingId else { return }
+        player = nil; playingId = nil
+        done(id, flag)
+    }
+
+    private func done(_ id: String, _ ok: Bool) {
+        Shecurity.webView?.evaluateJavaScript("window.shecurityClipDone && window.shecurityClipDone('\(id)', \(ok))", completionHandler: nil)
+    }
+}

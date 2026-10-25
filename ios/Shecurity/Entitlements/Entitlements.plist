@@ -6,6 +6,7 @@
 	<string>production</string>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
+		<string>applinks:shecurity.app</string>
 		<string>applinks:punselie15.github.io</string>
 		<string>webcredentials:punselie15.github.io</string>
 	</array>
