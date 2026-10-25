@@ -262,6 +262,17 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
 .call .accept { background: #34c759; }
 .call .cap { font-size: 13px; color: #d0d0d8; margin-top: 8px; }
 
+.nudge { position: fixed; left: 50%; bottom: calc(88px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 55; width: min(440px, calc(100% - 32px)); background: var(--surface); border-radius: 24px; padding: 20px; box-shadow: 0 20px 50px rgba(42, 33, 82, .22); display: flex; flex-direction: column; gap: 10px; animation: nudgeIn .35s ease-out; }
+.nudge[hidden] { display: none; }
+.nudge h3 { margin: 0; font-size: 18px; display: flex; align-items: center; gap: 10px; }
+.nudge h3 .heart { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--pink); color: #fff; flex: none; }
+.nudge h3 .heart .i { width: 16px; height: 16px; }
+.nudge p { margin: 0; font-size: 14.5px; color: var(--muted); line-height: 1.5; }
+.nudge .row { gap: 8px; margin-top: 4px; }
+.nudge .row .btn { flex: 1; }
+.nudge .never { background: none; border: 0; color: var(--muted); font: inherit; font-size: 13px; text-decoration: underline; padding: 4px; align-self: center; cursor: pointer; }
+@keyframes nudgeIn { from { opacity: 0; transform: translate(-50%, 16px); } }
+@media (prefers-reduced-motion: reduce) { .nudge { animation: none; } }
 .toast { position: fixed; left: 50%; bottom: calc(92px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 60; background: var(--ink); color: var(--bg); padding: 11px 18px; border-radius: 999px; font-size: 14px; font-weight: 600; max-width: calc(100% - 32px); text-align: center; box-shadow: var(--shadow); }
 @media (prefers-reduced-motion: reduce) { .sos-btn.holding .fill { transition-duration: 0s; } .sos-btn, .li, .act { transition: none; } }
 </style>
@@ -650,6 +661,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       <p class="small">Every safety feature in Shecurity is free and always will be: SOS, your circle, live location, check-ins, fake call and siren. No ads, ever, because nothing should get in the way in an emergency.</p>
       <p class="small">Shecurity is a profit-free project: nobody earns money from it. If you'd like to help pay for future upgrades, you can give any amount you like. Every bit goes into making Shecurity better.</p>
       <a class="btn primary" target="_blank" rel="noopener" href="https://shecurity.app/support/">Support future upgrades</a>
+      <a class="btn" target="_blank" rel="noopener" href="https://getshecurity.com/plans/">See what we're building next</a>
       <p class="small muted" style="margin:0">Donating is completely optional and changes nothing in the app.</p>
     </div>
     <div class="card brand stack">
@@ -743,6 +755,12 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   </div>
 </div>
 
+<div class="nudge" id="nudge" hidden role="dialog" aria-labelledby="nudgeTitle">
+  <h3 id="nudgeTitle"><span class="heart"><svg class="i"><use href="#i-heart"/></svg></span><span id="nudgeHead">Glad you're home safe</span></h3>
+  <p id="nudgeText"></p>
+  <div class="row"><a class="btn primary" id="nudgeGo" target="_blank" rel="noopener" href="https://shecurity.app/support/" data-action="nudge-go">Support us</a><button class="btn" type="button" data-action="nudge-later">Maybe later</button></div>
+  <button class="never" type="button" data-action="nudge-never">Don't ask me again</button>
+</div>
 <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
 
 <script>
@@ -760,6 +778,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   var defaults = { contacts: [], template: "I need help. Please call me, and call emergency services if you can't reach me.", sirenOnSos: false, country: "NL", timer: null, sharingUntil: 0, pendingJoin: null, quickHome: ["walk", "timer", "fakecall"], quickWidget: ["help", "location", "fakecall-now", "call"] };
   function load() { try { var raw = localStorage.getItem(KEY); if (raw) return Object.assign({}, defaults, JSON.parse(raw)); } catch (e) {} return Object.assign({}, defaults); }
   var state = load();
+  if (!state.firstSeen) { state.firstSeen = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
 
   var COUNTRIES = {
@@ -1668,8 +1687,29 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       if (t && t.share) stopSharing();
       if (t && netOn() && mates().length && (t.share || t.alertId)) sendAlert("safe", t.label === "Walk" ? "Arrived safely" : "Checked in safe", null, null).then(function () { return loadFeed(); }).then(renderNet);
       if (!state.sharingUntil) releaseAwake();
+      state.safeCount = (state.safeCount || 0) + 1; save();
+      setTimeout(function () { maybeNudge(t && t.label === "Walk" ? "walk" : "checkin"); }, 4000);
     }
   }
+
+  // ---------- gentle support nudge ----------
+  // Only after a good moment (home safe, checked in), never during an alert, and rarely:
+  // not in the first week, not before 3 safe moments, at most every 60 days, 3 times in total.
+  var DAY = 864e5;
+  function calmNow() { return !state.timer && !state.sharingUntil && $("sosSheet").hidden && $("sosCountdown").hidden && $("graceScreen").hidden; }
+  function maybeNudge(kind) {
+    var n = state.nudge || {}, now = Date.now();
+    if (PREVIEW || n.never || (n.shown || 0) >= 3) return;
+    if (now - (state.firstSeen || now) < 7 * DAY || (state.safeCount || 0) < 3) return;
+    if (n.last && now - n.last < 60 * DAY) return;
+    if (!calmNow()) return;
+    var times = state.safeCount;
+    $("nudgeHead").textContent = kind === "walk" ? "Glad you're home safe" : "Glad you're okay";
+    $("nudgeText").textContent = "Shecurity has been with you " + times + " times now. It's free for everyone and nobody profits from it. If it's been there for you, you can help it be there for someone else, with any amount.";
+    $("nudge").hidden = false;
+    state.nudge = { shown: (n.shown || 0) + 1, last: now, never: false }; save();
+  }
+  function closeNudge(never) { $("nudge").hidden = true; if (never) { state.nudge = Object.assign({}, state.nudge, { never: true }); save(); } }
 
   // ---------- recording ----------
   var rec = { mr: null, chunks: [], blob: null, start: 0, iv: null };
@@ -1931,6 +1971,9 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
         state.template = v("stTemplate") || defaults.template; state.sirenOnSos = $("stSiren").checked; state.country = $("stCountry").value; save();
         $("hlCountry").value = state.country; renderHelp(); renderQuick(); toast("Saved"); break;
       case "wipe": wipe(a); break;
+      case "nudge-go": closeNudge(true); break;
+      case "nudge-later": closeNudge(false); break;
+      case "nudge-never": closeNudge(true); break;
       case "free-info": go("me"); setTimeout(function () { $("freeCard").scrollIntoView({ behavior: "smooth", block: "center" }); }, 60); break;
       case "plus-interest":
         state.plusInterest = true; save(); renderPlus();
