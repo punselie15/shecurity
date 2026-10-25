@@ -35,9 +35,18 @@ public class WidgetSyncActivity extends Activity {
             req.getDataMap().putString("emergency", emergency);
             req.getDataMap().putString("caller", caller);
             Wearable.getDataClient(this).putDataItem(req.asPutDataRequest().setUrgent());
+            if ("1".equals(data.getQueryParameter("pin")) && pin()) { finish(); return; }
             Toast.makeText(this, "Widget and watch updated", Toast.LENGTH_SHORT).show();
         }
         finish();
+    }
+
+    /** Asks the launcher to place the widget, on Android 8 and newer. */
+    private boolean pin() {
+        if (android.os.Build.VERSION.SDK_INT < 26) return false;
+        android.appwidget.AppWidgetManager m = android.appwidget.AppWidgetManager.getInstance(this);
+        if (!m.isRequestPinAppWidgetSupported()) return false;
+        return m.requestPinAppWidget(new android.content.ComponentName(this, QuickWidget.class), null, null);
     }
 
     private static String clean(String v, String fallback, int max) {
