@@ -1,5 +1,5 @@
 // Keeps Shecurity working offline and shows alerts from your circle when the app is closed.
-const CACHE = "shecurity-v11";
+const CACHE = "shecurity-v12";
 const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png", "./favicon-32.png", "./shortcut-sos.png", "./shortcut-walk.png", "./shortcut-timer.png", "./shortcut-call.png", "./vendor/supabase.js"];
 
 self.addEventListener("install", (e) => {

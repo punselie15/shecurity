@@ -594,7 +594,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       <p class="small muted">Pick what's one tap away. Choose what you'd reach for in a hurry.</p>
       <b class="small">Under the SOS button</b>
       <div class="stack" id="qHome"></div>
-      <b class="small">Home-screen widget</b>
+      <b class="small">Home-screen widget and watch</b>
       <div class="stack" id="qWidget"></div>
       <div class="qprev" id="qPreview" aria-hidden="true"></div>
       <p class="small muted" id="qWidgetHint">Add the widget: long-press your home screen, tap Edit or +, and choose Shecurity.</p>
@@ -1072,6 +1072,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   var RESP = { seen: "has seen it", on_my_way: "is on the way", calling: "is calling", called_police: "called emergency services" };
 
   function renderNet() {
+    syncWatch();
     var joined = netOn();
     $("netJoin").hidden = joined || !!net.error && !PREVIEW;
     $("netOffline").hidden = !(net.error && !joined && !PREVIEW);
@@ -1683,6 +1684,25 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   function syncWidget() {
     var buttons = quickList("quickWidget", 4).map(function (id) { return { id: id, label: quickShort(id), url: "shecurity://punselie15.github.io/shecurity/app/#q-" + id }; });
     try { window.webkit.messageHandlers["widget-config"].postMessage({ buttons: buttons }); } catch (e) {}
+    syncWatch();
+  }
+  // Apple Watch: the iPhone app passes the same four buttons, plus a watch key so the watch can raise an SOS by itself
+  var watchSent = "";
+  function syncWatch() {
+    var h; try { h = window.webkit.messageHandlers["watch-config"]; } catch (e) {}
+    if (!h || PREVIEW) return;
+    if (!state.watchKey && netOn() && !syncWatch.busy) {
+      syncWatch.busy = true;
+      net.sb.rpc("new_watch_key").then(function (r) { syncWatch.busy = false; if (!r.error && r.data) { state.watchKey = r.data; save(); syncWatch(); } }, function () { syncWatch.busy = false; });
+    }
+    var msg = {
+      buttons: quickList("quickWidget", 4).map(function (id) { return { id: id, label: quickShort(id) }; }),
+      emergency: emergencyNo(), name: (net.profile && net.profile.display_name) || "", key: state.watchKey || "",
+      endpoint: CONFIG.url + "/functions/v1/watch-alert", apikey: CONFIG.key, caller: ($("fcName") && $("fcName").value) || "Mom"
+    }, text = JSON.stringify(msg);
+    if (text === watchSent) return;
+    watchSent = text;
+    try { h.postMessage(msg); } catch (e) {}
   }
 
   // ---------- settings ----------
