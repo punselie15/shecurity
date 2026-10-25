@@ -1821,7 +1821,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     $("widgetTip").hidden = !!state.widgetTipDone || !(p === "ios-app" || p === "android-app");
   }
   function syncWidget() {
-    var buttons = quickList("quickWidget", 4).map(function (id) { return { id: id, label: quickShort(id), url: "shecurity://punselie15.github.io/shecurity/app/#q-" + id }; });
+    var buttons = quickList("quickWidget", 4).map(function (id) { return { id: id, label: quickShort(id), url: "shecurity://shecurity.app/app/#q-" + id }; });
     try { window.webkit.messageHandlers["widget-config"].postMessage({ buttons: buttons }); } catch (e) {}
     syncWatch();
   }

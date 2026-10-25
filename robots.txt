@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://punselie15.github.io/shecurity/sitemap.xml
+Sitemap: https://shecurity.app/sitemap.xml

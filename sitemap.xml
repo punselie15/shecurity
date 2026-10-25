@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
-  <url><loc>https://punselie15.github.io/shecurity/</loc><lastmod>2026-10-24</lastmod><priority>1.0</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://punselie15.github.io/shecurity/"/>
-    <xhtml:link rel="alternate" hreflang="nl" href="https://punselie15.github.io/shecurity/nl/"/>
+  <url><loc>https://shecurity.app/</loc><lastmod>2026-10-24</lastmod><priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shecurity.app/"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://shecurity.app/nl/"/>
   </url>
-  <url><loc>https://punselie15.github.io/shecurity/nl/</loc><lastmod>2026-10-24</lastmod><priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://punselie15.github.io/shecurity/"/>
-    <xhtml:link rel="alternate" hreflang="nl" href="https://punselie15.github.io/shecurity/nl/"/>
+  <url><loc>https://shecurity.app/nl/</loc><lastmod>2026-10-24</lastmod><priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shecurity.app/"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://shecurity.app/nl/"/>
   </url>
-  <url><loc>https://punselie15.github.io/shecurity/app/</loc><lastmod>2026-10-24</lastmod><priority>0.9</priority>
+  <url><loc>https://shecurity.app/app/</loc><lastmod>2026-10-24</lastmod><priority>0.9</priority>
   </url>
-  <url><loc>https://punselie15.github.io/shecurity/guides/</loc><lastmod>2026-10-24</lastmod><priority>0.6</priority>
+  <url><loc>https://shecurity.app/guides/</loc><lastmod>2026-10-24</lastmod><priority>0.6</priority>
   </url>
-  <url><loc>https://punselie15.github.io/shecurity/guides/walk-home-safely.html</loc><lastmod>2026-10-24</lastmod><priority>0.7</priority>
+  <url><loc>https://shecurity.app/guides/walk-home-safely.html</loc><lastmod>2026-10-24</lastmod><priority>0.7</priority>
   </url>
-  <url><loc>https://punselie15.github.io/shecurity/guides/first-date-safety.html</loc><lastmod>2026-10-24</lastmod><priority>0.7</priority>
+  <url><loc>https://shecurity.app/guides/first-date-safety.html</loc><lastmod>2026-10-24</lastmod><priority>0.7</priority>
   </url>
-  <url><loc>https://punselie15.github.io/shecurity/guides/phone-emergency-sos.html</loc><lastmod>2026-10-24</lastmod><priority>0.7</priority>
+  <url><loc>https://shecurity.app/guides/phone-emergency-sos.html</loc><lastmod>2026-10-24</lastmod><priority>0.7</priority>
   </url>
-  <url><loc>https://punselie15.github.io/shecurity/privacy.html</loc><lastmod>2026-10-24</lastmod><priority>0.3</priority>
+  <url><loc>https://shecurity.app/privacy.html</loc><lastmod>2026-10-24</lastmod><priority>0.3</priority>
   </url>
 </urlset>
