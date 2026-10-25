@@ -120,10 +120,12 @@ p { margin: 0; }
 .actions3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .act { background: var(--surface); border: 0; box-shadow: var(--shadow); border-radius: var(--r); padding: 16px 8px 14px; display: flex; flex-direction: column; align-items: center; gap: 9px; font-size: 13px; font-weight: 700; cursor: pointer; text-align: center; color: var(--ink); }
 .edit-quick { display: block; margin: 8px auto 0; background: none; border: 0; color: var(--muted); font: inherit; font-size: 13px; text-decoration: underline; cursor: pointer; padding: 6px; }
-.qprev { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; background: #2a2152; border-radius: 22px; padding: 10px; }
-.qprev span { background: #e5487f; color: #fff; border-radius: 15px; min-height: 58px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 700; text-align: center; padding: 6px; }
-.qprev span:nth-child(2), .qprev span:nth-child(3) { background: #fff; color: #2a2152; }
-.qprev .i { width: 20px; height: 20px; }
+.qprev { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; background: linear-gradient(180deg, #352a6b, #1c1640); border-radius: 22px; padding: 10px; }
+.qprev span { background: #fff; color: #2a2152; border-radius: 15px; min-height: 64px; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 6px; font-size: 13px; font-weight: 700; padding: 9px 10px; }
+.qprev span.u { background: linear-gradient(135deg, #ff7aa8, #e5487f); color: #fff; }
+.qprev b { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: #ffe4ee; color: #e5487f; }
+.qprev span.u b { background: rgba(255, 255, 255, .24); color: #fff; }
+.qprev .i { width: 15px; height: 15px; }
 .wsteps { counter-reset: w; list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
 .wsteps li { counter-increment: w; display: flex; gap: 12px; align-items: flex-start; font-size: 16px; line-height: 1.4; }
 .wsteps li::before { content: counter(w); flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--pink); color: #fff; font-weight: 800; display: grid; place-items: center; font-size: 15px; }
@@ -248,6 +250,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
 .call .big-avatar { width: 96px; height: 96px; border-radius: 50%; background: #3a3a44; display: grid; place-items: center; font-size: 40px; font-weight: 500; }
 .call .name { font-size: 32px; font-weight: 400; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
 .call .sub { color: #b9b9c4; font-size: 16px; }
+.call .sub.ear { font-size: 13px; margin-top: 10px; color: #8d8da0; }
 .call .actions { display: flex; justify-content: space-around; width: 100%; max-width: 320px; }
 .call .round { width: 74px; height: 74px; border-radius: 50%; border: 0; display: grid; place-items: center; cursor: pointer; color: #fff; }
 .call .round svg { width: 32px; height: 32px; }
@@ -510,7 +513,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       <label class="check" id="fcListenRow"><input type="checkbox" id="fcListen" checked> The caller hears you and answers (uses the microphone, nothing is recorded)</label>
       <button class="btn primary block" type="button" data-action="fakecall-start">Schedule call</button>
     </div>
-    <p class="small muted">Keep Shecurity open and your volume up.</p>
+    <p class="small muted">Keep Shecurity open. When you answer, hold the phone to your ear: the voice is quiet, like a real call.</p>
   </section>
 
   <!-- RIDE -->
@@ -727,7 +730,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
 </div>
 <div class="overlay call" id="callActive" hidden role="dialog" aria-label="Call in progress">
   <div class="in">
-    <div class="who"><div class="big-avatar" id="caInitial">M</div><div class="name" id="caName">Mom</div><div class="sub" id="caTime">00:00</div></div>
+    <div class="who"><div class="big-avatar" id="caInitial">M</div><div class="name" id="caName">Mom</div><div class="sub" id="caTime">00:00</div><div class="sub ear" id="caEar">Hold the phone to your ear</div></div>
     <div class="actions"><div><button class="round decline" type="button" data-action="call-end" aria-label="End call"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-3.5 0-6.6 1.1-9 3l2.4 3 3-1.2V11c1.1-.4 2.3-.6 3.6-.6s2.5.2 3.6.6v2.8l3 1.2L21 12c-2.4-1.9-5.5-3-9-3z"/></svg></button><div class="cap">End</div></div></div>
   </div>
 </div>
@@ -746,7 +749,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
 
   // ---------- local storage (this phone only) ----------
   var KEY = "shecurity.v2";
-  var defaults = { contacts: [], template: "I need help. Please call me, and call emergency services if you can't reach me.", sirenOnSos: false, country: "NL", timer: null, sharingUntil: 0, pendingJoin: null, quickHome: ["walk", "timer", "fakecall"], quickWidget: ["location", "fakecall-now", "help", "call"] };
+  var defaults = { contacts: [], template: "I need help. Please call me, and call emergency services if you can't reach me.", sirenOnSos: false, country: "NL", timer: null, sharingUntil: 0, pendingJoin: null, quickHome: ["walk", "timer", "fakecall"], quickWidget: ["help", "location", "fakecall-now", "call"] };
   function load() { try { var raw = localStorage.getItem(KEY); if (raw) return Object.assign({}, defaults, JSON.parse(raw)); } catch (e) {} return Object.assign({}, defaults); }
   var state = load();
   function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
@@ -1463,11 +1466,42 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   function speechRec() { return window.SpeechRecognition || window.webkitSpeechRecognition || null; }
   if (!speechRec()) { var lr = document.getElementById("fcListenRow"); if (lr) lr.hidden = true; }
   try { if (window.speechSynthesis) { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = function () { speechSynthesis.getVoices(); }; } } catch (e) {}
-  var call = { ring: null, ctx: null, timer: null, clock: null, started: 0 };
+  var call = { ring: null, ctx: null, timer: null, clock: null, started: 0, seq: 0, clips: {} };
+  function callerMale() {
+    var name = $("fcName").value, script = $("fcScript").value;
+    return /\b(dad|daddy|papa|pap|father|brother|bro|uncle|grandpa|opa|boss|john|mike|mark|tom|david|james|paul|peter)\b/i.test(name) || (script === "work" && !/\b(mom|mum|mama|sister|aunt|oma|grandma)\b/i.test(name));
+  }
+  // natural recorded voices (made with Kokoro), one clip per line, named by a hash of its text
+  function clipName(t) { var h = 0x811c9dc5; for (var i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return ("0000000" + h.toString(16)).slice(-8); }
+  function clipUrl(vid, text) { return "voices/" + vid + "/" + clipName(text) + ".mp3"; }
+  function personaLines(who) { var out = []; Object.keys(who).forEach(function (k) { who[k].forEach(function (x) { out.push(typeof x === "string" ? x : x.say); }); }); return out; }
+  function loadClip(url) {
+    if (!call.clips[url]) call.clips[url] = fetch(url).then(function (r) { if (!r.ok) throw new Error("clip"); return r.arrayBuffer(); })
+      .then(function (b) { return new Promise(function (ok, no) { call.ctx.decodeAudioData(b, ok, no); }); });
+    call.clips[url].catch(function () { delete call.clips[url]; });
+    return call.clips[url];
+  }
+  // the iPhone app plays clips through the ear speaker; a browser can't pick the speaker, so it plays quietly with a phone-line sound
+  function earBridge() { try { return window.webkit && webkit.messageHandlers && webkit.messageHandlers["call-audio"]; } catch (e) { return null; } }
+  var clipDone = {};
+  window.shecurityClipDone = function (id, ok) { var f = clipDone[id]; delete clipDone[id]; if (f) f(!!ok); };
+  function playEar(buf, done) {
+    var ctx = call.ctx, src = ctx.createBufferSource(), hp = ctx.createBiquadFilter(), lp = ctx.createBiquadFilter(), g = ctx.createGain();
+    hp.type = "highpass"; hp.frequency.value = 280; lp.type = "lowpass"; lp.frequency.value = 3600; g.gain.value = 0.32;
+    src.buffer = buf; src.connect(hp); hp.connect(lp); lp.connect(g); g.connect(ctx.destination);
+    src.onended = function () { if (call.src === src) call.src = null; done(); };
+    call.src = src; src.start();
+  }
   function scheduleCall() {
     var delay = parseInt($("fcDelay").value, 10) || 5, name = ($("fcName").value || "Mom").trim();
     toast("Your phone will ring in " + (delay < 60 ? delay + " seconds" : delay / 60 + " min"));
+    if (state.androidVersion >= 3) {
+      var q = "d=" + delay + "&n=" + encodeURIComponent(name) + "&s=" + encodeURIComponent($("fcScript").value) + "&m=" + (callerMale() ? 1 : 0) + "&l=" + ($("fcListen").checked ? 1 : 0);
+      go("home"); location.href = "intent://fakecall?" + q + "#Intent;scheme=shecurity;package=io.github.punselie15.shecurity;end"; return;
+    }
     try { var AC = window.AudioContext || window.webkitAudioContext; call.ctx = new AC(); } catch (e) {}
+    var who0 = PERSONAS[$("fcScript").value];
+    if (who0 && call.ctx && !earBridge()) { var vid0 = callerMale() ? "am_michael" : "af_heart"; personaLines(who0).forEach(function (t) { loadClip(clipUrl(vid0, t)); }); }
     try { if (window.speechSynthesis) { var u = new SpeechSynthesisUtterance(" "); u.volume = 0; speechSynthesis.speak(u); } } catch (e) {}
     // ask for the microphone now, so no permission prompt pops up during the call
     call.listen = !!(speechRec() && $("fcListen").checked && $("fcScript").value !== "silent");
@@ -1488,14 +1522,28 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     stopRing(); $("callIncoming").hidden = true; $("callActive").hidden = false; call.started = Date.now();
     call.clock = setInterval(function () { $("caTime").textContent = mmss((Date.now() - call.started) / 1000); }, 1000);
     var who = PERSONAS[$("fcScript").value] || PERSONAS.mom;
-    var male = /\b(dad|daddy|papa|pap|father|brother|bro|uncle|grandpa|opa|boss|john|mike|mark|tom|david|james|paul|peter)\b/i.test($("fcName").value) || ($("fcScript").value === "work" && !/\b(mom|mum|mama|sister|aunt|oma|grandma)\b/i.test($("fcName").value));
-    var convo = { who: who, step: 0, nudged: 0, idle: 0, id: Date.now(), voice: pickVoice(male), lastExpect: null };
+    var male = callerMale();
+    var convo = { who: who, step: 0, nudged: 0, idle: 0, id: Date.now(), voice: pickVoice(male), vid: male ? "am_michael" : "af_heart", lastExpect: null };
+    if (earBridge()) { try { earBridge().postMessage({ action: "start" }); } catch (e) {} }
+    else if (call.ctx && call.ctx.state === "suspended") { try { call.ctx.resume(); } catch (e) {} }
     call.convo = convo;
     setTimeout(function () { nextLine(convo); }, 1100);
   }
   function live(c) { return call.clock && call.convo === c; }
-  // speak sentence by sentence with small natural variation in pace and pitch
   function say(c, text, done) {
+    if (!live(c) || !text) { if (done) setTimeout(done, 400); return; }
+    var finish = function () { if (done && live(c)) setTimeout(done, 250); };
+    if (earBridge()) {
+      var id = String(++call.seq);
+      clipDone[id] = function (ok) { if (ok) finish(); else speak(c, text, done); };
+      try { earBridge().postMessage({ action: "play", id: id, url: new URL(clipUrl(c.vid, text), location.href).href }); } catch (e) { delete clipDone[id]; speak(c, text, done); }
+      return;
+    }
+    if (call.ctx) { loadClip(clipUrl(c.vid, text)).then(function (buf) { if (live(c)) playEar(buf, finish); }, function () { speak(c, text, done); }); return; }
+    speak(c, text, done);
+  }
+  // fallback when a clip can't load: the phone's own voice, sentence by sentence with small variation in pace and pitch
+  function speak(c, text, done) {
     if (!live(c) || !text || !window.speechSynthesis) { if (done) setTimeout(done, 400); return; }
     var parts = text.match(/[^.!?]+[.!?]*/g) || [text], left = parts.length;
     parts.forEach(function (p) {
@@ -1551,6 +1599,8 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     if (call.convo && call.convo.rec) { try { call.convo.rec.abort(); } catch (e) {} }
     call.convo = null;
     try { window.speechSynthesis && speechSynthesis.cancel(); } catch (e) {}
+    try { call.src && call.src.stop(); } catch (e) {} call.src = null;
+    if (earBridge()) { try { earBridge().postMessage({ action: "stop" }); } catch (e) {} }
     $("callIncoming").hidden = true; $("callActive").hidden = true; $("caTime").textContent = "00:00";
   }
 
@@ -1686,7 +1736,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       home.appendChild(b);
     });
     var prev = $("qPreview"); prev.innerHTML = "";
-    quickList("quickWidget", 4).forEach(function (id) { var t = el("span"); t.appendChild(iconEl(QUICK[id].icon)); t.appendChild(document.createTextNode(quickShort(id))); prev.appendChild(t); });
+    quickList("quickWidget", 4).forEach(function (id) { var t = el("span", /^(help|call|siren)$/.test(id) ? "u" : ""); var ic = el("b"); ic.appendChild(iconEl(QUICK[id].icon)); t.appendChild(ic); t.appendChild(document.createTextNode(quickShort(id))); prev.appendChild(t); });
     pickers("quickHome", 3, $("qHome")); pickers("quickWidget", 4, $("qWidget"));
     syncWidget();
   }
@@ -1917,7 +1967,8 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
 
   // ---------- start ----------
   var hash = (location.hash || "").replace(/^#/, "");
-  if (/[?&]android=2\b/.test(location.search)) { state.androidWidget = true; save(); try { history.replaceState(null, "", location.pathname + location.hash); } catch (e) {} }
+  var av = /[?&]android=(\d+)\b/.exec(location.search);
+  if (av && +av[1] >= 2) { state.androidWidget = true; state.androidVersion = +av[1]; save(); try { history.replaceState(null, "", location.pathname + location.hash); } catch (e) {} }
   if (/^join-/i.test(hash)) { state.pendingJoin = hash.slice(5); save(); try { history.replaceState(null, "", location.pathname); } catch (e) {} }
   if (PREVIEW) $("previewBanner").hidden = false;
   fillCountries($("hlCountry")); renderHelp(); renderQuick(); renderWidgetTip(); runTimer(); renderNet();
