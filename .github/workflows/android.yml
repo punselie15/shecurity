@@ -22,6 +22,7 @@ jobs:
       - name: Publish the bundle to the android-dist branch
         run: |
           mkdir -p /tmp/dist && cp android/app/build/outputs/bundle/release/*.aab /tmp/dist/Shecurity-unsigned.aab
+          cp android/wear/build/outputs/bundle/release/*.aab /tmp/dist/Shecurity-wear-unsigned.aab
           cd /tmp/dist && git init -q && git checkout -q -b android-dist
           git config user.name "github-actions" && git config user.email "github-actions@users.noreply.github.com"
           echo "Built from ${GITHUB_SHA}" > BUILD.txt
