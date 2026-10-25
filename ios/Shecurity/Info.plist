@@ -53,7 +53,9 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Shecurity shares your location with the circle you invited, only when you start an SOS, a walk, a check-in or add it to a plan.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Shecurity uses the microphone only when you record audio to send to your circle.</string>
+	<string>Shecurity uses the microphone only when you record audio to send to your circle, or so a fake caller can hear and answer you. Nothing from a fake call is recorded.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>During a fake call, Shecurity turns what you say into text so the caller can answer you. It is not saved or shared.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

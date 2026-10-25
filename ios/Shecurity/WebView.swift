@@ -470,10 +470,10 @@ final class NativeGeolocation: NSObject, WKScriptMessageHandler, CLLocationManag
                 "latitude": loc.coordinate.latitude,
                 "longitude": loc.coordinate.longitude,
                 "accuracy": loc.horizontalAccuracy,
-                "altitude": loc.verticalAccuracy >= 0 ? loc.altitude : NSNull(),
-                "altitudeAccuracy": loc.verticalAccuracy >= 0 ? loc.verticalAccuracy : NSNull(),
-                "heading": loc.course >= 0 ? loc.course : NSNull(),
-                "speed": loc.speed >= 0 ? loc.speed : NSNull()
+                "altitude": loc.verticalAccuracy >= 0 ? (loc.altitude as Any) : (NSNull() as Any),
+                "altitudeAccuracy": loc.verticalAccuracy >= 0 ? (loc.verticalAccuracy as Any) : (NSNull() as Any),
+                "heading": loc.course >= 0 ? (loc.course as Any) : (NSNull() as Any),
+                "speed": loc.speed >= 0 ? (loc.speed as Any) : (NSNull() as Any)
             ],
             "timestamp": loc.timestamp.timeIntervalSince1970 * 1000
         ]
