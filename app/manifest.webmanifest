@@ -1,7 +1,7 @@
 {
   "name": "Shecurity",
   "short_name": "Shecurity",
-  "description": "Free personal safety app. Your own safety circle, SOS alerts with live location, check-ins, fake call and siren.",
+  "description": "Your little helper for the moments that feel wrong. Free SOS with live location, walk me home, check-ins, a fake call that talks back and a loud siren.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
