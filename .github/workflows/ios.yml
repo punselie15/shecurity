@@ -17,4 +17,9 @@ jobs:
             CODE_SIGNING_ALLOWED=NO build > build.log 2>&1 && ok=0 || ok=$?
           grep -E "error:|error -" build.log | sort -u | head -60
           tail -5 build.log
+          [ $ok = 0 ] || exit $ok
+          xcodebuild -project Shecurity.xcodeproj -target ShecurityWatch -configuration Debug -sdk watchsimulator \
+            CODE_SIGNING_ALLOWED=NO build > watch.log 2>&1 && ok=0 || ok=$?
+          grep -E "error:|error -" watch.log | sort -u | head -60
+          tail -5 watch.log
           exit $ok

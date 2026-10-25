@@ -7,9 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		03B551005C00B44012AED36B /* ShecurityWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0D678D96C62273F1541AC04 /* ShecurityWatchApp.swift */; };
+		087DA1BE4A221023ACC4A798 /* ShecurityWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = E5FC88C662C42154B8D74CAD /* ShecurityWatch.app */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		1FA2ADEC44AA007EFA989E50 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 361541191E7FB50149704406 /* Foundation.framework */; };
 		25D3517F267A48E0002E5DC0 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 25D3517E267A48E0002E5DC0 /* GoogleService-Info.plist */; };
 		25E1D5072F9C36D488200877 /* ShecurityWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3C32D3FB63001815A79F075 /* ShecurityWidget.swift */; };
 		2BA711EF9B9FDC440C7B0B69 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D2355C5F38642159E08052E4 /* WidgetKit.framework */; };
+		450A58AA96C31AC4C4AB0386 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FC38862BA83C833A133ADB48 /* Assets.xcassets */; };
 		4BF78FF6717ACD725A7C6C1F /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E942966975B674CB8FBAA4E /* SwiftUI.framework */; };
 		595F23A525CEFBFE0053416C /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 595F239A25CEFBFD0053416C /* Settings.swift */; };
 		595F23A625CEFBFE0053416C /* Entitlements in Resources */ = {isa = PBXBuildFile; fileRef = 595F239B25CEFBFD0053416C /* Entitlements */; };
@@ -28,6 +32,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		04779105CEC11A34757B317A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CD89F881237E9D9200C436A1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 83906A4CB6E3D364CF4DD4E5;
+			remoteInfo = ShecurityWatch;
+		};
 		52256510BD365D877FE1C79E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = CD89F881237E9D9200C436A1 /* Project object */;
@@ -49,10 +60,22 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		80A1D0E31B528DCD1B1578C9 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				087DA1BE4A221023ACC4A798 /* ShecurityWatch.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		25D3517E267A48E0002E5DC0 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "Shecurity/GoogleService-Info.plist"; sourceTree = "<group>"; };
+		361541191E7FB50149704406 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/WatchOS.platform/Developer/SDKs/WatchOS26.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		4C1C2162A8048FDF52B2A9D0 /* Pods-Shecurity.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Shecurity.release.xcconfig"; path = "Target Support Files/Pods-Shecurity/Pods-Shecurity.release.xcconfig"; sourceTree = "<group>"; };
 		4E942966975B674CB8FBAA4E /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		59333BAA25CFF706003392A4 /* Shecurity.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Shecurity.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -67,6 +90,7 @@
 		595F23A325CEFBFE0053416C /* Printer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Printer.swift; path = Shecurity/Printer.swift; sourceTree = "<group>"; };
 		595F23A425CEFBFE0053416C /* WebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = WebView.swift; path = Shecurity/WebView.swift; sourceTree = "<group>"; };
 		927F99B0D6707A4F26520002 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A0D678D96C62273F1541AC04 /* ShecurityWatchApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShecurityWatchApp.swift; sourceTree = "<group>"; };
 		A90A49FC2FE64B4E11366CA3 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		BE9D7FFB2FBE6EEBCA807B6A /* Pods_Shecurity.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Shecurity.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BEE8E5C625AE96C07F8AADED /* Pods-Shecurity.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Shecurity.debug.xcconfig"; path = "Target Support Files/Pods-Shecurity/Pods-Shecurity.debug.xcconfig"; sourceTree = "<group>"; };
@@ -75,6 +99,8 @@
 		D2355C5F38642159E08052E4 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		D6462D34AFAA4A5F4E8B8D11 /* ShecurityWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ShecurityWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		E3C32D3FB63001815A79F075 /* ShecurityWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShecurityWidget.swift; sourceTree = "<group>"; };
+		E5FC88C662C42154B8D74CAD /* ShecurityWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ShecurityWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		FC38862BA83C833A133ADB48 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		FC738020638AA2053A073E0A /* ShecurityWidget.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = ShecurityWidget.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -97,6 +123,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FE4F1F7F69473E249EEC352B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1FA2ADEC44AA007EFA989E50 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -109,6 +143,14 @@
 			path = Pods;
 			sourceTree = "<group>";
 		};
+		4B961CD5E8261595F7C26EF6 /* watchOS */ = {
+			isa = PBXGroup;
+			children = (
+				361541191E7FB50149704406 /* Foundation.framework */,
+			);
+			name = watchOS;
+			sourceTree = "<group>";
+		};
 		90E46E861CB86F5FAF46BED9 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -116,8 +158,19 @@
 				DAB8404D7809D773B9D1A36B /* iOS */,
 				D2355C5F38642159E08052E4 /* WidgetKit.framework */,
 				4E942966975B674CB8FBAA4E /* SwiftUI.framework */,
+				4B961CD5E8261595F7C26EF6 /* watchOS */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		B010DC636C76562E437C0E39 /* ShecurityWatch */ = {
+			isa = PBXGroup;
+			children = (
+				A0D678D96C62273F1541AC04 /* ShecurityWatchApp.swift */,
+				FC38862BA83C833A133ADB48 /* Assets.xcassets */,
+			);
+			name = ShecurityWatch;
+			path = ShecurityWatch;
 			sourceTree = "<group>";
 		};
 		CD89F880237E9D9200C436A1 = {
@@ -141,6 +194,8 @@
 				59333BAA25CFF706003392A4 /* Shecurity.app */,
 				D6462D34AFAA4A5F4E8B8D11 /* ShecurityWidget.appex */,
 				D76D0974E637B73E5A1C1A50 /* ShecurityWidget */,
+				E5FC88C662C42154B8D74CAD /* ShecurityWatch.app */,
+				B010DC636C76562E437C0E39 /* ShecurityWatch */,
 			);
 			sourceTree = "<group>";
 		};
@@ -166,6 +221,23 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		83906A4CB6E3D364CF4DD4E5 /* ShecurityWatch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 200A3C0114D10267C02147B5 /* Build configuration list for PBXNativeTarget "ShecurityWatch" */;
+			buildPhases = (
+				2416ED1AD586B37E8F088BB1 /* Sources */,
+				FE4F1F7F69473E249EEC352B /* Frameworks */,
+				749C0E10D11A61A581041A1F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ShecurityWatch;
+			productName = ShecurityWatch;
+			productReference = E5FC88C662C42154B8D74CAD /* ShecurityWatch.app */;
+			productType = "com.apple.product-type.application";
+		};
 		B8133D3E23C6581B26AEBFDD /* ShecurityWidget */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 95CAA4F2670B072ABF70B848 /* Build configuration list for PBXNativeTarget "ShecurityWidget" */;
@@ -193,11 +265,13 @@
 				CD89F887237E9D9200C436A1 /* Resources */,
 				592CB04773CB45D6CE5DF117 /* [CP] Embed Pods Frameworks */,
 				0A9F6F4A797C9607DFC00C45 /* Embed Foundation Extensions */,
+				80A1D0E31B528DCD1B1578C9 /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				6741A7ADC1E252FE06181359 /* PBXTargetDependency */,
+				17DDB1EF970CDF5A9DDCDF68 /* PBXTargetDependency */,
 			);
 			name = Shecurity;
 			productName = Shecurity;
@@ -214,6 +288,10 @@
 				LastUpgradeCheck = 1240;
 				ORGANIZATIONNAME = "";
 				TargetAttributes = {
+					83906A4CB6E3D364CF4DD4E5 = {
+						CreatedOnToolsVersion = 15.0;
+						DevelopmentTeam = 9KBA2P9ZP2;
+					};
 					B8133D3E23C6581B26AEBFDD = {
 						CreatedOnToolsVersion = 15.0;
 						DevelopmentTeam = 9KBA2P9ZP2;
@@ -239,11 +317,20 @@
 			targets = (
 				CD89F888237E9D9200C436A1 /* Shecurity */,
 				B8133D3E23C6581B26AEBFDD /* ShecurityWidget */,
+				83906A4CB6E3D364CF4DD4E5 /* ShecurityWatch */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		749C0E10D11A61A581041A1F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				450A58AA96C31AC4C4AB0386 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CD89F887237E9D9200C436A1 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -308,6 +395,14 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		2416ED1AD586B37E8F088BB1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				03B551005C00B44012AED36B /* ShecurityWatchApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C41500EAB74CAC18F334BC4C /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -333,6 +428,13 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		17DDB1EF970CDF5A9DDCDF68 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = ShecurityWatch;
+			platformFilter = ios;
+			target = 83906A4CB6E3D364CF4DD4E5 /* ShecurityWatch */;
+			targetProxy = 04779105CEC11A34757B317A /* PBXContainerItemProxy */;
+		};
 		6741A7ADC1E252FE06181359 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = ShecurityWidget;
@@ -424,6 +526,36 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		770E65FB6DB10D4D529529D3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = 9KBA2P9ZP2;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Shecurity;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "When you press SOS or share your location on your watch, Shecurity sends where you are to your circle.";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = io.github.punselie15.shecurity;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.punselie15.shecurity.watchkitapp;
+				PRODUCT_NAME = Shecurity;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
 			};
 			name = Debug;
 		};
@@ -601,9 +733,49 @@
 			};
 			name = Release;
 		};
+		F77B1D6E64E515FF8742DF31 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = 9KBA2P9ZP2;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Shecurity;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "When you press SOS or share your location on your watch, Shecurity sends where you are to your circle.";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = io.github.punselie15.shecurity;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.punselie15.shecurity.watchkitapp;
+				PRODUCT_NAME = Shecurity;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		200A3C0114D10267C02147B5 /* Build configuration list for PBXNativeTarget "ShecurityWatch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F77B1D6E64E515FF8742DF31 /* Release */,
+				770E65FB6DB10D4D529529D3 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		95CAA4F2670B072ABF70B848 /* Build configuration list for PBXNativeTarget "ShecurityWidget" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

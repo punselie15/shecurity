@@ -16,6 +16,9 @@ func createWebView(container: UIView, WKSMH: WKScriptMessageHandler, WKND: WKNav
     userContentController.add(WKSMH, name: "push-token")
     userContentController.add(NativeGeolocation.shared, name: "geo")
     userContentController.add(WidgetBridge.shared, name: "widget-config")
+    #if os(iOS) && !targetEnvironment(macCatalyst)
+    userContentController.add(WatchBridge.shared, name: "watch-config")
+    #endif
     userContentController.addUserScript(WKUserScript(source: NativeGeolocation.script, injectionTime: .atDocumentStart, forMainFrameOnly: true))
 
     config.userContentController = userContentController
@@ -519,3 +522,37 @@ final class WidgetBridge: NSObject, WKScriptMessageHandler {
         WidgetCenter.shared.reloadAllTimelines()
     }
 }
+
+// MARK: - Apple Watch
+// Passes the watch its buttons and key, and opens actions the watch hands back to the phone.
+#if os(iOS) && !targetEnvironment(macCatalyst)
+import WatchConnectivity
+
+final class WatchBridge: NSObject, WKScriptMessageHandler, WCSessionDelegate {
+    static let shared = WatchBridge()
+    private var pending: [String: Any]?
+    private let actions: Set<String> = ["help", "location", "fakecall-now", "fakecall", "call", "siren", "walk", "timer", "plan", "ride", "date", "record", "lines"]
+
+    override init() {
+        super.init()
+        if WCSession.isSupported() { WCSession.default.delegate = self; WCSession.default.activate() }
+    }
+
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        guard WCSession.isSupported(), let body = message.body as? [String: Any] else { return }
+        if WCSession.default.activationState == .activated { try? WCSession.default.updateApplicationContext(body) }
+        else { pending = body }
+    }
+
+    func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
+        if activationState == .activated, let body = pending { try? session.updateApplicationContext(body); pending = nil }
+    }
+    func sessionDidBecomeInactive(_ session: WCSession) {}
+    func sessionDidDeactivate(_ session: WCSession) { WCSession.default.activate() }
+
+    func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
+        guard let action = message["action"] as? String, actions.contains(action) else { return }
+        DispatchQueue.main.async { Shecurity.webView?.evaluateJavaScript("location.hash = 'q-\(action)'", completionHandler: nil) }
+    }
+}
+#endif
