@@ -262,6 +262,19 @@ public class LauncherActivity extends Activity {
     private class Bridge {
         @JavascriptInterface public int version() { return APP_VERSION; }
 
+        /** Where the phone is (mobile network, then SIM, then the phone's region), for the right emergency number. */
+        @JavascriptInterface public String country() {
+            try {
+                android.telephony.TelephonyManager tm = (android.telephony.TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+                if (tm != null) {
+                    String c = tm.getNetworkCountryIso();
+                    if (c == null || c.length() != 2) c = tm.getSimCountryIso();
+                    if (c != null && c.length() == 2) return c.toUpperCase(java.util.Locale.ROOT);
+                }
+            } catch (Exception ignored) { }
+            return java.util.Locale.getDefault().getCountry();
+        }
+
         @JavascriptInterface public boolean online() {
             android.net.ConnectivityManager cm = (android.net.ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
             android.net.NetworkInfo n = cm != null ? cm.getActiveNetworkInfo() : null;
