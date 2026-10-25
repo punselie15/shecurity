@@ -480,6 +480,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       <label class="f">Ring in
         <select id="fcDelay"><option value="5">5 seconds</option><option value="30">30 seconds</option><option value="60">1 minute</option><option value="300">5 minutes</option></select>
       </label>
+      <label class="check" id="fcListenRow"><input type="checkbox" id="fcListen" checked> The caller hears you and answers (uses the microphone, nothing is recorded)</label>
       <button class="btn primary block" type="button" data-action="fakecall-start">Schedule call</button>
     </div>
     <p class="small muted">Keep Shecurity open and your volume up.</p>
@@ -1325,18 +1326,120 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   $("sirenScreen").addEventListener("click", stopSiren);
 
   // ---------- fake call ----------
-  var SCRIPTS = {
-    mom: ["Hi sweetheart, where are you right now?", "Okay. I need you to come home now, something's come up.", "I'll explain when you get here. Can you leave right away?", "Good. Stay on the phone with me while you walk.", "I'll wait for you."],
-    friend: ["Hey! I'm outside, where are you?", "I'm right at the entrance. Just come out now, I'm waiting.", "Yeah, I'm in the car right in front. Come now.", "Okay, see you in a second."],
-    work: ["Hi, sorry to call so late. We have an urgent problem.", "I need you to deal with it right now. Can you step away?", "Thanks. Call me back when you're somewhere quiet."],
-    silent: []
+  // Each caller has a script to follow and short answers for what you say back.
+  var PERSONAS = {
+    mom: {
+      spine: [
+        { say: "Hi sweetheart, it's me. Where are you right now?", expect: "place" },
+        { say: "Okay. Listen, I need you to come home now. Something's come up." },
+        { say: "I'll explain when you get here, I promise. Can you leave right away?" },
+        { say: "Good. Stay on the phone with me while you walk, okay?" },
+        { say: "Is anyone with you, or are you on your own?" },
+        { say: "Alright. I'll stay right here with you." }
+      ],
+      place: ["Okay, I know where that is.", "Alright, that's not too far.", "Okay. Good, I know where you are now."],
+      yes: ["Good, thank you.", "Okay, good.", "Thank you, love."],
+      no: ["I know, I'm sorry. But I really need you home. Please.", "I wouldn't ask if it wasn't important. Just come home, okay?"],
+      why: ["Everyone's fine, don't worry. I just need you here. I'll tell you when you're home.", "It's nothing scary, I promise. I'll explain when I see you."],
+      time: ["Okay, that's fine. Just head this way.", "Alright. I'll be waiting for you."],
+      who: ["Okay. Just tell them you have to go home.", "That's fine. Say goodbye and come home."],
+      bye: ["Okay. Text me when you're close. Love you.", "See you soon, sweetheart."],
+      hi: ["Hi love. Can you hear me okay?"],
+      ok: ["Mm-hm.", "Okay.", "Yeah.", "I hear you."],
+      nudge: ["Hello? Can you hear me?", "Sweetheart, are you there?"],
+      idle: ["Are you on your way yet?", "I'm still here. Keep walking.", "How far are you now?", "Stay on the line, okay?"]
+    },
+    friend: {
+      spine: [
+        { say: "Hey! I'm outside. Where are you?", expect: "place" },
+        { say: "I'm right by the entrance. Just come out now, I'm waiting." },
+        { say: "Yeah, I'm in the car right in front. Are you coming?" },
+        { say: "Perfect. Do you want me to come in and get you?" },
+        { say: "Okay. I'll keep the engine running." }
+      ],
+      place: ["Okay, I see it. Just walk out, I'm right here.", "Got it. I'm close, come out now."],
+      yes: ["Great, see you in a sec.", "Perfect.", "Okay, cool."],
+      no: ["Come on, we have to go now, we're already late.", "Seriously, I can't wait here long. Just come out."],
+      why: ["We said we'd leave at this time, remember? Come on.", "I'll tell you in the car. Just come out."],
+      time: ["Okay, but hurry, please.", "Two minutes, okay? I'm waiting."],
+      who: ["Just tell them your ride is here.", "Tell them I'm here to pick you up."],
+      bye: ["Okay, see you in a second.", "Cool, I'm right out front."],
+      hi: ["Hey! Can you hear me? It's loud where you are."],
+      ok: ["Yeah.", "Okay.", "Mm-hm.", "Uh-huh."],
+      nudge: ["Hello? Can you hear me?", "Hey, are you there?"],
+      idle: ["Are you coming out?", "I'm still here, by the entrance.", "Can you see the car?"]
+    },
+    work: {
+      spine: [
+        { say: "Hi, sorry to call so late. We have an urgent problem." },
+        { say: "I need you to deal with it right now. Can you step away for a moment?" },
+        { say: "Can you get somewhere quiet and call me back?" },
+        { say: "Thanks. I really appreciate it." }
+      ],
+      place: ["Okay. Can you get somewhere quiet?"],
+      yes: ["Great, thank you.", "Perfect, thanks."],
+      no: ["I understand, but it really can't wait. I'm sorry.", "I wouldn't call if it wasn't urgent."],
+      why: ["It's the client thing. I'll explain everything once you're somewhere quiet.", "Something broke and you're the only one who can fix it. I'll fill you in."],
+      time: ["Okay. As soon as you can, please.", "That works. Call me then."],
+      who: ["Just tell them work called. They'll understand."],
+      bye: ["Okay, talk soon. Thanks again.", "Thanks. Speak soon."],
+      hi: ["Hi, can you hear me?"],
+      ok: ["Okay.", "Right.", "Mm-hm.", "Sure."],
+      nudge: ["Hello? Are you still there?", "Can you hear me?"],
+      idle: ["Are you somewhere quiet yet?", "I'm still on the line."]
+    },
+    silent: { spine: [], idle: [], nudge: [], ok: [] }
   };
+  var INTENTS = [
+    ["bye", /\b(bye|goodbye|see you|talk (to you )?later|gotta go)\b/],
+    ["no", /\b(no|nah|nope|can'?t|cannot|not now|not yet|busy|later|don'?t want|staying|stay here)\b/],
+    ["why", /\b(why|what happened|what'?s wrong|what is it|what'?s going on|everything ok(ay)?|is (he|she|someone|everyone) ok(ay)?|what for)\b/],
+    ["time", /\b(minutes?|mins?|hours?|soon|a while|how long|seconds?|in a bit)\b/],
+    ["who", /\b(with (my )?(friends?|people|someone|a guy|a girl|him|her|them)|my date|who)\b/],
+    ["yes", /\b(yes|yeah|yep|yup|ok(ay)?|sure|fine|alright|coming|on my way|leaving|will do|i will|got it)\b/],
+    ["hi", /^\s*(hi|hello|hey|hiya|hallo)\b/]
+  ];
+  function pick(list) { return list && list.length ? list[Math.floor(Math.random() * list.length)] : ""; }
+  function intentOf(text) {
+    var t = (text || "").toLowerCase();
+    for (var i = 0; i < INTENTS.length; i++) if (INTENTS[i][1].test(t)) return INTENTS[i][0];
+    return "ok";
+  }
+  // the most human-sounding voice on this phone: premium, enhanced or neural voices first, never novelty ones
+  function pickVoice(male) {
+    if (!window.speechSynthesis) return null;
+    var all = speechSynthesis.getVoices(), lang = (navigator.language || "en-US").toLowerCase();
+    var en = all.filter(function (v) { return /^en/i.test(v.lang); });
+    if (!en.length) en = all;
+    var fem = /samantha|ava|zoe|allison|susan|karen|moira|tessa|fiona|serena|victoria|kate|female|aria|jenny|libby|sonia|natasha|emma|joanna|salli|kendra|michelle|google us english|uk english female/i;
+    var mal = /daniel|alex|tom|aaron|arthur|oliver|fred|\bmale|guy|ryan|davis|evan|nathan|rishi|uk english male|christopher|eric|andrew|brian/i;
+    function score(v) {
+      var n = v.name, sc = 0;
+      if (/premium/i.test(n)) sc += 8;
+      if (/enhanced|neural|natural/i.test(n)) sc += 6;
+      if (/siri/i.test(n)) sc += 5;
+      if (/google/i.test(n)) sc += 3;
+      if (/online/i.test(n)) sc += 2;
+      if (v.lang.toLowerCase() === lang) sc += 2; else if (v.lang.slice(0, 2).toLowerCase() === lang.slice(0, 2)) sc += 1;
+      if (male ? mal.test(n) : fem.test(n)) sc += 3;
+      if (male ? fem.test(n) : mal.test(n)) sc -= 4;
+      if (/compact|eloquence|espeak|bad news|bells|bubbles|cellos|jester|organ|trinoids|whisper|wobble|zarvox|albert|boing|bahh|superstar|grandpa|grandma|rocko|shelley|sandy|reed|flo|eddy|junior|ralph|kathy|princess|deranged|hysterical|pipe/i.test(n)) sc -= 20;
+      return sc;
+    }
+    return en.slice().sort(function (a, b) { return score(b) - score(a); })[0] || null;
+  }
+  function speechRec() { return window.SpeechRecognition || window.webkitSpeechRecognition || null; }
+  if (!speechRec()) { var lr = document.getElementById("fcListenRow"); if (lr) lr.hidden = true; }
+  try { if (window.speechSynthesis) { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = function () { speechSynthesis.getVoices(); }; } } catch (e) {}
   var call = { ring: null, ctx: null, timer: null, clock: null, started: 0 };
   function scheduleCall() {
     var delay = parseInt($("fcDelay").value, 10) || 5, name = ($("fcName").value || "Mom").trim();
     toast("Your phone will ring in " + (delay < 60 ? delay + " seconds" : delay / 60 + " min"));
     try { var AC = window.AudioContext || window.webkitAudioContext; call.ctx = new AC(); } catch (e) {}
     try { if (window.speechSynthesis) { var u = new SpeechSynthesisUtterance(" "); u.volume = 0; speechSynthesis.speak(u); } } catch (e) {}
+    // ask for the microphone now, so no permission prompt pops up during the call
+    call.listen = !!(speechRec() && $("fcListen").checked && $("fcScript").value !== "silent");
+    if (call.listen) { try { var SR = speechRec(), r = new SR(); r.onstart = function () { try { r.abort(); } catch (e) {} }; r.onerror = function (ev) { if (ev.error === "not-allowed" || ev.error === "service-not-allowed") call.listen = false; }; r.start(); } catch (e) { call.listen = false; } }
     clearTimeout(call.timer); call.timer = setTimeout(function () { incomingCall(name); }, delay * 1000);
     go("home");
   }
@@ -1352,11 +1455,72 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   function acceptCall() {
     stopRing(); $("callIncoming").hidden = true; $("callActive").hidden = false; call.started = Date.now();
     call.clock = setInterval(function () { $("caTime").textContent = mmss((Date.now() - call.started) / 1000); }, 1000);
-    var lines = SCRIPTS[$("fcScript").value] || [], i = 0;
-    function next() { if (!call.clock || i >= lines.length || !window.speechSynthesis) return; var u = new SpeechSynthesisUtterance(lines[i++]); u.rate = 0.95; u.onend = function () { setTimeout(next, 3500); }; speechSynthesis.speak(u); }
-    setTimeout(next, 1200);
+    var who = PERSONAS[$("fcScript").value] || PERSONAS.mom;
+    var male = /\b(dad|daddy|papa|pap|father|brother|bro|uncle|grandpa|opa|boss|john|mike|mark|tom|david|james|paul|peter)\b/i.test($("fcName").value) || ($("fcScript").value === "work" && !/\b(mom|mum|mama|sister|aunt|oma|grandma)\b/i.test($("fcName").value));
+    var convo = { who: who, step: 0, nudged: 0, idle: 0, id: Date.now(), voice: pickVoice(male), lastExpect: null };
+    call.convo = convo;
+    setTimeout(function () { nextLine(convo); }, 1100);
   }
-  function endCall() { stopRing(); clearInterval(call.clock); call.clock = null; try { window.speechSynthesis && speechSynthesis.cancel(); } catch (e) {} $("callIncoming").hidden = true; $("callActive").hidden = true; $("caTime").textContent = "00:00"; }
+  function live(c) { return call.clock && call.convo === c; }
+  // speak sentence by sentence with small natural variation in pace and pitch
+  function say(c, text, done) {
+    if (!live(c) || !text || !window.speechSynthesis) { if (done) setTimeout(done, 400); return; }
+    var parts = text.match(/[^.!?]+[.!?]*/g) || [text], left = parts.length;
+    parts.forEach(function (p) {
+      var u = new SpeechSynthesisUtterance(p.trim());
+      if (c.voice) { u.voice = c.voice; u.lang = c.voice.lang; }
+      u.rate = 0.97 + Math.random() * 0.08; u.pitch = 0.98 + Math.random() * 0.06;
+      u.onend = u.onerror = function () { if (--left === 0 && done) setTimeout(done, 250); };
+      speechSynthesis.speak(u);
+    });
+  }
+  function nextLine(c) {
+    if (!live(c)) return;
+    var line = c.who.spine[c.step];
+    if (line) { c.step++; c.lastExpect = line.expect || null; say(c, line.say, function () { listen(c); }); return; }
+    if (c.idle >= c.who.idle.length) return; // script done; the call stays open quietly until she hangs up
+    c.lastExpect = null; say(c, c.who.idle[c.idle++], function () { listen(c); });
+  }
+  function listen(c) {
+    if (!live(c)) return;
+    var SR = call.listen && speechRec();
+    if (!SR) { setTimeout(function () { nextLine(c); }, 3200 + Math.random() * 1500); return; }
+    var r, heard = "", finished = false;
+    try { r = new SR(); } catch (e) { call.listen = false; return listen(c); }
+    r.lang = /^en/i.test(navigator.language || "") ? navigator.language : "en-US";
+    r.interimResults = false; r.continuous = false; r.maxAlternatives = 1;
+    var quiet = setTimeout(function () { try { r.stop(); } catch (e) {} }, 7000);
+    r.onresult = function (ev) { heard = Array.prototype.map.call(ev.results, function (x) { return x[0].transcript; }).join(" "); };
+    r.onerror = function (ev) { if (ev.error === "not-allowed" || ev.error === "service-not-allowed") call.listen = false; };
+    r.onend = function () {
+      if (finished) return; finished = true; clearTimeout(quiet);
+      if (!live(c)) return;
+      if (!heard.trim()) {
+        // silence: check she's there once, then carry on with the script
+        if (c.nudged < 1 && c.step <= 1) { c.nudged++; say(c, pick(c.who.nudge), function () { listen(c); }); }
+        else setTimeout(function () { nextLine(c); }, 600);
+        return;
+      }
+      answer(c, heard);
+    };
+    c.rec = r;
+    try { r.start(); } catch (e) { finished = true; clearTimeout(quiet); setTimeout(function () { nextLine(c); }, 2500); }
+  }
+  function answer(c, heard) {
+    var intent = intentOf(heard), reply;
+    if (c.lastExpect === "place" && (intent === "ok" || intent === "hi" || intent === "who")) intent = "place";
+    if (intent === "bye") { say(c, pick(c.who.bye)); c.step = c.who.spine.length; c.idle = c.who.idle.length; return; }
+    reply = pick(c.who[intent]) || pick(c.who.ok);
+    // short acknowledgements flow straight into the next line; real answers get a beat first
+    say(c, reply, function () { setTimeout(function () { nextLine(c); }, intent === "ok" ? 150 : 500); });
+  }
+  function endCall() {
+    stopRing(); clearInterval(call.clock); call.clock = null;
+    if (call.convo && call.convo.rec) { try { call.convo.rec.abort(); } catch (e) {} }
+    call.convo = null;
+    try { window.speechSynthesis && speechSynthesis.cancel(); } catch (e) {}
+    $("callIncoming").hidden = true; $("callActive").hidden = true; $("caTime").textContent = "00:00";
+  }
 
   // ---------- check-in / walk timer ----------
   var tick = null, grace = null, wakeLock = null;
