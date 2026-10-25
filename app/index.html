@@ -1505,9 +1505,16 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
         var next = quickList(key, n), j = next.indexOf(sel.value);
         if (j >= 0) next[j] = next[i]; // already used elsewhere: swap the two
         next[i] = sel.value; state[key] = next; save(); renderQuick(); toast("Saved");
+        if (key === "quickWidget") sendAndroidWidget();
       });
       box.appendChild(sel);
     });
+  }
+  // the Android app (version 2 and up) opens with ?android=2 and takes the widget buttons through a shecurity:// link
+  function sendAndroidWidget() {
+    if (!state.androidWidget) return;
+    var b = quickList("quickWidget", 4).map(function (id) { return id + ":" + quickShort(id); }).join("|");
+    location.href = "intent://widget?b=" + encodeURIComponent(b) + "#Intent;scheme=shecurity;package=io.github.punselie15.shecurity;end";
   }
   function syncWidget() {
     var buttons = quickList("quickWidget", 4).map(function (id) { return { id: id, label: quickShort(id), url: "shecurity://punselie15.github.io/shecurity/app/#q-" + id }; });
@@ -1601,7 +1608,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       case "cd-now": stopCountdown(); openSos({ siren: state.sirenOnSos }); break;
       case "copy-sos-link": copy(sosLink()); break;
       case "quick-edit": go("me"); setTimeout(function () { $("quickCard").scrollIntoView({ behavior: "smooth", block: "start" }); }, 50); break;
-      case "quick-reset": state.quickHome = defaults.quickHome.slice(); state.quickWidget = defaults.quickWidget.slice(); save(); renderQuick(); toast("Standard buttons are back"); break;
+      case "quick-reset": state.quickHome = defaults.quickHome.slice(); state.quickWidget = defaults.quickWidget.slice(); save(); renderQuick(); sendAndroidWidget(); toast("Standard buttons are back"); break;
     }
   });
   $("quickExit").addEventListener("click", function () { endCall(); stopSiren(); window.location.replace("https://www.google.com/search?q=weather+today"); });
@@ -1632,6 +1639,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
 
   // ---------- start ----------
   var hash = (location.hash || "").replace(/^#/, "");
+  if (/[?&]android=2\b/.test(location.search)) { state.androidWidget = true; save(); try { history.replaceState(null, "", location.pathname + location.hash); } catch (e) {} }
   if (/^join-/i.test(hash)) { state.pendingJoin = hash.slice(5); save(); try { history.replaceState(null, "", location.pathname); } catch (e) {} }
   if (PREVIEW) $("previewBanner").hidden = false;
   fillCountries($("hlCountry")); renderHelp(); renderQuick(); runTimer(); renderNet();
