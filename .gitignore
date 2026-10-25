@@ -3,3 +3,5 @@
 build/
 .gradle/
 local.properties
+android/app/src/main/assets/www/
+android/app/google-services.json

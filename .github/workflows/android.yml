@@ -14,6 +14,21 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
+      - name: Get the web app from main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: site
+      - name: Put the web app inside the Android app
+        run: |
+          rm -rf android/app/src/main/assets/www && mkdir -p android/app/src/main/assets/www
+          (cd site/app && tar cf - --exclude=voices --exclude=sw.js .) | tar xf - -C android/app/src/main/assets/www
+          ls android/app/src/main/assets/www
+      - name: Add the Firebase config when it is set
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json; echo "Firebase on"; else echo "Firebase not set, alerts only while open"; fi
       - name: Build unsigned release bundle
         working-directory: android
         run: |
