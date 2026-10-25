@@ -1,0 +1,11 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "io.github.punselie15.shecurity",
+    "sha256_cert_fingerprints": [
+      "95:89:AA:2E:E8:51:DC:69:D7:02:EE:AB:4B:57:77:EE:B1:89:5B:55:E2:DD:5E:04:30:50:54:DD:FE:7E:DF:40",
+      "AE:95:1D:5E:B1:2F:63:F9:CB:6E:19:83:13:A9:9D:8B:2D:78:EE:5F:A8:8B:45:A7:00:78:B7:1E:48:4C:F7:E3"
+    ]
+  }
+}]
