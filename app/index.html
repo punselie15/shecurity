@@ -14,6 +14,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Shecurity">
 <script src="vendor/supabase.js"></script>
+<script src="i18n.js"></script>
 <!--APP-START-->
 <title>Shecurity</title>
 <style>
@@ -628,6 +629,11 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   <!-- ME -->
   <section class="view" data-view="me" hidden>
     <h1>You</h1>
+    <div class="card stack">
+      <h2>Language and country</h2>
+      <label class="f">Language<select id="stLang"></select></label>
+      <label class="f">Country, for emergency numbers<span class="hint" id="stCountryHint"></span><select id="stCountry"></select></label>
+    </div>
     <div class="card stack" id="meProfile" hidden>
       <h2>Your profile</h2>
       <label class="f">First name<input type="text" id="mpName" maxlength="40"></label>
@@ -662,7 +668,6 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       <h2>SOS settings</h2>
       <label class="f">Your SOS message<textarea id="stTemplate" maxlength="300"></textarea></label>
       <label class="check"><input type="checkbox" id="stSiren"> Sound the siren when I press SOS</label>
-      <label class="f">Country, for emergency numbers<select id="stCountry"></select></label>
       <button class="btn" type="button" data-action="settings-save">Save settings</button>
     </div>
     <div class="card brand stack free" id="freeCard">
@@ -805,14 +810,111 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   if (!state.firstSeen) { state.firstSeen = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
 
-  var COUNTRIES = {
-    NL: { name: "Netherlands", emergency: "112", lines: [["Emergency", "112"], ["Veilig Thuis (domestic violence)", "0800 2000"], ["Centrum Seksueel Geweld", "0800 0188"], ["113 Suicide prevention", "0800 0113"]] },
-    US: { name: "United States", emergency: "911", lines: [["Emergency", "911"], ["National Domestic Violence Hotline", "1-800-799-7233"], ["DV Hotline by text: text START to", "88788"], ["RAINN Sexual Assault Hotline", "1-800-656-4673"], ["Suicide & Crisis Lifeline", "988"]] },
-    GB: { name: "United Kingdom", emergency: "999", lines: [["Emergency", "999"], ["Silent call: dial 999, then press", "55"], ["Refuge National DV Helpline", "0808 2000 247"], ["Samaritans", "116 123"]] },
-    CA: { name: "Canada", emergency: "911", lines: [["Emergency", "911"], ["Suicide Crisis Helpline", "988"]] },
-    AU: { name: "Australia", emergency: "000", lines: [["Emergency", "000"], ["1800RESPECT", "1800 737 732"], ["Lifeline", "13 11 14"]] },
-    EU: { name: "Europe (other)", emergency: "112", lines: [["Emergency, anywhere in the EU", "112"]] }
+  // ---------- language: the phone's own language, or the one picked under You ----------
+  var LANGS = { en: "English", nl: "Nederlands", fr: "Français", de: "Deutsch", es: "Español", pt: "Português" };
+  var I18N = window.SHC_I18N || {};
+  function phoneLang() {
+    var list = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || "en"];
+    for (var i = 0; i < list.length; i++) { var c = String(list[i]).slice(0, 2).toLowerCase(); if (LANGS[c]) return c; }
+    return "en";
+  }
+  var LANG = LANGS[state.lang] ? state.lang : phoneLang();
+  var DICT = LANG === "en" ? {} : (I18N[LANG] || {});
+  document.documentElement.lang = LANG;
+  // T("English text", { name: "Mia" }) gives the text in the chosen language, with {name} filled in
+  function T(text, vars) {
+    var out = DICT[text] || text;
+    if (vars) out = out.replace(/\{(\w+)\}/g, function (m, k) { return vars[k] != null ? vars[k] : m; });
+    return out;
+  }
+  function translatePage() {
+    if (LANG === "en") return;
+    var walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null), n, list = [];
+    while ((n = walk.nextNode())) list.push(n);
+    list.forEach(function (node) {
+      var p = node.parentNode && node.parentNode.nodeName;
+      if (p === "SCRIPT" || p === "STYLE") return;
+      var raw = node.nodeValue, key = raw.replace(/\s+/g, " ").trim();
+      if (key && DICT[key]) node.nodeValue = raw.match(/^\s*/)[0] + DICT[key] + raw.match(/\s*$/)[0];
+    });
+    document.querySelectorAll("[placeholder],[aria-label],[title]").forEach(function (e) {
+      ["placeholder", "aria-label", "title"].forEach(function (a) { var v = e.getAttribute(a); if (v && DICT[v]) e.setAttribute(a, DICT[v]); });
+    });
+  }
+  // the standard SOS message follows the language, a message she wrote herself stays as it is
+  var EN_TEMPLATE = defaults.template;
+  function stockTemplate(t) { if (!t || t === EN_TEMPLATE) return true; for (var k in I18N) if (I18N[k][EN_TEMPLATE] === t) return true; return false; }
+  defaults.template = T(EN_TEMPLATE);
+  if (stockTemplate(state.template)) state.template = defaults.template;
+
+  // ---------- countries: the right emergency number wherever she is ----------
+  // police or the general emergency number; help lines only where we checked them
+  var EMERGENCY = {
+    AD: "112", AT: "112", BE: "112", BG: "112", CH: "112", CY: "112", CZ: "112", DE: "112", DK: "112", EE: "112", ES: "112", FI: "112", FR: "112", GR: "112", HR: "112", HU: "112", IE: "112", IS: "112", IT: "112", LI: "112", LT: "112", LU: "112", LV: "112", MC: "112", MT: "112", NL: "112", NO: "112", PL: "112", PT: "112", RO: "112", SE: "112", SI: "112", SK: "112",
+    GB: "999", UA: "112", MD: "112", ME: "112", MK: "112", RS: "192", BA: "122", BY: "102", TR: "112", RU: "112", GE: "112", AM: "112", AZ: "112", KZ: "112",
+    US: "911", CA: "911", MX: "911", AR: "911", BR: "190", CL: "133", CO: "123", PE: "105", VE: "911", EC: "911", UY: "911", PY: "911", BO: "110", CR: "911", PA: "911", DO: "911", PR: "911", SV: "911", HN: "911", CU: "106", JM: "119", TT: "999",
+    CN: "110", JP: "110", KR: "112", TW: "110", HK: "999", SG: "999", MY: "999", TH: "191", VN: "113", PH: "911", ID: "110", IN: "112", PK: "15", BD: "999", LK: "119", NP: "100", KH: "117", MM: "199",
+    AE: "999", SA: "911", QA: "999", KW: "112", BH: "999", OM: "9999", IL: "100", JO: "911", LB: "112", IR: "110",
+    AU: "000", NZ: "111",
+    ZA: "10111", NG: "112", KE: "999", GH: "112", EG: "122", MA: "19", DZ: "17", TN: "197", ET: "991", TZ: "112", UG: "999", RW: "112", SN: "17", CM: "117", ZM: "999", ZW: "995", NA: "10111", BW: "999", MU: "999"
   };
+  // [what it is, number, { sms: text to send } or { dial: number to call }]
+  var HELPLINES = {
+    NL: [["Veilig Thuis (domestic violence)", "0800 2000"], ["Centrum Seksueel Geweld", "0800 0188"], ["113 Suicide prevention", "0800 0113"]],
+    BE: [["1712 (violence and abuse, Dutch)", "1712"], ["Écoute violences conjugales (French)", "0800 30 030"]],
+    DE: [["Hilfetelefon Gewalt gegen Frauen", "116 016"], ["TelefonSeelsorge", "0800 111 0 111"]],
+    AT: [["Frauenhelpline gegen Gewalt", "0800 222 555"]],
+    CH: [["Die Dargebotene Hand / La Main Tendue", "143"]],
+    FR: [["Violences Femmes Info", "3919"]],
+    ES: [["016 (gender violence)", "016"]],
+    PT: [["APAV victim support", "116 006"]],
+    IT: [["1522 (violence and stalking)", "1522"]],
+    IE: [["Women's Aid", "1800 341 900"], ["Samaritans", "116 123"]],
+    GB: [["Silent call: dial 999, then press", "55", { dial: "999" }], ["Refuge National DV Helpline", "0808 2000 247"], ["Samaritans", "116 123"]],
+    US: [["National Domestic Violence Hotline", "1-800-799-7233"], ["DV Hotline by text: text START to", "88788", { sms: "START" }], ["RAINN Sexual Assault Hotline", "1-800-656-4673"], ["Suicide & Crisis Lifeline", "988"]],
+    CA: [["Suicide Crisis Helpline", "988"]],
+    BR: [["Central de Atendimento à Mulher", "180"], ["Ambulance (SAMU)", "192"]],
+    AU: [["1800RESPECT", "1800 737 732"], ["Lifeline", "13 11 14"]],
+    NZ: [["Women's Refuge crisis line", "0800 733 843"]]
+  };
+  // the phone's time zone says where she is, even when the phone's language is set to another country
+  var TZ_COUNTRY = {
+    "Europe/Amsterdam": "NL", "Europe/Brussels": "BE", "Europe/Berlin": "DE", "Europe/Busingen": "DE", "Europe/Vienna": "AT", "Europe/Zurich": "CH", "Europe/Paris": "FR", "Europe/Madrid": "ES", "Atlantic/Canary": "ES", "Africa/Ceuta": "ES",
+    "Europe/Lisbon": "PT", "Atlantic/Madeira": "PT", "Atlantic/Azores": "PT", "Europe/Rome": "IT", "Europe/Dublin": "IE", "Europe/London": "GB", "Europe/Luxembourg": "LU", "Europe/Monaco": "MC", "Europe/Andorra": "AD", "Europe/Vaduz": "LI", "Europe/Malta": "MT",
+    "Europe/Copenhagen": "DK", "Europe/Oslo": "NO", "Europe/Stockholm": "SE", "Europe/Helsinki": "FI", "Atlantic/Reykjavik": "IS", "Europe/Tallinn": "EE", "Europe/Riga": "LV", "Europe/Vilnius": "LT", "Europe/Warsaw": "PL", "Europe/Prague": "CZ",
+    "Europe/Bratislava": "SK", "Europe/Budapest": "HU", "Europe/Ljubljana": "SI", "Europe/Zagreb": "HR", "Europe/Belgrade": "RS", "Europe/Sarajevo": "BA", "Europe/Podgorica": "ME", "Europe/Skopje": "MK", "Europe/Sofia": "BG", "Europe/Bucharest": "RO",
+    "Europe/Chisinau": "MD", "Europe/Kiev": "UA", "Europe/Kyiv": "UA", "Europe/Minsk": "BY", "Europe/Athens": "GR", "Asia/Nicosia": "CY", "Europe/Nicosia": "CY", "Europe/Istanbul": "TR", "Europe/Moscow": "RU", "Asia/Tbilisi": "GE", "Asia/Yerevan": "AM", "Asia/Baku": "AZ", "Asia/Almaty": "KZ",
+    "America/New_York": "US", "America/Chicago": "US", "America/Denver": "US", "America/Phoenix": "US", "America/Los_Angeles": "US", "America/Anchorage": "US", "Pacific/Honolulu": "US", "America/Detroit": "US", "America/Boise": "US", "America/Indiana/Indianapolis": "US", "America/Kentucky/Louisville": "US",
+    "America/Toronto": "CA", "America/Vancouver": "CA", "America/Edmonton": "CA", "America/Winnipeg": "CA", "America/Halifax": "CA", "America/St_Johns": "CA", "America/Regina": "CA", "America/Montreal": "CA",
+    "America/Mexico_City": "MX", "America/Cancun": "MX", "America/Monterrey": "MX", "America/Tijuana": "MX", "America/Argentina/Buenos_Aires": "AR", "America/Buenos_Aires": "AR", "America/Sao_Paulo": "BR", "America/Fortaleza": "BR", "America/Recife": "BR", "America/Bahia": "BR", "America/Manaus": "BR", "America/Belem": "BR",
+    "America/Santiago": "CL", "America/Bogota": "CO", "America/Lima": "PE", "America/Caracas": "VE", "America/Guayaquil": "EC", "America/Montevideo": "UY", "America/Asuncion": "PY", "America/La_Paz": "BO", "America/Costa_Rica": "CR", "America/Panama": "PA",
+    "America/Santo_Domingo": "DO", "America/Puerto_Rico": "PR", "America/El_Salvador": "SV", "America/Tegucigalpa": "HN", "America/Havana": "CU", "America/Jamaica": "JM", "America/Port_of_Spain": "TT",
+    "Asia/Shanghai": "CN", "Asia/Tokyo": "JP", "Asia/Seoul": "KR", "Asia/Taipei": "TW", "Asia/Hong_Kong": "HK", "Asia/Singapore": "SG", "Asia/Kuala_Lumpur": "MY", "Asia/Bangkok": "TH", "Asia/Ho_Chi_Minh": "VN", "Asia/Saigon": "VN", "Asia/Manila": "PH",
+    "Asia/Jakarta": "ID", "Asia/Makassar": "ID", "Asia/Kolkata": "IN", "Asia/Calcutta": "IN", "Asia/Karachi": "PK", "Asia/Dhaka": "BD", "Asia/Colombo": "LK", "Asia/Kathmandu": "NP", "Asia/Phnom_Penh": "KH", "Asia/Yangon": "MM",
+    "Asia/Dubai": "AE", "Asia/Riyadh": "SA", "Asia/Qatar": "QA", "Asia/Kuwait": "KW", "Asia/Bahrain": "BH", "Asia/Muscat": "OM", "Asia/Jerusalem": "IL", "Asia/Amman": "JO", "Asia/Beirut": "LB", "Asia/Tehran": "IR",
+    "Australia/Sydney": "AU", "Australia/Melbourne": "AU", "Australia/Brisbane": "AU", "Australia/Perth": "AU", "Australia/Adelaide": "AU", "Australia/Hobart": "AU", "Australia/Darwin": "AU", "Pacific/Auckland": "NZ",
+    "Africa/Johannesburg": "ZA", "Africa/Lagos": "NG", "Africa/Nairobi": "KE", "Africa/Accra": "GH", "Africa/Cairo": "EG", "Africa/Casablanca": "MA", "Africa/Algiers": "DZ", "Africa/Tunis": "TN", "Africa/Addis_Ababa": "ET", "Africa/Dar_es_Salaam": "TZ",
+    "Africa/Kampala": "UG", "Africa/Kigali": "RW", "Africa/Dakar": "SN", "Africa/Douala": "CM", "Africa/Lusaka": "ZM", "Africa/Harare": "ZW", "Africa/Windhoek": "NA", "Africa/Gaborone": "BW", "Indian/Mauritius": "MU"
+  };
+  // the phone's own country first (SIM or region setting), then its time zone, then its language
+  function phoneCountry() {
+    var c = "";
+    try { if (window.ShecurityNative && ShecurityNative.country) c = String(ShecurityNative.country() || "").toUpperCase(); } catch (e) {}
+    if (!EMERGENCY[c] && window.SHECURITY_REGION) c = String(window.SHECURITY_REGION).toUpperCase();
+    if (!EMERGENCY[c]) { try { c = TZ_COUNTRY[Intl.DateTimeFormat().resolvedOptions().timeZone] || ""; } catch (e) {} }
+    if (!EMERGENCY[c]) {
+      var list = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ""];
+      for (var i = 0; i < list.length && !EMERGENCY[c]; i++) { var m = /[-_]([A-Za-z]{2})\b/.exec(list[i]); c = m ? m[1].toUpperCase() : ""; }
+    }
+    return EMERGENCY[c] ? c : "XX";
+  }
+  var regionNames = null;
+  try { regionNames = new Intl.DisplayNames([LANG], { type: "region" }); } catch (e) {}
+  function countryName(c) { if (c === "XX") return T("Another country"); try { return (regionNames && regionNames.of(c)) || c; } catch (e) { return c; } }
+  function countryList() { return Object.keys(EMERGENCY).sort(function (a, b) { return countryName(a).localeCompare(countryName(b), LANG); }).concat(["XX"]); }
+  if (!state.countryManual || !EMERGENCY[state.country]) state.country = phoneCountry();
+  function emergencyNo(c) { return EMERGENCY[c || state.country] || "112"; }
+  function helpLines(c) { return [[T("Emergency"), emergencyNo(c)]].concat((HELPLINES[c] || []).map(function (l) { return [T(l[0]), l[1], l[2]]; })); }
 
   // ---------- helpers ----------
   var $ = function (id) { return document.getElementById(id); };
@@ -829,10 +931,9 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   function pad(n) { return (n < 10 ? "0" : "") + n; }
   function mmss(sec) { sec = Math.max(0, Math.round(sec)); var h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = sec % 60; return (h ? h + ":" + pad(m) : pad(m)) + ":" + pad(s); }
   function hhmm(d) { return (d || new Date()).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); }
-  function ago(iso) { var s = (Date.now() - new Date(iso).getTime()) / 1000; if (s < 60) return "just now"; if (s < 3600) return Math.floor(s / 60) + " min ago"; if (s < 86400) return Math.floor(s / 3600) + " h ago"; return new Date(iso).toLocaleDateString(); }
+  function ago(iso) { var s = (Date.now() - new Date(iso).getTime()) / 1000; if (s < 60) return T("just now"); if (s < 3600) return T("{n} min ago", { n: Math.floor(s / 60) }); if (s < 86400) return T("{n} h ago", { n: Math.floor(s / 3600) }); return new Date(iso).toLocaleDateString(LANG); }
   function initial(n) { return (n || "?").trim().charAt(0).toUpperCase() || "?"; }
   function mapLink(lat, lng) { return "https://maps.google.com/?q=" + lat + "," + lng; }
-  function emergencyNo() { return (COUNTRIES[state.country] || COUNTRIES.NL).emergency; }
 
   function getLocation(ms) {
     return new Promise(function (resolve) {
@@ -845,7 +946,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     });
   }
   function getBattery() { if (!navigator.getBattery) return Promise.resolve(null); return navigator.getBattery().then(function (b) { return Math.round(b.level * 100); }).catch(function () { return null; }); }
-  function locLine(loc) { return loc ? "My location: " + mapLink(loc.lat, loc.lng) + " (within about " + loc.acc + " m)" : "My location couldn't be found. Please call me."; }
+  function locLine(loc) { return loc ? T("My location: {link} (within about {m} m)", { link: mapLink(loc.lat, loc.lng), m: loc.acc }) : T("My location couldn't be found. Please call me."); }
 
   // ---------- network (Supabase) ----------
   var net = { sb: null, ready: false, me: null, profile: null, circles: [], people: {}, feed: [], responses: {}, live: [], plans: [], channel: null, error: null };
@@ -931,9 +1032,9 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
 
   function joinNetwork() {
     var name = $("jnName").value.trim(), phone = $("jnPhone").value.trim();
-    if (!name) { toast("Add your first name."); return; }
-    if (PREVIEW) { toast("Works in the live app."); return; }
-    if (!net.sb) { toast("Can't reach the network. Check your connection."); return; }
+    if (!name) { toast(T("Add your first name.")); return; }
+    if (PREVIEW) { toast(T("Works in the live app.")); return; }
+    if (!net.sb) { toast(T("Can't reach the network. Check your connection.")); return; }
     $("jnName").disabled = true;
     net.sb.auth.signInAnonymously().then(function (r) {
       if (r.error) throw r.error;
@@ -942,42 +1043,42 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     }).then(function (r) {
       if (r && r.error) throw r.error;
       return refreshAll();
-    }).then(function () { subscribe(); toast("Welcome, " + name); })
-      .catch(function (e) { toast(/anonymous/i.test(e.message || "") ? "The network is still being switched on. Try again later." : "Couldn't join: " + (e.message || "connection problem")); })
+    }).then(function () { subscribe(); toast(T("Welcome, {name}", { name: name })); })
+      .catch(function (e) { toast(/anonymous/i.test(e.message || "") ? T("The network is still being switched on. Try again later.") : T("Couldn't join: {reason}", { reason: e.message || T("connection problem") })); })
       .then(function () { $("jnName").disabled = false; });
   }
   function createCircle() {
-    var n = $("ccName").value.trim(); if (!n) { toast("Give your circle a name."); return; }
-    if (PREVIEW) { toast("Works in the live app."); return; }
+    var n = $("ccName").value.trim(); if (!n) { toast(T("Give your circle a name.")); return; }
+    if (PREVIEW) { toast(T("Works in the live app.")); return; }
     net.sb.rpc("create_circle", { p_name: n }).then(function (r) {
       if (r.error) throw r.error; $("ccName").value = "";
       return loadCircles().then(function () { renderNet(); invite(r.data); });
-    }).catch(function (e) { toast(e.message || "Couldn't create the circle."); });
+    }).catch(function (e) { toast(e.message || T("Couldn't create the circle.")); });
   }
   function joinCircle(code) {
     code = (code || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase();
-    if (code.length < 6) { toast("Enter the 8-letter code."); return Promise.resolve(); }
-    if (PREVIEW) { toast("Works in the live app."); return Promise.resolve(); }
+    if (code.length < 6) { toast(T("Enter the 8-letter code.")); return Promise.resolve(); }
+    if (PREVIEW) { toast(T("Works in the live app.")); return Promise.resolve(); }
     return net.sb.rpc("join_circle", { p_code: code }).then(function (r) {
       if (r.error) throw r.error; $("jcCode").value = "";
-      toast("You joined " + r.data.name);
+      toast(T("You joined {circle}", { circle: r.data.name }));
       return loadCircles().then(function () { return Promise.all([loadFeed(), loadLive(), loadPlans()]); }).then(renderNet);
-    }).catch(function (e) { toast(e.message || "Couldn't join."); });
+    }).catch(function (e) { toast(e.message || T("Couldn't join.")); });
   }
   function appUrl() { return NATIVE ? PUBLIC_URL : location.origin + location.pathname; }
   function invite(c) {
-    var text = "Join my Shecurity circle \"" + c.name + "\" so we can look out for each other. Open " + appUrl() + "#join-" + c.invite_code + " or enter the code " + c.invite_code + ".";
+    var text = T("Join my Shecurity circle \"{circle}\" so we can look out for each other. Open {link} or enter the code {code}.", { circle: c.name, link: appUrl() + "#join-" + c.invite_code, code: c.invite_code });
     shareText(text);
   }
   function leaveCircle(c) {
     var owner = c.owner_id === net.me;
     var q = owner ? net.sb.from("circles").delete().eq("id", c.id) : net.sb.from("circle_members").delete().eq("circle_id", c.id).eq("user_id", net.me);
-    q.then(function (r) { if (r.error) throw r.error; toast(owner ? "Circle deleted" : "You left " + c.name); return loadCircles(); }).then(renderNet).catch(function (e) { toast(e.message); });
+    q.then(function (r) { if (r.error) throw r.error; toast(owner ? T("Circle deleted") : T("You left {circle}", { circle: c.name })); return loadCircles(); }).then(renderNet).catch(function (e) { toast(e.message); });
   }
   function respond(alert, response) {
-    if (PREVIEW) { toast("Works in the live app."); return; }
+    if (PREVIEW) { toast(T("Works in the live app.")); return; }
     net.sb.from("alert_responses").upsert({ alert_id: alert.id, user_id: net.me, response: response }).then(function (r) {
-      if (r.error) throw r.error; notify("response", alert.id); toast("Sent. They'll see it right away.");
+      if (r.error) throw r.error; notify("response", alert.id); toast(T("Sent. They'll see it right away."));
       return loadFeed();
     }).then(renderNet).catch(function (e) { toast(e.message); });
   }
@@ -1025,13 +1126,13 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   function liveOf(id) { return net.live.filter(function (l) { return l.user_id === id && new Date(l.sharing_until).getTime() > Date.now(); })[0] || null; }
   function untilText(iso) {
     var d = new Date(iso), left = (d.getTime() - Date.now()) / 3600000;
-    if (left < 1) return "for " + Math.max(1, Math.round(left * 60)) + " more min";
+    if (left < 1) return T("for {n} more min", { n: Math.max(1, Math.round(left * 60)) });
     var sameDay = d.toDateString() === new Date().toDateString();
-    return "until " + (sameDay ? "" : d.toLocaleDateString([], { weekday: "short" }) + " ") + hhmm(d);
+    return T("until {time}", { time: (sameDay ? "" : d.toLocaleDateString(LANG, { weekday: "short" }) + " ") + hhmm(d) });
   }
   function postPlan() {
     var where = v("plWhere"), withWhom = v("plWith"), msg = v("plMsg"), hours = parseInt($("plHours").value, 10) || 24;
-    if (!where && !withWhom) { toast("Add where you're going or who you're with."); $("plWhere").focus(); return; }
+    if (!where && !withWhom) { toast(T("Add where you're going or who you're with.")); $("plWhere").focus(); return; }
     if (!netOn()) { go("circle"); return; }
     var btn = $("plPost"); btn.disabled = true;
     var row = { user_id: net.me, place: where || null, with_whom: withWhom || null, message: msg || null, lat: null, lng: null, expires_at: new Date(Date.now() + hours * 3600000).toISOString() };
@@ -1041,12 +1142,12 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       return net.sb.from("plans").upsert(row).then(function (r) { if (r.error) throw r.error; return loadPlans(); });
     }).then(function () {
       renderNet(); go("circle");
-      toast(mates().length ? "Your circle can see your plans " + untilText(row.expires_at) + "." : "Saved. Invite people so they can see it.");
-    }).catch(function (e) { toast(e.message || "Couldn't share your plans."); })
+      toast(mates().length ? T("Your circle can see your plans {until}.", { until: untilText(row.expires_at) }) : T("Saved. Invite people so they can see it."));
+    }).catch(function (e) { toast(e.message || T("Couldn't share your plans.")); })
       .then(function () { btn.disabled = false; });
   }
   function endPlan() {
-    var done = function () { net.plans = net.plans.filter(function (p) { return p.user_id !== net.me; }); renderNet(); renderPlanForm(); toast("Your plans are no longer shown."); };
+    var done = function () { net.plans = net.plans.filter(function (p) { return p.user_id !== net.me; }); renderNet(); renderPlanForm(); toast(T("Your plans are no longer shown.")); };
     if (PREVIEW || !netOn()) { done(); return; }
     net.sb.from("plans").delete().eq("user_id", net.me).then(function (r) { if (r.error) throw r.error; done(); }).catch(function (e) { toast(e.message); });
   }
@@ -1055,16 +1156,16 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     var row = el("div", "plan"); row.id = "plan-" + p.user_id;
     row.appendChild(el("span", "avatar", me ? selfInitial() : initial(nameOf(p.user_id))));
     var t = el("div", "t"), who = el("div", "who");
-    who.appendChild(el("b", null, me ? "You" : nameOf(p.user_id)));
+    who.appendChild(el("b", null, me ? T("You") : nameOf(p.user_id)));
     who.appendChild(el("span", null, untilText(p.expires_at)));
     t.appendChild(who);
     if (p.place) t.appendChild(el("div", "where", p.place));
-    if (p.with_whom) t.appendChild(el("div", p.place ? "with" : "where", "With " + p.with_whom));
+    if (p.with_whom) t.appendChild(el("div", p.place ? "with" : "where", T("With {who}", { who: p.with_whom })));
     if (p.message) t.appendChild(el("div", "msg", p.message));
     var acts = el("div", "row"), live = liveOf(p.user_id);
-    if (live || p.lat != null) { var m = el("a", "btn sm", live ? "Live location" : "Map"); m.href = live ? mapLink(live.lat, live.lng) : mapLink(p.lat, p.lng); m.target = "_blank"; m.rel = "noopener"; acts.appendChild(m); }
-    if (!me && person.phone) { var c = el("a", "btn sm", "Call"); c.href = "tel:" + person.phone.replace(/[^\d+]/g, ""); acts.appendChild(c); }
-    if (me) { var e = el("button", "btn sm", "Edit"); e.type = "button"; e.addEventListener("click", function () { go("plan"); }); acts.appendChild(e); }
+    if (live || p.lat != null) { var m = el("a", "btn sm", live ? T("Live location") : T("Map")); m.href = live ? mapLink(live.lat, live.lng) : mapLink(p.lat, p.lng); m.target = "_blank"; m.rel = "noopener"; acts.appendChild(m); }
+    if (!me && person.phone) { var c = el("a", "btn sm", T("Call")); c.href = "tel:" + person.phone.replace(/[^\d+]/g, ""); acts.appendChild(c); }
+    if (me) { var e = el("button", "btn sm", T("Edit")); e.type = "button"; e.addEventListener("click", function () { go("plan"); }); acts.appendChild(e); }
     if (acts.childNodes.length) t.appendChild(acts);
     row.appendChild(t);
     return row;
@@ -1076,13 +1177,13 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     if (tag === "button") b.type = "button";
     var ring = el("span", "ring"); ring.appendChild(el("span", "avatar", me && !plan ? "+" : me ? selfInitial() : initial(nameOf(id))));
     if (live) ring.appendChild(el("span", "live"));
-    b.appendChild(ring); b.appendChild(el("span", null, me ? "You" : nameOf(id)));
-    b.title = me ? (plan ? "Your plans" : "Share your plans") : nameOf(id) + (plan ? ": " + (plan.place || "with " + plan.with_whom) : live ? ": sharing live location" : ": no plans shared");
+    b.appendChild(ring); b.appendChild(el("span", null, me ? T("You") : nameOf(id)));
+    b.title = me ? (plan ? T("Your plans") : T("Share your plans")) : nameOf(id) + ": " + (plan ? (plan.place || T("with {who}", { who: plan.with_whom })) : live ? T("sharing live location") : T("no plans shared"));
     if (tag === "button") b.addEventListener("click", function () {
       if (me && !plan) { go("plan"); return; }
       var r = $("plan-" + id);
       if (r) { r.scrollIntoView({ behavior: "smooth", block: "center" }); r.classList.remove("flash"); void r.offsetWidth; r.classList.add("flash"); }
-      else toast(live ? nameOf(id) + " is sharing her live location below." : nameOf(id) + " hasn't shared any plans right now.");
+      else toast(live ? T("{name} is sharing her live location below.", { name: nameOf(id) }) : T("{name} hasn't shared any plans right now.", { name: nameOf(id) }));
     });
     return b;
   }
@@ -1098,9 +1199,9 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     var cs = $("circleStories"); cs.innerHTML = ""; ids.forEach(function (id) { cs.appendChild(storyEl(id, "button")); });
     var list = $("planList"); list.innerHTML = "";
     var plans = activePlans().slice().sort(function (a, b) { return (b.user_id === net.me) - (a.user_id === net.me) || new Date(b.created_at) - new Date(a.created_at); });
-    if (!plans.length) list.appendChild(el("p", "small muted", mates().length ? "Nobody has shared plans right now. Share yours so your circle knows where you are." : "When people join your circle, you'll see where they're going and who they're with here."));
+    if (!plans.length) list.appendChild(el("p", "small muted", mates().length ? T("Nobody has shared plans right now. Share yours so your circle knows where you are.") : T("When people join your circle, you'll see where they're going and who they're with here.")));
     plans.forEach(function (p) { list.appendChild(planRow(p)); });
-    $("planBtn").textContent = planOf(net.me) ? "Update my plans" : "Share my plans";
+    $("planBtn").textContent = planOf(net.me) ? T("Update my plans") : T("Share my plans");
 
     var hc = $("homeCircle"), m = mates();
     hc.hidden = !m.length;
@@ -1108,7 +1209,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       var hs = $("homeStories"); hs.innerHTML = "";
       [net.me].concat(circleOrder()).slice(0, 4).forEach(function (id) { hs.appendChild(storyEl(id, "span")); });
       var withPlans = m.filter(planOf).length, liveN = m.filter(liveOf).length;
-      $("homeCircleText").textContent = (withPlans ? withPlans + (withPlans === 1 ? " friend has" : " friends have") + " shared plans" : "No plans shared right now") + (liveN ? " · " + liveN + " sharing live location" : "") + ". Tap to see.";
+      $("homeCircleText").textContent = (withPlans ? (withPlans === 1 ? T("1 friend has shared plans") : T("{n} friends have shared plans", { n: withPlans })) : T("No plans shared right now")) + (liveN ? " · " + T("{n} sharing live location", { n: liveN }) : "") + ". " + T("Tap to see.");
     }
   }
   function renderPlanForm() {
@@ -1117,13 +1218,13 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     var mine = joined ? planOf(net.me) : null, box = $("planMine");
     box.hidden = !mine; box.innerHTML = "";
     if (mine) {
-      box.appendChild(el("p", "small muted", "Your circle sees this now"));
+      box.appendChild(el("p", "small muted", T("Your circle sees this now")));
       box.appendChild(planRow(mine));
       box.querySelectorAll(".plan .row").forEach(function (r) { r.remove(); });
-      var end = el("button", "btn block", "Stop showing my plans"); end.type = "button"; end.addEventListener("click", endPlan); box.appendChild(end);
+      var end = el("button", "btn block", T("Stop showing my plans")); end.type = "button"; end.addEventListener("click", endPlan); box.appendChild(end);
       $("plWhere").value = mine.place || ""; $("plWith").value = mine.with_whom || ""; $("plMsg").value = mine.message || "";
     }
-    $("plPost").textContent = mine ? "Update my plans" : "Share with my circle";
+    $("plPost").textContent = mine ? T("Update my plans") : T("Share with my circle");
   }
 
   // push notifications
@@ -1133,7 +1234,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   // in the store app, alerts come through Firebase: the phone gives a token, saved like a web push subscription
   function saveNativeToken(tries) {
     var t = ""; try { t = ShecurityNative.pushToken(); } catch (e) {}
-    if (!t) { if (tries > 0) return new Promise(function (r) { setTimeout(r, 700); }).then(function () { return saveNativeToken(tries - 1); }); throw new Error("Couldn't turn on alerts. Check your connection and try again."); }
+    if (!t) { if (tries > 0) return new Promise(function (r) { setTimeout(r, 700); }).then(function () { return saveNativeToken(tries - 1); }); throw new Error(T("Couldn't turn on alerts. Check your connection and try again.")); }
     state.fcmToken = t; save();
     return net.sb.from("push_subscriptions").upsert({ endpoint: "fcm:" + t, user_id: net.me, p256dh: "fcm", auth: "fcm" });
   }
@@ -1145,32 +1246,42 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     return navigator.serviceWorker.ready.then(function (reg) { return reg.pushManager.getSubscription(); }).then(function (s) { return s ? "on" : "off"; }).catch(function () { return "off"; });
   }
   function enablePush() {
-    if (PREVIEW) { toast("Works in the live app."); return; }
+    if (PREVIEW) { toast(T("Works in the live app.")); return; }
     if (nativePush()) {
       window.onShecurityNotify = function (ok) {
-        if (!ok) { toast("Alerts are blocked. Allow notifications for Shecurity in your phone settings."); return; }
-        saveNativeToken(10).then(function (r) { if (r && r.error) throw r.error; toast("Alerts are on."); renderNet(); })
-          .catch(function (e) { toast(e.message || "Couldn't turn on alerts."); });
+        if (!ok) { toast(T("Alerts are blocked. Allow notifications for Shecurity in your phone settings.")); return; }
+        saveNativeToken(10).then(function (r) { if (r && r.error) throw r.error; toast(T("Alerts are on.")); renderNet(); })
+          .catch(function (e) { toast(e.message || T("Couldn't turn on alerts.")); });
       };
       ShecurityNative.askNotify(); return;
     }
-    if (!pushSupported()) { toast(isIOS() && !NATIVE ? "On iPhone, add Shecurity to your home screen first." : "This phone can't show alerts yet."); return; }
+    if (!pushSupported()) { toast(isIOS() && !NATIVE ? T("On iPhone, add Shecurity to your home screen first.") : T("This phone can't show alerts yet.")); return; }
     Notification.requestPermission().then(function (perm) {
-      if (perm !== "granted") throw new Error("Alerts are blocked. Allow notifications for Shecurity in your phone settings.");
+      if (perm !== "granted") throw new Error(T("Alerts are blocked. Allow notifications for Shecurity in your phone settings."));
       return navigator.serviceWorker.ready;
     }).then(function (reg) {
       return reg.pushManager.getSubscription().then(function (s) { return s || reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64(CONFIG.vapid) }); });
     }).then(function (sub) {
       var j = sub.toJSON();
       return net.sb.from("push_subscriptions").upsert({ endpoint: j.endpoint, user_id: net.me, p256dh: j.keys.p256dh, auth: j.keys.auth });
-    }).then(function (r) { if (r && r.error) throw r.error; toast("Alerts are on."); renderNet(); })
-      .catch(function (e) { toast(e.message || "Couldn't turn on alerts."); });
+    }).then(function (r) { if (r && r.error) throw r.error; toast(T("Alerts are on.")); renderNet(); })
+      .catch(function (e) { toast(e.message || T("Couldn't turn on alerts.")); });
   }
 
   // ---------- rendering ----------
-  function nameOf(id) { if (id === net.me) return "You"; var p = net.people[id]; return (p && p.display_name) || "Someone"; }
-  var KIND = { sos: ["SOS", "needs help", "sos"], missed_checkin: ["Missed check-in", "missed a check-in", "sos"], checkin_started: ["Check-in", "started a check-in", ""], walk: ["Walking", "is walking home", ""], location: ["Location", "shared her location", ""], safe: ["Safe", "is safe", "safe"] };
-  var RESP = { seen: "has seen it", on_my_way: "is on the way", calling: "is calling", called_police: "called emergency services" };
+  function nameOf(id) { if (id === net.me) return T("You"); var p = net.people[id]; return (p && p.display_name) || T("Someone"); }
+  // tag, what she did, what you did, colour
+  var KIND = {
+    sos: [T("SOS"), "{name} needs help", "You asked for help", "sos"],
+    missed_checkin: [T("Missed check-in"), "{name} missed a check-in", "You missed a check-in", "sos"],
+    checkin_started: [T("Check-in"), "{name} started a check-in", "You started a check-in", ""],
+    walk: [T("Walking"), "{name} is walking home", "You were walking home", ""],
+    location: [T("Location"), "{name} shared her location", "You shared your location", ""],
+    safe: [T("Safe"), "{name} is safe", "You were safe", "safe"]
+  };
+  function kindText(a) { var k = KIND[a.kind]; if (!k) return nameOf(a.sender_id) + " · " + a.kind; return a.sender_id === net.me ? T(k[2]) : T(k[1], { name: nameOf(a.sender_id) }); }
+  var RESP = { seen: "{name} has seen it", on_my_way: "{name} is on the way", calling: "{name} is calling", called_police: "{name} called emergency services" };
+  function respText(r) { return T(RESP[r.response] || "{name}", { name: nameOf(r.user_id) }); }
 
   function renderNet() {
     syncWatch();
@@ -1182,22 +1293,22 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     if (joined) { $("mpName").value = net.profile.display_name; $("mpPhone").value = net.profile.phone || ""; }
 
     var count = mates().length;
-    var hr = new Date().getHours(), part = hr < 5 ? "Good night" : hr < 12 ? "Good morning" : hr < 18 ? "Good afternoon" : "Good evening";
+    var hr = new Date().getHours(), part = T(hr < 5 ? "Good night" : hr < 12 ? "Good morning" : hr < 18 ? "Good afternoon" : "Good evening");
     $("helloTitle").textContent = part + (joined && net.profile.display_name ? ", " + net.profile.display_name : "");
-    $("helloSub").textContent = joined ? (count ? "Your circle has your back" : "Invite the people you trust") : "Your safety, one tap away";
+    $("helloSub").textContent = T(joined ? (count ? "Your circle has your back" : "Invite the people you trust") : "Your safety, one tap away");
     var chipC = $("chipCircle");
     chipC.classList.toggle("on", joined && count > 0);
-    chipC.lastChild.textContent = joined ? (count ? count + " in your circle" : "Invite your people") : "Set up your circle";
+    chipC.lastChild.textContent = joined ? (count ? T("{n} in your circle", { n: count }) : T("Invite your people")) : T("Set up your circle");
 
     pushState().then(function (s) {
       var chipA = $("chipAlerts");
       chipA.hidden = !joined;
       chipA.classList.toggle("on", s === "on" || s === "example");
-      chipA.lastChild.textContent = (s === "on" || s === "example") ? "Alerts on" : "Alerts off";
+      chipA.lastChild.textContent = T((s === "on" || s === "example") ? "Alerts on" : "Alerts off");
       var card = $("pushCard"), btn = $("pushBtn");
       card.hidden = s === "on" || s === "example";
-      $("pushTitle").textContent = s === "denied" ? "Alerts are blocked" : s === "ios-install" ? "Add to home screen for alerts" : "Turn on alerts";
-      $("pushText").textContent = s === "denied" ? "Allow notifications for Shecurity in your phone settings, then come back." : s === "ios-install" ? "On iPhone, alerts work once Shecurity is on your home screen: tap Share, then Add to Home Screen, and open it from there." : s === "unsupported" ? "This browser can't show alerts. Try Chrome or Safari." : "So your phone tells you when someone in your circle needs help, even when the app is closed.";
+      $("pushTitle").textContent = T(s === "denied" ? "Alerts are blocked" : s === "ios-install" ? "Add to home screen for alerts" : "Turn on alerts");
+      $("pushText").textContent = T(s === "denied" ? "Allow notifications for Shecurity in your phone settings, then come back." : s === "ios-install" ? "On iPhone, alerts work once Shecurity is on your home screen: tap Share, then Add to Home Screen, and open it from there." : s === "unsupported" ? "This browser can't show alerts. Try Chrome or Safari." : "So your phone tells you when someone in your circle needs help, even when the app is closed.");
       btn.hidden = s === "denied" || s === "ios-install" || s === "unsupported";
     });
     if (!joined) { $("homeCircle").hidden = true; renderIncoming(); return; }
@@ -1210,61 +1321,61 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     var ll = $("liveList"); ll.innerHTML = "";
     live.forEach(function (l) {
       var row = el("div", "person"); row.appendChild(el("span", "avatar", initial(nameOf(l.user_id))));
-      var t = el("div", "t"); t.appendChild(el("b", null, nameOf(l.user_id))); t.appendChild(el("span", null, (l.note ? l.note + " · " : "") + "updated " + ago(l.updated_at) + (l.battery != null ? " · " + l.battery + "% battery" : ""))); row.appendChild(t);
-      var a = el("a", "btn sm", "Map"); a.href = mapLink(l.lat, l.lng); a.target = "_blank"; a.rel = "noopener"; row.appendChild(a);
+      var t = el("div", "t"); t.appendChild(el("b", null, nameOf(l.user_id))); t.appendChild(el("span", null, (l.note ? l.note + " · " : "") + T("updated {ago}", { ago: ago(l.updated_at) }) + (l.battery != null ? " · " + T("{n}% battery", { n: l.battery }) : ""))); row.appendChild(t);
+      var a = el("a", "btn sm", T("Map")); a.href = mapLink(l.lat, l.lng); a.target = "_blank"; a.rel = "noopener"; row.appendChild(a);
       ll.appendChild(row);
     });
 
     // feed
     var feed = $("feed"); feed.innerHTML = "";
     var items = net.feed.filter(function (a) { return a.kind !== "checkin_started" || a.sender_id !== net.me; });
-    if (!items.length) feed.appendChild(el("p", "small muted", "Nothing in the last 24 hours. That's a good thing."));
+    if (!items.length) feed.appendChild(el("p", "small muted", T("Nothing in the last 24 hours. That's a good thing.")));
     items.forEach(function (a) {
-      var k = KIND[a.kind] || [a.kind, a.kind, ""];
+      var k = KIND[a.kind] || [a.kind, "", "", ""];
       var it = el("div", "feed-item"), head = el("div", "feed-head");
       head.appendChild(el("span", "avatar", initial(nameOf(a.sender_id))));
-      var t = el("div", "t"); t.appendChild(el("b", null, nameOf(a.sender_id) + " " + (a.sender_id === net.me ? k[1].replace("needs", "asked for").replace("is ", "were ").replace("her", "your") : k[1])));
-      t.appendChild(el("span", "small muted", ago(a.created_at) + (a.status === "resolved" && a.kind !== "safe" ? " · resolved" : "") + (a.message ? " · " + a.message : "")));
+      var t = el("div", "t"); t.appendChild(el("b", null, kindText(a)));
+      t.appendChild(el("span", "small muted", ago(a.created_at) + (a.status === "resolved" && a.kind !== "safe" ? " · " + T("resolved") : "") + (a.message ? " · " + a.message : "")));
       head.appendChild(t);
-      if (a._example) head.appendChild(el("span", "example", "Example"));
-      else head.appendChild(el("span", "tag " + k[2], k[0]));
+      if (a._example) head.appendChild(el("span", "example", T("Example")));
+      else head.appendChild(el("span", "tag " + k[3], k[0]));
       it.appendChild(head);
       var rs = net.responses[a.id] || [];
-      if (rs.length) it.appendChild(el("p", "resp", rs.map(function (r) { return nameOf(r.user_id) + " " + RESP[r.response]; }).join(" · ")));
+      if (rs.length) it.appendChild(el("p", "resp", rs.map(respText).join(" · ")));
       if (a.sender_id !== net.me && (a.kind === "sos" || a.kind === "missed_checkin") && a.status === "active") it.appendChild(responseRow(a));
-      else if (a.lat != null) { var m = el("a", "btn sm", "See location"); m.href = mapLink(a.lat, a.lng); m.target = "_blank"; m.rel = "noopener"; m.style.alignSelf = "flex-start"; it.appendChild(m); }
+      else if (a.lat != null) { var m = el("a", "btn sm", T("See location")); m.href = mapLink(a.lat, a.lng); m.target = "_blank"; m.rel = "noopener"; m.style.alignSelf = "flex-start"; it.appendChild(m); }
       feed.appendChild(it);
     });
 
     // circles
     var cl = $("circleList"); cl.innerHTML = "";
     if (!net.circles.length) {
-      var c0 = el("div", "card brand"); c0.appendChild(el("h2", null, "Invite your first people"));
-      c0.appendChild(el("p", "small", "Create a circle below and send the invite to 3 to 5 people you trust. They install Shecurity and join with your code."));
+      var c0 = el("div", "card brand"); c0.appendChild(el("h2", null, T("Invite your first people")));
+      c0.appendChild(el("p", "small", T("Create a circle below and send the invite to 3 to 5 people you trust. They install Shecurity and join with your code.")));
       cl.appendChild(c0);
     }
     net.circles.forEach(function (c) {
       var card = el("div", "card");
       var hd = el("div", "row"); hd.style.justifyContent = "space-between"; hd.style.alignItems = "center";
-      hd.appendChild(el("h2", null, c.name)); hd.appendChild(el("span", "small muted", c.members.length + (c.members.length === 1 ? " person" : " people")));
+      hd.appendChild(el("h2", null, c.name)); hd.appendChild(el("span", "small muted", c.members.length === 1 ? T("1 person") : T("{n} people", { n: c.members.length })));
       card.appendChild(hd);
       var list = el("div");
       c.members.forEach(function (m) {
         var p = net.people[m] || {}; var row = el("div", "person");
         row.appendChild(el("span", "avatar", initial(p.display_name)));
-        var t = el("div", "t"); t.appendChild(el("b", null, m === net.me ? (p.display_name || "You") + " (you)" : (p.display_name || "Someone"))); t.appendChild(el("span", null, m === c.owner_id ? "Created this circle" : "Member")); row.appendChild(t);
-        if (m !== net.me && p.phone) { var a = el("a", "btn sm", "Call"); a.href = "tel:" + p.phone.replace(/[^\d+]/g, ""); row.appendChild(a); }
+        var t = el("div", "t"); t.appendChild(el("b", null, m === net.me ? (p.display_name || T("You")) + " (" + T("you") + ")" : (p.display_name || T("Someone")))); t.appendChild(el("span", null, m === c.owner_id ? T("Created this circle") : T("Member"))); row.appendChild(t);
+        if (m !== net.me && p.phone) { var a = el("a", "btn sm", T("Call")); a.href = "tel:" + p.phone.replace(/[^\d+]/g, ""); row.appendChild(a); }
         list.appendChild(row);
       });
       card.appendChild(list);
       if (c.invite_code) {
-        card.appendChild(el("p", "small muted", "Invite code"));
+        card.appendChild(el("p", "small muted", T("Invite code")));
         card.appendChild(el("div", "code", c.invite_code));
       }
       var r = el("div", "row");
-      var inv = el("button", "btn primary", "Invite people"); inv.type = "button"; inv.addEventListener("click", function () { invite(c); }); r.appendChild(inv);
-      var lv = el("button", "btn", c.owner_id === net.me ? "Delete circle" : "Leave"); lv.type = "button";
-      lv.addEventListener("click", function () { if (lv.getAttribute("data-armed") !== "1") { lv.setAttribute("data-armed", "1"); lv.textContent = "Tap again to confirm"; return; } leaveCircle(c); });
+      var inv = el("button", "btn primary", T("Invite people")); inv.type = "button"; inv.addEventListener("click", function () { invite(c); }); r.appendChild(inv);
+      var lv = el("button", "btn", c.owner_id === net.me ? T("Delete circle") : T("Leave")); lv.type = "button";
+      lv.addEventListener("click", function () { if (lv.getAttribute("data-armed") !== "1") { lv.setAttribute("data-armed", "1"); lv.textContent = T("Tap again to confirm"); return; } leaveCircle(c); });
       r.appendChild(lv); card.appendChild(r);
       cl.appendChild(card);
     });
@@ -1272,10 +1383,10 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   }
   function responseRow(a) {
     var row = el("div", "row");
-    [["on_my_way", "I'm on my way", "btn sm primary"], ["calling", "I'm calling her", "btn sm"], ["called_police", "I called " + emergencyNo(), "btn sm"]].forEach(function (x) {
+    [["on_my_way", T("I'm on my way"), "btn sm primary"], ["calling", T("I'm calling her"), "btn sm"], ["called_police", T("I called {number}", { number: emergencyNo() }), "btn sm"]].forEach(function (x) {
       var b = el("button", x[2], x[1]); b.type = "button"; b.addEventListener("click", function () { respond(a, x[0]); }); row.appendChild(b);
     });
-    if (a.lat != null) { var m = el("a", "btn sm", "See location"); m.href = mapLink(a.lat, a.lng); m.target = "_blank"; m.rel = "noopener"; row.appendChild(m); }
+    if (a.lat != null) { var m = el("a", "btn sm", T("See location")); m.href = mapLink(a.lat, a.lng); m.target = "_blank"; m.rel = "noopener"; row.appendChild(m); }
     return row;
   }
   function activeIncoming() {
@@ -1286,19 +1397,18 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     $("circleBadge").hidden = !act.length;
     var card = $("incomingCard"); card.innerHTML = ""; card.hidden = !act.length;
     act.slice(0, 2).forEach(function (a) {
-      var k = KIND[a.kind];
-      card.appendChild(el("h2", null, nameOf(a.sender_id) + " " + k[1]));
+      card.appendChild(el("h2", null, kindText(a)));
       var live = net.live.filter(function (l) { return l.user_id === a.sender_id; })[0];
-      card.appendChild(el("p", "small", ago(a.created_at) + (a.message ? " · " + a.message : "") + (live ? " · live location on" : "")));
+      card.appendChild(el("p", "small", ago(a.created_at) + (a.message ? " · " + a.message : "") + (live ? " · " + T("live location on") : "")));
       var rs = net.responses[a.id] || [];
-      if (rs.length) card.appendChild(el("p", "resp", rs.map(function (r) { return nameOf(r.user_id) + " " + RESP[r.response]; }).join(" · ")));
+      if (rs.length) card.appendChild(el("p", "resp", rs.map(respText).join(" · ")));
       card.appendChild(responseRow(live ? Object.assign({}, a, { lat: live.lat, lng: live.lng }) : a));
     });
   }
   function incomingAlarm(a) {
     vibrate([600, 200, 600, 200, 600]);
     try { var AC = window.AudioContext || window.webkitAudioContext, ctx = new AC(); [0, 0.5, 1].forEach(function (d) { var o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = 880; g.gain.value = 0.4; o.connect(g); g.connect(ctx.destination); o.start(ctx.currentTime + d); o.stop(ctx.currentTime + d + 0.3); }); } catch (e) {}
-    toast(nameOf(a.sender_id) + " needs help");
+    toast(T("{name} needs help", { name: nameOf(a.sender_id) }));
   }
 
   // ---------- demo data for the preview ----------
@@ -1306,7 +1416,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     var now = Date.now(), iso = function (m) { return new Date(now - m * 60000).toISOString(); };
     net.ready = true; net.me = "me"; net.profile = { id: "me", display_name: "Ava", phone: "" };
     net.people = { me: { display_name: "Ava" }, mia: { display_name: "Mia", phone: "+31600000000" }, sam: { display_name: "Sam", phone: "+31600000001" }, lena: { display_name: "Lena" }, mom: { display_name: "Mom", phone: "+31600000002" } };
-    net.circles = [{ id: "c1", name: "Best friends", owner_id: "me", invite_code: "K7MQ2XPA", members: ["me", "mia", "sam", "lena"] }, { id: "c2", name: "Family", owner_id: "mom", invite_code: null, members: ["me", "mom"] }];
+    net.circles = [{ id: "c1", name: T("Best friends"), owner_id: "me", invite_code: "K7MQ2XPA", members: ["me", "mia", "sam", "lena"] }, { id: "c2", name: T("Family"), owner_id: "mom", invite_code: null, members: ["me", "mom"] }];
     net.live = [{ user_id: "mia", lat: 52.3702, lng: 4.8952, battery: 64, note: "Walking home from the station", updated_at: iso(0.3), sharing_until: new Date(now + 900000).toISOString() }];
     net.feed = [
       { id: "f1", sender_id: "mia", kind: "walk", message: "Walking home from the station", created_at: iso(4), status: "active", lat: 52.37, lng: 4.895, _example: true },
@@ -1347,30 +1457,30 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   function openSos(opts) {
     opts = opts || {};
     $("sosSteps").innerHTML = ""; $("sosResponses").hidden = true;
-    $("sosTitle").textContent = opts.title || "Getting you help";
-    $("sosCall").href = "tel:" + emergencyNo(); $("sosCall").textContent = "Call " + emergencyNo();
+    $("sosTitle").textContent = opts.title || T("Getting you help");
+    $("sosCall").href = "tel:" + emergencyNo(); $("sosCall").textContent = T("Call {number}", { number: emergencyNo() });
     $("sosSafe").hidden = opts.kind === "location";
     $("sosSheet").hidden = false;
     vibrate([200, 100, 200]);
     if (opts.siren) startSiren();
     var head = opts.body || state.template, kind = opts.kind || "sos";
-    setSosMessage(head + "\nSent " + hhmm() + " from Shecurity.");
-    step("st-loc", "Finding your location", "");
+    setSosMessage(head + "\n" + T("Sent {time} from Shecurity.", { time: hhmm() }));
+    step("st-loc", T("Finding your location"), "");
     var networked = netOn() && mates().length > 0;
-    if (networked) step("st-net", "Alerting your circle", "");
-    else if (!PREVIEW) step("st-net", netOn() ? "Your circle is empty. Send as text instead." : "Not in a circle yet. Send as text instead.", "fail");
-    if (PREVIEW) { step("st-loc", "Location found (example)", "done"); step("st-net", "3 people alerted (example)", "done"); step("st-live", "Sharing your live location for 1 hour (example)", "done"); return; }
+    if (networked) step("st-net", T("Alerting your circle"), "");
+    else if (!PREVIEW) step("st-net", netOn() ? T("Your circle is empty. Send as text instead.") : T("Not in a circle yet. Send as text instead."), "fail");
+    if (PREVIEW) { step("st-loc", T("Location found") + " (" + T("example") + ")", "done"); step("st-net", T("{n} people alerted", { n: 3 }) + " (" + T("example") + ")", "done"); step("st-live", T("Sharing your live location for 1 hour") + " (" + T("example") + ")", "done"); return; }
     Promise.all([getLocation(), getBattery()]).then(function (r) {
       var loc = r[0], bat = r[1];
-      step("st-loc", loc ? "Location found" : "Couldn't find your location", loc ? "done" : "fail");
-      setSosMessage(head + "\n" + locLine(loc) + (bat != null ? "\nBattery: " + bat + "%" : "") + "\nSent " + hhmm() + " from Shecurity.");
+      step("st-loc", loc ? T("Location found") : T("Couldn't find your location"), loc ? "done" : "fail");
+      setSosMessage(head + "\n" + locLine(loc) + (bat != null ? "\n" + T("Battery: {n}%", { n: bat }) : "") + "\n" + T("Sent {time} from Shecurity.", { time: hhmm() }));
       if (!networked) return;
       return sendAlert(kind, opts.netMessage || (kind === "sos" ? null : head), loc, bat).then(function (a) {
-        if (!a) { step("st-net", "Couldn't reach your circle. Send as text.", "fail"); return; }
+        if (!a) { step("st-net", T("Couldn't reach your circle. Send as text."), "fail"); return; }
         sos.alertId = a.id;
         var n = mates().length, pushed = a._push && a._push.sent;
-        step("st-net", n + (n === 1 ? " person" : " people") + " alerted" + (pushed ? " on their phones" : ""), "done");
-        if (kind !== "location") { startSharing(60, "SOS"); step("st-live", "Sharing your live location for 1 hour", "done"); }
+        step("st-net", n === 1 ? T(pushed ? "1 person alerted on their phone" : "1 person alerted") : T(pushed ? "{n} people alerted on their phones" : "{n} people alerted", { n: n }), "done");
+        if (kind !== "location") { startSharing(60, "SOS"); step("st-live", T("Sharing your live location for 1 hour"), "done"); }
         watchResponses();
       });
     });
@@ -1381,7 +1491,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     function show() {
       var rs = (net.responses[sos.alertId] || []);
       var box = $("sosResponses"); box.innerHTML = ""; box.hidden = !rs.length;
-      rs.forEach(function (r) { var row = el("div", "person"); row.appendChild(el("span", "avatar", initial(nameOf(r.user_id)))); var t = el("div", "t"); t.appendChild(el("b", null, nameOf(r.user_id) + " " + RESP[r.response])); t.appendChild(el("span", null, ago(r.created_at))); row.appendChild(t); box.appendChild(row); });
+      rs.forEach(function (r) { var row = el("div", "person"); row.appendChild(el("span", "avatar", initial(nameOf(r.user_id)))); var t = el("div", "t"); t.appendChild(el("b", null, respText(r))); t.appendChild(el("span", null, ago(r.created_at))); row.appendChild(t); box.appendChild(row); });
     }
     show(); sos.poll = setInterval(function () { if ($("sosSheet").hidden) { clearInterval(sos.poll); return; } show(); }, 1500);
   }
@@ -1389,9 +1499,9 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     var id = sos.alertId; sos.alertId = null;
     stopSiren(); stopSharing(); $("sosSheet").hidden = true;
     if (netOn() && id) {
-      resolveAlert(id).then(function () { return sendAlert("safe", "Marked safe at " + hhmm(), null, null); }).then(function () { return loadFeed(); }).then(renderNet);
-      toast("Your circle has been told you're safe.");
-    } else toast("Glad you're safe.");
+      resolveAlert(id).then(function () { return sendAlert("safe", T("Marked safe at {time}", { time: hhmm() }), null, null); }).then(function () { return loadFeed(); }).then(renderNet);
+      toast(T("Your circle has been told you're safe."));
+    } else toast(T("Glad you're safe."));
   }
   function shareText(text, files) {
     var data = { text: text };
@@ -1399,7 +1509,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     if (navigator.share && !PREVIEW) return navigator.share(data).catch(function () {});
     copy(text); return Promise.resolve();
   }
-  function copy(text) { try { navigator.clipboard.writeText(text).then(function () { toast("Copied. Paste it into a message."); }, function () { toast("Couldn't copy here."); }); } catch (e) { toast("Couldn't copy here."); } }
+  function copy(text) { try { navigator.clipboard.writeText(text).then(function () { toast(T("Copied. Paste it into a message.")); }, function () { toast(T("Couldn't copy here.")); }); } catch (e) { toast(T("Couldn't copy here.")); } }
 
   (function holdToSos() {
     var btn = $("sosBtn"), t = null;
@@ -1544,7 +1654,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   function clipUrl(vid, text) { return "voices/" + vid + "/" + clipName(text) + ".mp3"; }
   function personaLines(who) { var out = []; Object.keys(who).forEach(function (k) { who[k].forEach(function (x) { out.push(typeof x === "string" ? x : x.say); }); }); return out; }
   function loadClip(url) {
-    if (!call.clips[url]) call.clips[url] = fetch(url).then(function (r) { if (!r.ok) throw new Error("clip"); return r.arrayBuffer(); })
+    if (!call.clips[url]) call.clips[url] = fetch(url).then(function (r) { if (!r.ok) throw new Error(T("clip")); return r.arrayBuffer(); })
       .then(function (b) { return new Promise(function (ok, no) { call.ctx.decodeAudioData(b, ok, no); }); });
     call.clips[url].catch(function () { delete call.clips[url]; });
     return call.clips[url];
@@ -1561,8 +1671,8 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     call.src = src; src.start();
   }
   function scheduleCall() {
-    var delay = parseInt($("fcDelay").value, 10) || 5, name = ($("fcName").value || "Mom").trim();
-    toast("Your phone will ring in " + (delay < 60 ? delay + " seconds" : delay / 60 + " min"));
+    var delay = parseInt($("fcDelay").value, 10) || 5, name = ($("fcName").value || T("Mom")).trim();
+    toast(delay < 60 ? T("Your phone will ring in {n} seconds", { n: delay }) : T("Your phone will ring in {n} min", { n: delay / 60 }));
     if (state.androidVersion >= 3) {
       var q = "d=" + delay + "&n=" + encodeURIComponent(name) + "&s=" + encodeURIComponent($("fcScript").value) + "&m=" + (callerMale() ? 1 : 0) + "&l=" + ($("fcListen").checked ? 1 : 0);
       go("home"); location.href = "intent://fakecall?" + q + "#Intent;scheme=shecurity;package=io.github.punselie15.shecurity;end"; return;
@@ -1669,7 +1779,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     try { window.speechSynthesis && speechSynthesis.cancel(); } catch (e) {}
     try { call.src && call.src.stop(); } catch (e) {} call.src = null;
     if (earBridge()) { try { earBridge().postMessage({ action: "stop" }); } catch (e) {} }
-    $("callIncoming").hidden = true; $("callActive").hidden = true; $("caTime").textContent = "00:00";
+    $("callIncoming").hidden = true; $("callActive").hidden = true; $("caTime").textContent = T("00:00");
   }
 
   // ---------- check-in / walk timer ----------
@@ -1685,12 +1795,12 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     var tell = o.tell !== false;
     if (tell && netOn() && mates().length) {
       getLocation(6000).then(function (loc) {
-        return sendAlert(o.kind || "checkin_started", o.netMessage || ((o.note ? o.note + " · " : "") + "check in by " + hhmm(new Date(state.timer.end))), loc, null);
+        return sendAlert(o.kind || "checkin_started", o.netMessage || ((o.note ? o.note + " · " : "") + T("check in by {time}", { time: hhmm(new Date(state.timer.end)) })), loc, null);
       }).then(function (a) { if (a && state.timer) { state.timer.alertId = a.id; save(); } });
     } else if (tell && !netOn() && state.contacts.length && !PREVIEW) {
-      getLocation(6000).then(function (loc) { window.location.href = smsHref("Heads up: I've started a " + o.minutes + "-minute safety check-in. " + (o.note || "") + "\n" + locLine(loc)); });
+      getLocation(6000).then(function (loc) { window.location.href = smsHref(T("Heads up: I've started a {n}-minute safety check-in.", { n: o.minutes }) + " " + (o.note || "") + "\n" + locLine(loc)); });
     }
-    toast(o.toast || "Started. Tap \"I'm safe\" when you're OK.");
+    toast(o.toast || T("Started. Tap \"I'm safe\" when you're OK."));
     go("home");
   }
   function runTimer() {
@@ -1700,8 +1810,8 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       if (!t) return;
       var left = (t.end - Date.now()) / 1000;
       $("timerCardTime").textContent = mmss(left); $("timerCardNote").textContent = t.note;
-      $("timerCardLabel").textContent = t.label + " running";
-      $("timerCardShare").textContent = t.share && netOn() ? "Circle can see your location" : "";
+      $("timerCardLabel").textContent = T("{what} running", { what: T(t.label) });
+      $("timerCardShare").textContent = t.share && netOn() ? T("Circle can see your location") : "";
       if (left <= 0) { clearInterval(tick); tick = null; startGrace(); }
     }
     update(); if (state.timer) tick = setInterval(update, 1000);
@@ -1716,7 +1826,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       left--; $("graceTime").textContent = left; if (left % 3 === 0) beep();
       if (left <= 0) {
         var t = state.timer; endGrace(); finishTimer(false);
-        openSos({ kind: "missed_checkin", title: "Your circle is being alerted", body: "I didn't check in when I said I would. I may need help." + (t && t.note ? " I was: " + t.note + "." : ""), netMessage: t && t.note ? t.note : null, siren: state.sirenOnSos });
+        openSos({ kind: "missed_checkin", title: T("Your circle is being alerted"), body: T("I didn't check in when I said I would. I may need help.") + (t && t.note ? " " + T("I was: {note}.", { note: t.note }) : ""), netMessage: t && t.note ? t.note : null, siren: state.sirenOnSos });
       }
     }, 1000), ctx: ctx };
   }
@@ -1726,7 +1836,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     if (t && t.alertId) resolveAlert(t.alertId);
     if (safe) {
       if (t && t.share) stopSharing();
-      if (t && netOn() && mates().length && (t.share || t.alertId)) sendAlert("safe", t.label === "Walk" ? "Arrived safely" : "Checked in safe", null, null).then(function () { return loadFeed(); }).then(renderNet);
+      if (t && netOn() && mates().length && (t.share || t.alertId)) sendAlert("safe", T(t.label === "Walk" ? "Arrived safely" : "Checked in safe"), null, null).then(function () { return loadFeed(); }).then(renderNet);
       if (!state.sharingUntil) releaseAwake();
       state.safeCount = (state.safeCount || 0) + 1; save();
       setTimeout(function () { maybeNudge(t && t.label === "Walk" ? "walk" : "checkin"); }, 4000);
@@ -1745,8 +1855,8 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     if (n.last && now - n.last < 60 * DAY) return;
     if (!calmNow()) return;
     var times = state.safeCount;
-    $("nudgeHead").textContent = kind === "walk" ? "Glad you're home safe" : "Glad you're okay";
-    $("nudgeText").textContent = "Shecurity has been with you " + times + " times now. It's free for everyone and nobody profits from it. If it's been there for you, you can help it be there for someone else, with any amount.";
+    $("nudgeHead").textContent = T(kind === "walk" ? "Glad you're home safe" : "Glad you're okay");
+    $("nudgeText").textContent = T("Shecurity has been with you {n} times now. It's free for everyone and nobody profits from it. If it's been there for you, you can help it be there for someone else, with any amount.", { n: times });
     $("nudge").hidden = false;
     state.nudge = { shown: (n.shown || 0) + 1, last: now, never: false }; save();
   }
@@ -1756,7 +1866,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   var rec = { mr: null, chunks: [], blob: null, start: 0, iv: null };
   function toggleRecord() {
     if (rec.mr) { rec.mr.stop(); return; }
-    if (PREVIEW || !navigator.mediaDevices || !window.MediaRecorder) { toast("Recording isn't available here."); return; }
+    if (PREVIEW || !navigator.mediaDevices || !window.MediaRecorder) { toast(T("Recording isn't available here.")); return; }
     navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
       rec.chunks = []; rec.mr = new MediaRecorder(stream);
       rec.mr.ondataavailable = function (e) { if (e.data && e.data.size) rec.chunks.push(e.data); };
@@ -1764,34 +1874,34 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
         stream.getTracks().forEach(function (t) { t.stop(); }); clearInterval(rec.iv);
         rec.blob = new Blob(rec.chunks, { type: rec.mr.mimeType || "audio/webm" });
         $("recSave").href = URL.createObjectURL(rec.blob); $("recSave").download = "shecurity-recording-" + Date.now() + (/mp4/.test(rec.blob.type) ? ".m4a" : ".webm");
-        $("recDone").hidden = false; $("recBtn").textContent = "Start a new recording"; rec.mr = null;
+        $("recDone").hidden = false; $("recBtn").textContent = T("Start a new recording"); rec.mr = null;
       };
-      rec.mr.start(1000); rec.start = Date.now(); $("recDone").hidden = true; $("recBtn").textContent = "Stop recording";
+      rec.mr.start(1000); rec.start = Date.now(); $("recDone").hidden = true; $("recBtn").textContent = T("Stop recording");
       rec.iv = setInterval(function () { $("recTime").textContent = mmss((Date.now() - rec.start) / 1000); }, 500);
-    }).catch(function () { toast("Allow the microphone to record."); });
+    }).catch(function () { toast(T("Allow the microphone to record.")); });
   }
 
   // ---------- ride, date, location ----------
   function v(id) { return $(id).value.trim(); }
   function rideSend() {
-    var parts = [v("rdService"), v("rdCar"), v("rdPlate") && "plate " + v("rdPlate").toUpperCase(), v("rdDriver") && "driver " + v("rdDriver")].filter(Boolean);
-    var mins = parseInt(v("rdMins"), 10) || 30, desc = parts.join(", ") || "a ride";
+    var parts = [v("rdService"), v("rdCar"), v("rdPlate") && T("plate {plate}", { plate: v("rdPlate").toUpperCase() }), v("rdDriver") && T("driver {name}", { name: v("rdDriver") })].filter(Boolean);
+    var mins = parseInt(v("rdMins"), 10) || 30, desc = parts.join(", ") || T("a ride");
     if (netOn() && mates().length) {
-      startTimer({ minutes: mins + 10, note: "In " + desc, label: "Ride", share: true, kind: "walk", netMessage: "In a ride: " + desc, toast: "Your circle can follow your ride." });
+      startTimer({ minutes: mins + 10, note: T("In {ride}", { ride: desc }), label: "Ride", share: true, kind: "walk", netMessage: T("In a ride: {ride}", { ride: desc }), toast: T("Your circle can follow your ride.") });
     } else {
-      startTimer({ minutes: mins + 10, note: "In " + desc, label: "Ride", tell: false });
-      getLocation(6000).then(function (loc) { var body = "I'm getting into " + desc + ". Should take about " + mins + " min.\n" + locLine(loc); if (PREVIEW) toast("Works in the live app."); else window.location.href = smsHref(body); });
+      startTimer({ minutes: mins + 10, note: T("In {ride}", { ride: desc }), label: "Ride", tell: false });
+      getLocation(6000).then(function (loc) { var body = T("I'm getting into {ride}. Should take about {n} min.", { ride: desc, n: mins }) + "\n" + locLine(loc); if (PREVIEW) toast(T("Works in the live app.")); else window.location.href = smsHref(body); });
     }
   }
   function dateSend() {
-    var mins = parseInt($("dtMinutes").value, 10), who = v("dtName") || "someone new";
-    var text = "Date safety: I'm meeting " + who + (v("dtPlace") ? " at " + v("dtPlace") : "") + "." + (v("dtProfile") ? " Their phone or profile: " + v("dtProfile") + "." : "") + (mins ? " If you don't hear from me by " + hhmm(new Date(Date.now() + mins * 60000)) + ", please call me." : "");
-    if (mins) startTimer({ minutes: mins, note: "Date with " + who + (v("dtPlace") ? " at " + v("dtPlace") : ""), label: "Date check-in" });
+    var mins = parseInt($("dtMinutes").value, 10), who = v("dtName") || T("someone new");
+    var text = (v("dtPlace") ? T("Date safety: I'm meeting {who} at {place}.", { who: who, place: v("dtPlace") }) : T("Date safety: I'm meeting {who}.", { who: who })) + (v("dtProfile") ? " " + T("Their phone or profile: {profile}.", { profile: v("dtProfile") }) : "") + (mins ? " " + T("If you don't hear from me by {time}, please call me.", { time: hhmm(new Date(Date.now() + mins * 60000)) }) : "");
+    if (mins) startTimer({ minutes: mins, note: v("dtPlace") ? T("Date with {who} at {place}", { who: who, place: v("dtPlace") }) : T("Date with {who}", { who: who }), label: "Date check-in" });
     var f = $("dtPhoto").files && $("dtPhoto").files[0];
     shareText(text, f ? [f] : null);
   }
   function shareLocation() {
-    openSos({ kind: "location", title: "Sharing your location", body: "Just letting you know where I am." });
+    openSos({ kind: "location", title: T("Sharing your location"), body: T("Just letting you know where I am.") });
   }
 
   // ---------- quick buttons (home and widget) ----------
@@ -1810,7 +1920,10 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     record: { label: "Record audio", short: "Record", icon: "i-mic", run: function () { go("record"); } },
     lines: { label: "Help lines", short: "Help lines", icon: "i-help", run: function () { go("help"); } }
   };
-  function quickShort(id) { return id === "call" ? "Call " + emergencyNo() : QUICK[id].short; }
+  function quickShort(id) { return id === "call" ? T("Call {number}", { number: emergencyNo() }) : T(QUICK[id].short); }
+  function quickLabel(id) { return id === "call" ? T("Call {number}", { number: emergencyNo() }) : T(QUICK[id].label); }
+  // the short line under each widget button
+  var QUICK_LINE = { help: "Alerts your circle", location: "Texts where you are", "fakecall-now": "Your phone rings", call: "Emergency services", siren: "Loud alarm", walk: "Circle follows you", timer: "Alert if no check-in", fakecall: "Pick when it rings", plan: "Tell your circle", ride: "Share your ride", date: "Date check-ins", record: "Saves audio", lines: "Free support" };
   function quickList(key, n) {
     var list = (state[key] || defaults[key]).filter(function (id) { return QUICK[id]; });
     defaults[key].concat(Object.keys(QUICK)).forEach(function (id) { if (list.length < n && list.indexOf(id) < 0) list.push(id); });
@@ -1833,13 +1946,13 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     box.innerHTML = "";
     var list = quickList(key, n);
     list.forEach(function (cur, i) {
-      var sel = el("select"); sel.setAttribute("aria-label", (key === "quickHome" ? "Button " : "Widget button ") + (i + 1));
-      Object.keys(QUICK).forEach(function (id) { var o = el("option", null, id === "call" ? "Call " + emergencyNo() : QUICK[id].label); o.value = id; sel.appendChild(o); });
+      var sel = el("select"); sel.setAttribute("aria-label", T(key === "quickHome" ? "Button {n}" : "Widget button {n}", { n: i + 1 }));
+      Object.keys(QUICK).forEach(function (id) { var o = el("option", null, quickLabel(id)); o.value = id; sel.appendChild(o); });
       sel.value = cur;
       sel.addEventListener("change", function () {
         var next = quickList(key, n), j = next.indexOf(sel.value);
         if (j >= 0) next[j] = next[i]; // already used elsewhere: swap the two
-        next[i] = sel.value; state[key] = next; save(); renderQuick(); toast("Saved");
+        next[i] = sel.value; state[key] = next; save(); renderQuick(); toast(T("Saved"));
         if (key === "quickWidget") sendAndroidWidget();
       });
       box.appendChild(sel);
@@ -1848,8 +1961,10 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   // the Android app (version 2 and up) opens with ?android=2 and takes the widget buttons through a shecurity:// link
   function sendAndroidWidget(pin) {
     if (!state.androidWidget) return;
-    var b = quickList("quickWidget", 4).map(function (id) { return id + ":" + quickShort(id); }).join("|");
-    var extra = "&e=" + encodeURIComponent(emergencyNo()) + "&c=" + encodeURIComponent((($("fcName") && $("fcName").value) || "Mom").slice(0, 30)) + (state.watchKey ? "&k=" + state.watchKey : "") + (pin ? "&pin=1" : "");
+    // the app from version 4 also takes the line under each button, so the widget speaks her language
+    var clean = function (x) { return String(x).replace(/[:|]/g, " "); };
+    var b = quickList("quickWidget", 4).map(function (id) { return id + ":" + clean(quickShort(id)).slice(0, 28) + (state.androidVersion >= 4 ? ":" + clean(T(QUICK_LINE[id] || "")).slice(0, 32) : ""); }).join("|");
+    var extra = "&e=" + encodeURIComponent(emergencyNo()) + "&c=" + encodeURIComponent((($("fcName") && $("fcName").value) || T("Mom")).slice(0, 30)) + (state.watchKey ? "&k=" + state.watchKey : "") + (pin ? "&pin=1" : "");
     location.href = "intent://widget?b=" + encodeURIComponent(b) + extra + "#Intent;scheme=shecurity;package=io.github.punselie15.shecurity;end";
   }
   // step-by-step widget help for the phone she is holding
@@ -1864,39 +1979,39 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     var p = platform(), steps = [], intro, after = "";
     var prev = $("wgPreview"); prev.innerHTML = $("qPreview").innerHTML;
     if (p === "ios-app") {
-      intro = "Widgets can't add themselves on iPhone, so here's how. It takes about 20 seconds.";
+      intro = T("Widgets can't add themselves on iPhone, so here's how. It takes about 20 seconds.");
       steps = [
-        "Go to your <b>home screen</b> and touch and hold an empty spot until the apps start to wiggle.",
-        "Tap <b>Edit</b> in the top-left corner, then <b>Add Widget</b>. On older iPhones, tap <b>+</b>.",
-        "Type <b>Shecurity</b> in the search bar and tap it.",
-        "Swipe to the <b>middle size</b>, the one with four buttons, and tap <b>Add Widget</b>.",
-        "Drag it where your thumb reaches easily, then tap <b>Done</b>."
+        T("Go to your <b>home screen</b> and touch and hold an empty spot until the apps start to wiggle."),
+        T("Tap <b>Edit</b> in the top-left corner, then <b>Add Widget</b>. On older iPhones, tap <b>+</b>."),
+        T("Type <b>Shecurity</b> in the search bar and tap it."),
+        T("Swipe to the <b>middle size</b>, the one with four buttons, and tap <b>Add Widget</b>."),
+        T("Drag it where your thumb reaches easily, then tap <b>Done</b>.")
       ];
-      after = "Tip: you can also add it to your Lock Screen. Touch and hold the Lock Screen, tap Customize, then Lock Screen, and add Shecurity. It shows your first button.";
+      after = T("Tip: you can also add it to your Lock Screen. Touch and hold the Lock Screen, tap Customize, then Lock Screen, and add Shecurity. It shows your first button.");
     } else if (p === "android-app") {
-      intro = "Tap the button and choose Add, or follow the steps yourself.";
+      intro = T("Tap the button and choose Add, or follow the steps yourself.");
       steps = [
-        "Go to your <b>home screen</b> and touch and hold an empty spot.",
-        "Tap <b>Widgets</b>.",
-        "Scroll to or search for <b>Shecurity</b>.",
-        "Touch and hold <b>Shecurity quick buttons</b>, then drag it onto your home screen and let go.",
-        "Drag the edges to make it bigger if you like."
+        T("Go to your <b>home screen</b> and touch and hold an empty spot."),
+        T("Tap <b>Widgets</b>."),
+        T("Scroll to or search for <b>Shecurity</b>."),
+        T("Touch and hold <b>Shecurity quick buttons</b>, then drag it onto your home screen and let go."),
+        T("Drag the edges to make it bigger if you like.")
       ];
-      after = "On Samsung phones the menu is also called Widgets. On some phones you pinch the home screen first.";
+      after = T("On Samsung phones the menu is also called Widgets. On some phones you pinch the home screen first.");
     } else if (p === "ios-web" || p === "android-web") {
-      intro = "The widget comes with the Shecurity app from the " + (p === "ios-web" ? "App Store" : "Google Play Store") + ". On this browser version you can add a one-tap SOS button instead.";
+      intro = T("The widget comes with the Shecurity app from the {store}. On this browser version you can add a one-tap SOS button instead.", { store: p === "ios-web" ? "App Store" : "Google Play Store" });
       steps = p === "ios-web" ? [
-        "Install <b>Shecurity</b> from the App Store.",
-        "Open it once, so it can set up your buttons.",
-        "Then come back here: You, then How to add the widget."
+        T("Install <b>Shecurity</b> from the App Store."),
+        T("Open it once, so it can set up your buttons."),
+        T("Then come back here: You, then How to add the widget.")
       ] : [
-        "Install <b>Shecurity</b> from the Google Play Store.",
-        "Open it once, so it can set up your buttons.",
-        "Then come back here: You, then How to add the widget."
+        T("Install <b>Shecurity</b> from the Google Play Store."),
+        T("Open it once, so it can set up your buttons."),
+        T("Then come back here: You, then How to add the widget.")
       ];
-      after = "No app yet? Under Help lines you'll find how to add an SOS shortcut to your home screen.";
+      after = T("No app yet? Under Help lines you'll find how to add an SOS shortcut to your home screen.");
     } else {
-      intro = "Widgets are for phones. Open Shecurity on your iPhone or Android phone to add one.";
+      intro = T("Widgets are for phones. Open Shecurity on your iPhone or Android phone to add one.");
     }
     $("wgIntro").textContent = intro;
     var ol = $("wgSteps"); ol.innerHTML = "";
@@ -1923,11 +2038,11 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       syncWatch.busy = true;
       net.sb.rpc("new_watch_key").then(function (r) { syncWatch.busy = false; if (!r.error && r.data) { state.watchKey = r.data; save(); syncWatch(); } }, function () { syncWatch.busy = false; });
     }
-    if (!h) { var wl = $("watchLink"), wa = $("widgetAdd"), hint = $("qWidgetHint"); if (wl) wl.hidden = false; if (wa) wa.hidden = false; if (hint) hint.textContent = "Tap below to add the widget, or long-press your home screen, tap Widgets and choose Shecurity."; return; }
+    if (!h) { var wl = $("watchLink"), wa = $("widgetAdd"), hint = $("qWidgetHint"); if (wl) wl.hidden = false; if (wa) wa.hidden = false; if (hint) hint.textContent = T("Tap below to add the widget, or long-press your home screen, tap Widgets and choose Shecurity."); return; }
     var msg = {
       buttons: quickList("quickWidget", 4).map(function (id) { return { id: id, label: quickShort(id) }; }),
       emergency: emergencyNo(), name: (net.profile && net.profile.display_name) || "", key: state.watchKey || "",
-      endpoint: CONFIG.url + "/functions/v1/watch-alert", apikey: CONFIG.key, caller: ($("fcName") && $("fcName").value) || "Mom"
+      endpoint: CONFIG.url + "/functions/v1/watch-alert", apikey: CONFIG.key, caller: ($("fcName") && $("fcName").value) || T("Mom")
     }, text = JSON.stringify(msg);
     if (text === watchSent) return;
     watchSent = text;
@@ -1935,34 +2050,45 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   }
 
   // ---------- settings ----------
-  function fillCountries(sel) { sel.innerHTML = ""; Object.keys(COUNTRIES).forEach(function (k) { var o = el("option", null, COUNTRIES[k].name); o.value = k; sel.appendChild(o); }); sel.value = state.country; }
+  function fillCountries(sel, auto) {
+    sel.innerHTML = "";
+    if (auto) { var o0 = el("option", null, T("Automatic ({country})", { country: countryName(phoneCountry()) })); o0.value = "auto"; sel.appendChild(o0); }
+    countryList().forEach(function (k) { var o = el("option", null, countryName(k)); o.value = k; sel.appendChild(o); });
+    sel.value = auto && !state.countryManual ? "auto" : state.country;
+  }
+  function fillLangs(sel) {
+    sel.innerHTML = "";
+    var o0 = el("option", null, T("Automatic ({language})", { language: LANGS[phoneLang()] })); o0.value = "auto"; sel.appendChild(o0);
+    Object.keys(LANGS).forEach(function (k) { var o = el("option", null, LANGS[k]); o.value = k; sel.appendChild(o); });
+    sel.value = LANGS[state.lang] ? state.lang : "auto";
+  }
   function renderMe() {
     var list = $("contactList"); list.innerHTML = "";
     state.contacts.forEach(function (c, i) {
       var row = el("div", "person"); row.appendChild(el("span", "avatar", initial(c.name)));
       var t = el("div", "t"); t.appendChild(el("b", null, c.name)); t.appendChild(el("span", null, c.phone)); row.appendChild(t);
-      var x = el("button", "btn sm", "Remove"); x.type = "button"; x.addEventListener("click", function () { state.contacts.splice(i, 1); save(); renderMe(); }); row.appendChild(x);
+      var x = el("button", "btn sm", T("Remove")); x.type = "button"; x.addEventListener("click", function () { state.contacts.splice(i, 1); save(); renderMe(); }); row.appendChild(x);
       list.appendChild(row);
     });
     renderPlus();
-    $("stTemplate").value = state.template; $("stSiren").checked = !!state.sirenOnSos; fillCountries($("stCountry"));
+    $("stTemplate").value = state.template; $("stSiren").checked = !!state.sirenOnSos; fillLangs($("stLang")); fillCountries($("stCountry"), true); $("stCountryHint").textContent = T("Emergency number: {number}", { number: emergencyNo() });
   }
-  function renderPlus() { var b = $("plusBtn"); if (!b) return; b.disabled = !!state.plusInterest; b.textContent = state.plusInterest ? "You're on the list" : "Tell me when Plus launches"; }
+  function renderPlus() { var b = $("plusBtn"); if (!b) return; b.disabled = !!state.plusInterest; b.textContent = T(state.plusInterest ? "You're on the list" : "Tell me when Plus launches"); }
   function renderHelp() {
-    var c = COUNTRIES[$("hlCountry").value] || COUNTRIES.NL, box = $("hlList"); box.innerHTML = "";
-    c.lines.forEach(function (l) {
-      var row = el("div", "hotline"), d = el("div"); d.appendChild(el("b", null, l[0])); d.appendChild(el("div", "num", l[1])); row.appendChild(d);
-      var a = el("a", "btn sm", /text/i.test(l[0]) ? "Text" : "Call");
-      a.href = /text/i.test(l[0]) ? "sms:" + l[1] + (isIOS() ? "&" : "?") + "body=START" : "tel:" + l[1].replace(/[^\d+]/g, "");
+    var box = $("hlList"); box.innerHTML = "";
+    helpLines($("hlCountry").value).forEach(function (l) {
+      var row = el("div", "hotline"), d = el("div"), o = l[2] || {}; d.appendChild(el("b", null, l[0])); d.appendChild(el("div", "num", l[1])); row.appendChild(d);
+      var a = el("a", "btn sm", o.sms ? T("Text") : T("Call"));
+      a.href = o.sms ? "sms:" + l[1].replace(/[^\d+]/g, "") + (isIOS() ? "&" : "?") + "body=" + encodeURIComponent(o.sms) : "tel:" + (o.dial || l[1]).replace(/[^\d+]/g, "");
       row.appendChild(a); box.appendChild(row);
     });
   }
   function wipe(btn) {
-    if (btn.getAttribute("data-armed") !== "1") { btn.setAttribute("data-armed", "1"); btn.textContent = "Tap again to delete everything"; return; }
+    if (btn.getAttribute("data-armed") !== "1") { btn.setAttribute("data-armed", "1"); btn.textContent = T("Tap again to delete everything"); return; }
     var done = function () {
       try { localStorage.removeItem(KEY); localStorage.removeItem("shecurity.auth"); } catch (e) {}
       state = Object.assign({}, defaults); state.contacts = []; net.me = null; net.profile = null; net.circles = []; net.feed = []; net.live = [];
-      btn.removeAttribute("data-armed"); btn.textContent = "Delete my account and data"; renderMe(); renderNet(); runTimer(); toast("Everything deleted");
+      btn.removeAttribute("data-armed"); btn.textContent = T("Delete my account and data"); renderMe(); renderNet(); runTimer(); toast(T("Everything deleted"));
     };
     stopSharing();
     if (netOn() && !PREVIEW) net.sb.rpc("delete_my_account").then(function () { return net.sb.auth.signOut(); }).then(done, done); else done();
@@ -1984,33 +2110,33 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       case "timer-start": startTimer({ minutes: parseInt($("tmMinutes").value, 10), note: v("tmNote"), tell: $("tmTell").checked }); break;
       case "walk-start":
         var wm = parseInt($("wkMins").value, 10), to = v("wkTo");
-        startTimer({ minutes: wm, note: to ? "Walking: " + to : "Walking", label: "Walk", share: true, kind: "walk", netMessage: to || null, tell: true, toast: netOn() && mates().length ? "Your circle is walking with you." : "Timer started. Join a circle so people can follow you." });
+        startTimer({ minutes: wm, note: to ? T("Walking: {to}", { to: to }) : T("Walking"), label: "Walk", share: true, kind: "walk", netMessage: to || null, tell: true, toast: T(netOn() && mates().length ? "Your circle is walking with you." : "Timer started. Join a circle so people can follow you.") });
         break;
-      case "timer-safe": endGrace(); finishTimer(true); toast("Glad you're safe."); break;
+      case "timer-safe": endGrace(); finishTimer(true); toast(T("Glad you're safe.")); break;
       case "timer-add": if (state.timer) { state.timer.end += 15 * 60000; if (state.timer.share) state.sharingUntil += 15 * 60000; save(); runTimer(); } break;
-      case "grace-help": var gt = state.timer; endGrace(); finishTimer(false); openSos({ body: state.template + (gt && gt.note ? " I was: " + gt.note + "." : ""), siren: state.sirenOnSos }); break;
+      case "grace-help": var gt = state.timer; endGrace(); finishTimer(false); openSos({ body: state.template + (gt && gt.note ? " " + T("I was: {note}.", { note: gt.note }) : ""), siren: state.sirenOnSos }); break;
       case "ride-send": rideSend(); break;
       case "date-send": dateSend(); break;
       case "plan-post": postPlan(); break;
       case "record-toggle": toggleRecord(); break;
-      case "record-share": if (rec.blob) shareText("Recording from Shecurity, " + new Date().toLocaleString(), [new File([rec.blob], "shecurity-recording" + (/mp4/.test(rec.blob.type) ? ".m4a" : ".webm"), { type: rec.blob.type })]); break;
+      case "record-share": if (rec.blob) shareText(T("Recording from Shecurity, {time}", { time: new Date().toLocaleString(LANG) }), [new File([rec.blob], "shecurity-recording" + (/mp4/.test(rec.blob.type) ? ".m4a" : ".webm"), { type: rec.blob.type })]); break;
       case "share-location": shareLocation(); break;
       case "net-join": joinNetwork(); break;
       case "circle-create": createCircle(); break;
       case "circle-join": joinCircle(v("jcCode")); break;
       case "push-on": enablePush(); break;
       case "profile-save":
-        if (PREVIEW) { toast("Works in the live app."); break; }
-        net.sb.from("profiles").update({ display_name: v("mpName") || net.profile.display_name, phone: v("mpPhone") || null }).eq("id", net.me).then(function (r) { if (r.error) throw r.error; return loadProfile().then(loadCircles); }).then(function () { renderNet(); toast("Saved"); }).catch(function (e2) { toast(e2.message); });
+        if (PREVIEW) { toast(T("Works in the live app.")); break; }
+        net.sb.from("profiles").update({ display_name: v("mpName") || net.profile.display_name, phone: v("mpPhone") || null }).eq("id", net.me).then(function (r) { if (r.error) throw r.error; return loadProfile().then(loadCircles); }).then(function () { renderNet(); toast(T("Saved")); }).catch(function (e2) { toast(e2.message); });
         break;
       case "contact-add":
         var n = v("ctName"), p = v("ctPhone");
-        if (!n || p.replace(/\D/g, "").length < 6) { toast("Add a name and a full mobile number."); break; }
-        if (state.contacts.length >= 5) { toast("You can add up to 5 backup contacts."); break; }
-        state.contacts.push({ name: n, phone: p }); save(); $("ctName").value = ""; $("ctPhone").value = ""; renderMe(); toast(n + " added"); break;
+        if (!n || p.replace(/\D/g, "").length < 6) { toast(T("Add a name and a full mobile number.")); break; }
+        if (state.contacts.length >= 5) { toast(T("You can add up to 5 backup contacts.")); break; }
+        state.contacts.push({ name: n, phone: p }); save(); $("ctName").value = ""; $("ctPhone").value = ""; renderMe(); toast(T("{name} added", { name: n })); break;
       case "settings-save":
-        state.template = v("stTemplate") || defaults.template; state.sirenOnSos = $("stSiren").checked; state.country = $("stCountry").value; save();
-        $("hlCountry").value = state.country; renderHelp(); renderQuick(); toast("Saved"); break;
+        state.template = v("stTemplate") || defaults.template; state.sirenOnSos = $("stSiren").checked; save();
+        toast(T("Saved")); break;
       case "wipe": wipe(a); break;
       case "nudge-go": closeNudge(true); break;
       case "nudge-later": closeNudge(false); break;
@@ -2019,9 +2145,9 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       case "plus-interest":
         state.plusInterest = true; save(); renderPlus();
         if (netOn() && !PREVIEW) net.sb.from("profiles").update({ plus_interest: true }).eq("id", net.me).then(function () {});
-        toast("Thanks! We'll let you know in the app.");
+        toast(T("Thanks! We'll let you know in the app."));
         break;
-      case "cd-cancel": stopCountdown(); toast("Cancelled. Nothing was sent."); break;
+      case "cd-cancel": stopCountdown(); toast(T("Cancelled. Nothing was sent.")); break;
       case "cd-now": stopCountdown(); openSos({ siren: state.sirenOnSos }); break;
       case "copy-sos-link": copy(sosLink()); break;
       case "quick-edit": go("me"); setTimeout(function () { $("quickCard").scrollIntoView({ behavior: "smooth", block: "start" }); }, 50); break;
@@ -2031,12 +2157,19 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       case "welcome-alt": welcomeAct("alt"); break;
       case "welcome-next": welcomeAct("next"); break;
       case "widget-tip-hide": state.widgetTipDone = true; save(); renderWidgetTip(); break;
-      case "widget-done": state.widgetTipDone = true; save(); renderWidgetTip(); go("home"); toast("Nice. Help is one tap away now."); break;
-      case "quick-reset": state.quickHome = defaults.quickHome.slice(); state.quickWidget = defaults.quickWidget.slice(); save(); renderQuick(); sendAndroidWidget(); toast("Standard buttons are back"); break;
+      case "widget-done": state.widgetTipDone = true; save(); renderWidgetTip(); go("home"); toast(T("Nice. Help is one tap away now.")); break;
+      case "quick-reset": state.quickHome = defaults.quickHome.slice(); state.quickWidget = defaults.quickWidget.slice(); save(); renderQuick(); sendAndroidWidget(); toast(T("Standard buttons are back")); break;
     }
   });
   $("quickExit").addEventListener("click", function () { endCall(); stopSiren(); window.location.replace("https://www.google.com/search?q=weather+today"); });
   $("hlCountry").addEventListener("change", renderHelp);
+  // a new language reloads the app, so every screen is in it at once
+  $("stLang").addEventListener("change", function () { var l = this.value; state.lang = LANGS[l] ? l : null; save(); location.reload(); });
+  $("stCountry").addEventListener("change", function () {
+    var c = this.value; state.countryManual = c !== "auto"; state.country = c === "auto" ? phoneCountry() : c; save();
+    $("hlCountry").value = state.country; renderHelp(); renderQuick(); renderMe(); sendAndroidWidget(); syncWatch();
+    toast(T("Emergency number: {number}", { number: emergencyNo() }));
+  });
 
   // ---------- home-screen shortcuts ----------
   var cd = { iv: null };
@@ -2074,28 +2207,28 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     var list = welcomeSteps(), step = list[wStep], p = platform();
     if (!step) { closeWelcome(); return; }
     $("wDots").innerHTML = list.map(function (x, i) { return '<i class="' + (i === wStep ? "on" : "") + '"></i>'; }).join("");
-    $("wAlt").hidden = true; $("wSkip").textContent = "Skip";
+    $("wAlt").hidden = true; $("wSkip").textContent = T("Skip");
     var body = $("wBody");
     if (step === "hello") {
       $("wIcon").innerHTML = '<use href="#i-heart"/>';
-      $("wTitle").textContent = "Hi, I'm your little helper";
-      body.innerHTML = "<p>For the moments that feel wrong. I'm free, most of me works without internet, and your data stays on your phone unless you share it.</p>" +
-        "<ul><li><b>Hold SOS</b> to alert the people you trust with where you are.</li><li><b>Fake call</b> gives you a reason to leave.</li><li><b>Walk with me</b> and check-ins keep an eye out when you're on your own.</li></ul>";
-      $("wMain").textContent = "Next"; $("wSkip").hidden = true;
+      $("wTitle").textContent = T("Hi, I'm your little helper");
+      body.innerHTML = T("<p>For the moments that feel wrong. I'm free, most of me works without internet, and your data stays on your phone unless you share it.</p>") +
+        T("<ul><li><b>Hold SOS</b> to alert the people you trust with where you are.</li><li><b>Fake call</b> gives you a reason to leave.</li><li><b>Walk with me</b> and check-ins keep an eye out when you're on your own.</li></ul>");
+      $("wMain").textContent = T("Next"); $("wSkip").hidden = true;
     } else if (step === "widget") {
       $("wIcon").innerHTML = '<use href="#i-phone"/>';
-      $("wTitle").textContent = "Put me on your home screen";
-      body.innerHTML = "<p>Then help is one tap away, even without opening the app: four buttons for SOS, a fake call, your location and calling " + emergencyNo() + ".</p>" +
-        (p === "ios-app" ? "<ol><li>Touch and hold an empty spot on your home screen until the apps wiggle.</li><li>Tap <b>Edit</b>, then <b>Add Widget</b> (or <b>+</b>).</li><li>Search <b>Shecurity</b>, pick the middle size and tap <b>Add Widget</b>.</li></ol>"
-          : "<p>Tap the button below and choose <b>Add</b>. If your phone doesn't ask, I'll show you the steps.</p>");
-      $("wMain").textContent = p === "android-app" ? "Add it for me" : "I'll do it now";
-      $("wAlt").hidden = false; $("wAlt").textContent = p === "android-app" ? "Show me the steps" : "Show me with pictures";
-      $("wSkip").hidden = false; $("wSkip").textContent = "Later";
+      $("wTitle").textContent = T("Put me on your home screen");
+      body.innerHTML = T("<p>Then help is one tap away, even without opening the app: four buttons for SOS, a fake call, your location and calling {number}.</p>", { number: emergencyNo() }) +
+        (p === "ios-app" ? T("<ol><li>Touch and hold an empty spot on your home screen until the apps wiggle.</li><li>Tap <b>Edit</b>, then <b>Add Widget</b> (or <b>+</b>).</li><li>Search <b>Shecurity</b>, pick the middle size and tap <b>Add Widget</b>.</li></ol>")
+          : T("<p>Tap the button below and choose <b>Add</b>. If your phone doesn't ask, I'll show you the steps.</p>"));
+      $("wMain").textContent = T(p === "android-app" ? "Add it for me" : "I'll do it now");
+      $("wAlt").hidden = false; $("wAlt").textContent = T(p === "android-app" ? "Show me the steps" : "Show me with pictures");
+      $("wSkip").hidden = false; $("wSkip").textContent = T("Later");
     } else {
       $("wIcon").innerHTML = '<use href="#i-people"/>';
-      $("wTitle").textContent = "Who should I tell?";
-      body.innerHTML = "<p>Your circle is 3 to 5 people you trust. When you need help, they get an alert with where you are. You can also skip this and use SOS by text message.</p>";
-      $("wMain").textContent = "Set up my circle"; $("wSkip").hidden = false; $("wSkip").textContent = "Maybe later";
+      $("wTitle").textContent = T("Who should I tell?");
+      body.innerHTML = T("<p>Your circle is 3 to 5 people you trust. When you need help, they get an alert with where you are. You can also skip this and use SOS by text message.</p>");
+      $("wMain").textContent = T("Set up my circle"); $("wSkip").hidden = false; $("wSkip").textContent = T("Maybe later");
     }
   }
   function openWelcome() { wStep = 0; $("welcome").hidden = false; renderWelcome(); }
@@ -2119,6 +2252,8 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   if (av && +av[1] >= 2) { state.androidWidget = true; state.androidVersion = +av[1]; save(); try { history.replaceState(null, "", location.pathname + location.hash); } catch (e) {} }
   if (/^join-/i.test(hash)) { state.pendingJoin = hash.slice(5); save(); try { history.replaceState(null, "", location.pathname); } catch (e) {} }
   if (PREVIEW) $("previewBanner").hidden = false;
+  translatePage();
+  if ($("fcName").value === "Mom") $("fcName").value = T("Mom");
   fillCountries($("hlCountry")); renderHelp(); renderQuick(); renderWidgetTip(); runTimer(); renderNet();
   if (state.timer) keepAwake();
   if (!PREVIEW && !NATIVE && "serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(function () {});
@@ -2127,7 +2262,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   if (nativePush() && state.fcmToken) setTimeout(function () { try { var t = ShecurityNative.pushToken(); if (t && t !== state.fcmToken && netOn()) saveNativeToken(0).catch(function () {}); } catch (e) {} }, 4000);
   $("sosLink").textContent = PREVIEW ? "https://your-app-address/#sos" : sosLink();
   if (!state.welcomed && !PREVIEW && !state.pendingJoin) openWelcome();
-  if (state.pendingJoin) { go("circle"); if (!PREVIEW) toast("Add your name to join the circle you were invited to."); }
+  if (state.pendingJoin) { go("circle"); if (!PREVIEW) toast(T("Add your name to join the circle you were invited to.")); }
   else route(hash);
   if (state.sharingUntil > Date.now()) setTimeout(function () { if (netOn()) startSharing((state.sharingUntil - Date.now()) / 60000, state.sharingNote); }, 2500);
   setInterval(function () { if (netOn() && !document.hidden) { loadLive().then(renderNet); } }, 60000);

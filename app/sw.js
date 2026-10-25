@@ -1,6 +1,6 @@
 // Keeps Shecurity working offline and shows alerts from your circle when the app is closed.
-const CACHE = "shecurity-v20";
-const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png", "./favicon-32.png", "./shortcut-sos.png", "./shortcut-walk.png", "./shortcut-timer.png", "./shortcut-call.png", "./vendor/supabase.js", "./fonts/plus-jakarta-sans-latin-400-normal.woff2", "./fonts/plus-jakarta-sans-latin-500-normal.woff2", "./fonts/plus-jakarta-sans-latin-600-normal.woff2", "./fonts/plus-jakarta-sans-latin-700-normal.woff2"];
+const CACHE = "shecurity-v21";
+const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png", "./favicon-32.png", "./shortcut-sos.png", "./shortcut-walk.png", "./shortcut-timer.png", "./shortcut-call.png", "./vendor/supabase.js", "./i18n.js", "./fonts/plus-jakarta-sans-latin-400-normal.woff2", "./fonts/plus-jakarta-sans-latin-500-normal.woff2", "./fonts/plus-jakarta-sans-latin-600-normal.woff2", "./fonts/plus-jakarta-sans-latin-700-normal.woff2"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
