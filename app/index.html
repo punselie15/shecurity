@@ -598,6 +598,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       <div class="stack" id="qWidget"></div>
       <div class="qprev" id="qPreview" aria-hidden="true"></div>
       <p class="small muted" id="qWidgetHint">Add the widget: long-press your home screen, tap Edit or +, and choose Shecurity.</p>
+      <button class="btn sm" type="button" id="watchLink" data-action="watch-link" hidden style="align-self:flex-start">Send to my widget and watch</button>
       <button class="btn sm" type="button" data-action="quick-reset" style="align-self:flex-start">Back to the standard buttons</button>
     </div>
     <div class="card stack">
@@ -1679,7 +1680,8 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   function sendAndroidWidget() {
     if (!state.androidWidget) return;
     var b = quickList("quickWidget", 4).map(function (id) { return id + ":" + quickShort(id); }).join("|");
-    location.href = "intent://widget?b=" + encodeURIComponent(b) + "#Intent;scheme=shecurity;package=io.github.punselie15.shecurity;end";
+    var extra = "&e=" + encodeURIComponent(emergencyNo()) + "&c=" + encodeURIComponent((($("fcName") && $("fcName").value) || "Mom").slice(0, 30)) + (state.watchKey ? "&k=" + state.watchKey : "");
+    location.href = "intent://widget?b=" + encodeURIComponent(b) + extra + "#Intent;scheme=shecurity;package=io.github.punselie15.shecurity;end";
   }
   function syncWidget() {
     var buttons = quickList("quickWidget", 4).map(function (id) { return { id: id, label: quickShort(id), url: "shecurity://punselie15.github.io/shecurity/app/#q-" + id }; });
@@ -1690,11 +1692,12 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   var watchSent = "";
   function syncWatch() {
     var h; try { h = window.webkit.messageHandlers["watch-config"]; } catch (e) {}
-    if (!h || PREVIEW) return;
+    if (PREVIEW || (!h && !state.androidWidget)) return;
     if (!state.watchKey && netOn() && !syncWatch.busy) {
       syncWatch.busy = true;
       net.sb.rpc("new_watch_key").then(function (r) { syncWatch.busy = false; if (!r.error && r.data) { state.watchKey = r.data; save(); syncWatch(); } }, function () { syncWatch.busy = false; });
     }
+    if (!h) { var wl = $("watchLink"); if (wl) wl.hidden = false; return; }
     var msg = {
       buttons: quickList("quickWidget", 4).map(function (id) { return { id: id, label: quickShort(id) }; }),
       emergency: emergencyNo(), name: (net.profile && net.profile.display_name) || "", key: state.watchKey || "",
@@ -1792,6 +1795,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       case "cd-now": stopCountdown(); openSos({ siren: state.sirenOnSos }); break;
       case "copy-sos-link": copy(sosLink()); break;
       case "quick-edit": go("me"); setTimeout(function () { $("quickCard").scrollIntoView({ behavior: "smooth", block: "start" }); }, 50); break;
+      case "watch-link": sendAndroidWidget(); break;
       case "quick-reset": state.quickHome = defaults.quickHome.slice(); state.quickWidget = defaults.quickWidget.slice(); save(); renderQuick(); sendAndroidWidget(); toast("Standard buttons are back"); break;
     }
   });
