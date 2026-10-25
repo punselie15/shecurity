@@ -124,7 +124,7 @@ public class MainActivity extends Activity implements DataClient.OnDataChangedLi
         GridLayout grid = new GridLayout(this);
         grid.setColumnCount(2);
         for (int i = 0; i < 4; i++) {
-            String[] parts = config.buttons[i].split(":", 2);
+            String[] parts = config.buttons[i].split(":", 3);
             final String id = parts[0];
             Button b = new Button(this);
             b.setText(parts.length > 1 ? parts[1] : id);

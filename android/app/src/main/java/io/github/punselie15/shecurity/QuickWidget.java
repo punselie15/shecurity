@@ -70,18 +70,20 @@ public class QuickWidget extends AppWidgetProvider {
         String[] list = buttons(context);
         int flags = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0);
         for (int i = 0; i < 4; i++) {
-            String[] parts = list[i].split(":", 2);
+            // "id:label" or "id:label:line", the app sends them in the phone's language
+            String[] parts = list[i].split(":", 3);
             String action = parts[0];
             String label = parts.length > 1 ? parts[1] : action;
+            String line = parts.length > 2 ? parts[2] : detail(action);
             boolean hot = urgent(action);
             views.setInt(CELLS[i], "setBackgroundResource", hot ? R.drawable.wq_pink : R.drawable.wq_white);
             views.setInt(ICONS[i], "setBackgroundResource", hot ? R.drawable.wq_chip_glass : R.drawable.wq_chip_soft);
             views.setImageViewResource(ICONS[i], icon(action, hot));
             views.setTextViewText(LABELS[i], label);
             views.setTextColor(LABELS[i], hot ? 0xFFFFFFFF : INK);
-            views.setTextViewText(LINES[i], detail(action));
+            views.setTextViewText(LINES[i], line);
             views.setTextColor(LINES[i], hot ? 0xB3FFFFFF : 0xB32A2152);
-            views.setContentDescription(CELLS[i], label + ". " + detail(action));
+            views.setContentDescription(CELLS[i], label + ". " + line);
             Intent open = new Intent(Intent.ACTION_VIEW,
                     Uri.parse("https://shecurity.app/app/?android=3#q-" + action),
                     context, LauncherActivity.class);

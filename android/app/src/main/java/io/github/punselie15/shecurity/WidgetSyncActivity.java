@@ -64,9 +64,10 @@ public class WidgetSyncActivity extends Activity {
         String[] list = b.split("\\|");
         if (list.length != 4) return false;
         for (String item : list) {
-            String[] parts = item.split(":", 2);
-            if (parts.length != 2 || !ACTIONS.contains(parts[0])) return false;
-            if (parts[1].isEmpty() || parts[1].length() > 24) return false;
+            String[] parts = item.split(":", 3);
+            if (parts.length < 2 || !ACTIONS.contains(parts[0])) return false;
+            if (parts[1].isEmpty() || parts[1].length() > 28) return false;
+            if (parts.length == 3 && parts[2].length() > 32) return false;
         }
         return true;
     }
