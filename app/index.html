@@ -122,8 +122,14 @@ p { margin: 0; }
 .edit-quick { display: block; margin: 8px auto 0; background: none; border: 0; color: var(--muted); font: inherit; font-size: 13px; text-decoration: underline; cursor: pointer; padding: 6px; }
 .qprev { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; background: #2a2152; border-radius: 22px; padding: 10px; }
 .qprev span { background: #e5487f; color: #fff; border-radius: 15px; min-height: 58px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 700; text-align: center; padding: 6px; }
-.qprev span:nth-child(2n) { background: #fff; color: #2a2152; }
+.qprev span:nth-child(2), .qprev span:nth-child(3) { background: #fff; color: #2a2152; }
 .qprev .i { width: 20px; height: 20px; }
+.wsteps { counter-reset: w; list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+.wsteps li { counter-increment: w; display: flex; gap: 12px; align-items: flex-start; font-size: 16px; line-height: 1.4; }
+.wsteps li::before { content: counter(w); flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--pink); color: #fff; font-weight: 800; display: grid; place-items: center; font-size: 15px; }
+.wsteps b { font-weight: 800; }
+.tipcard { display: flex; gap: 12px; align-items: center; }
+.tipcard .t { flex: 1; min-width: 0; }
 .act .ic { width: 44px; height: 44px; border-radius: 15px; background: var(--brand-soft); color: var(--pink-ink); display: grid; place-items: center; }
 .act:active, .li:active { transform: scale(.98); }
 
@@ -327,6 +333,10 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
 
     <div class="actions3" id="homeQuick"></div>
     <button class="edit-quick" type="button" data-action="quick-edit">Change these buttons</button>
+    <div class="card tipcard" id="widgetTip" hidden>
+      <div class="t"><b>Put Shecurity on your home screen</b><div class="small muted">Four emergency buttons without opening the app. Takes 20 seconds.</div></div>
+      <div class="stack" style="gap:6px"><button class="btn sm primary" type="button" data-go="widget">Show me</button><button class="btn sm ghost" type="button" data-action="widget-tip-hide">Not now</button></div>
+    </div>
 
     <div id="homeCircle" hidden>
       <span class="section-title">Your circle now</span>
@@ -467,6 +477,23 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     <p class="small muted">Keep Shecurity open. A locked or dead phone can't raise the alarm, so tell someone your plan too.</p>
   </section>
 
+  <!-- WIDGET GUIDE -->
+  <section class="view" data-view="widget" hidden>
+    <button class="back" type="button" data-go="home"><svg class="i"><use href="#i-back"/></svg>Back</button>
+    <h1>Add the widget</h1>
+    <p class="muted" id="wgIntro"></p>
+    <div class="qprev" id="wgPreview" aria-hidden="true"></div>
+    <div class="card stack">
+      <ol class="wsteps" id="wgSteps"></ol>
+      <button class="btn primary block" type="button" id="wgPin" data-action="widget-add" hidden>Add it for me</button>
+    </div>
+    <p class="small muted" id="wgAfter"></p>
+    <div class="row">
+      <button class="btn" type="button" data-action="widget-done">I added it</button>
+      <button class="btn ghost" type="button" data-action="quick-edit">Change the buttons</button>
+    </div>
+  </section>
+
   <!-- FAKE CALL -->
   <section class="view" data-view="fakecall" hidden>
     <button class="back" type="button" data-go="home"><svg class="i"><use href="#i-back"/></svg>Back</button>
@@ -597,6 +624,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       <b class="small">Home-screen widget and watch</b>
       <div class="stack" id="qWidget"></div>
       <div class="qprev" id="qPreview" aria-hidden="true"></div>
+      <button class="btn sm" type="button" data-go="widget" style="align-self:flex-start">How to add the widget</button>
       <p class="small muted" id="qWidgetHint">Add the widget once: long-press your home screen, tap Edit, then Add Widget (or +), and choose Shecurity. Widgets can't add themselves.</p>
       <button class="btn sm" type="button" id="widgetAdd" data-action="widget-add" hidden style="align-self:flex-start">Add the widget to my home screen</button>
       <button class="btn sm" type="button" id="watchLink" data-action="watch-link" hidden style="align-self:flex-start">Send to my widget and watch</button>
@@ -1224,7 +1252,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   }
 
   // ---------- navigation ----------
-  var TABS = { home: "home", circle: "circle", help: "help", me: "me", plan: "circle" };
+  var TABS = { home: "home", circle: "circle", help: "help", me: "me", plan: "circle", widget: "home" };
   function go(view) {
     document.querySelectorAll(".view[data-view]").forEach(function (v) { v.hidden = v.getAttribute("data-view") !== view; });
     var tab = TABS[view] || "home";
@@ -1233,6 +1261,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     if (view === "me") renderMe();
     if (view === "circle" && net.sb && netOn()) Promise.all([loadFeed(), loadLive(), loadPlans()]).then(renderNet);
     if (view === "plan") renderPlanForm();
+    if (view === "widget") renderWidgetGuide();
   }
 
   // ---------- SOS ----------
@@ -1684,6 +1713,63 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     var extra = "&e=" + encodeURIComponent(emergencyNo()) + "&c=" + encodeURIComponent((($("fcName") && $("fcName").value) || "Mom").slice(0, 30)) + (state.watchKey ? "&k=" + state.watchKey : "") + (pin ? "&pin=1" : "");
     location.href = "intent://widget?b=" + encodeURIComponent(b) + extra + "#Intent;scheme=shecurity;package=io.github.punselie15.shecurity;end";
   }
+  // step-by-step widget help for the phone she is holding
+  function platform() {
+    if (state.androidWidget) return "android-app";
+    if (/PWAShell/.test(navigator.userAgent)) return "ios-app";
+    if (isIOS()) return "ios-web";
+    if (/Android/i.test(navigator.userAgent)) return "android-web";
+    return "other";
+  }
+  function renderWidgetGuide() {
+    var p = platform(), steps = [], intro, after = "";
+    var prev = $("wgPreview"); prev.innerHTML = $("qPreview").innerHTML;
+    if (p === "ios-app") {
+      intro = "Widgets can't add themselves on iPhone, so here's how. It takes about 20 seconds.";
+      steps = [
+        "Go to your <b>home screen</b> and touch and hold an empty spot until the apps start to wiggle.",
+        "Tap <b>Edit</b> in the top-left corner, then <b>Add Widget</b>. On older iPhones, tap <b>+</b>.",
+        "Type <b>Shecurity</b> in the search bar and tap it.",
+        "Swipe to the <b>middle size</b>, the one with four buttons, and tap <b>Add Widget</b>.",
+        "Drag it where your thumb reaches easily, then tap <b>Done</b>."
+      ];
+      after = "Tip: you can also add it to your Lock Screen. Touch and hold the Lock Screen, tap Customize, then Lock Screen, and add Shecurity. It shows your first button.";
+    } else if (p === "android-app") {
+      intro = "Tap the button and choose Add, or follow the steps yourself.";
+      steps = [
+        "Go to your <b>home screen</b> and touch and hold an empty spot.",
+        "Tap <b>Widgets</b>.",
+        "Scroll to or search for <b>Shecurity</b>.",
+        "Touch and hold <b>Shecurity quick buttons</b>, then drag it onto your home screen and let go.",
+        "Drag the edges to make it bigger if you like."
+      ];
+      after = "On Samsung phones the menu is also called Widgets. On some phones you pinch the home screen first.";
+    } else if (p === "ios-web" || p === "android-web") {
+      intro = "The widget comes with the Shecurity app from the " + (p === "ios-web" ? "App Store" : "Google Play Store") + ". On this browser version you can add a one-tap SOS button instead.";
+      steps = p === "ios-web" ? [
+        "Install <b>Shecurity</b> from the App Store.",
+        "Open it once, so it can set up your buttons.",
+        "Then come back here: You, then How to add the widget."
+      ] : [
+        "Install <b>Shecurity</b> from the Google Play Store.",
+        "Open it once, so it can set up your buttons.",
+        "Then come back here: You, then How to add the widget."
+      ];
+      after = "No app yet? Under Help lines you'll find how to add an SOS shortcut to your home screen.";
+    } else {
+      intro = "Widgets are for phones. Open Shecurity on your iPhone or Android phone to add one.";
+    }
+    $("wgIntro").textContent = intro;
+    var ol = $("wgSteps"); ol.innerHTML = "";
+    steps.forEach(function (t) { var li = el("li"); var sp = el("span"); sp.innerHTML = t; li.appendChild(sp); ol.appendChild(li); });
+    $("wgPin").hidden = p !== "android-app";
+    $("wgAfter").textContent = after;
+    prev.hidden = p === "other";
+  }
+  function renderWidgetTip() {
+    var p = platform();
+    $("widgetTip").hidden = !!state.widgetTipDone || !(p === "ios-app" || p === "android-app");
+  }
   function syncWidget() {
     var buttons = quickList("quickWidget", 4).map(function (id) { return { id: id, label: quickShort(id), url: "shecurity://punselie15.github.io/shecurity/app/#q-" + id }; });
     try { window.webkit.messageHandlers["widget-config"].postMessage({ buttons: buttons }); } catch (e) {}
@@ -1798,6 +1884,8 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       case "quick-edit": go("me"); setTimeout(function () { $("quickCard").scrollIntoView({ behavior: "smooth", block: "start" }); }, 50); break;
       case "watch-link": sendAndroidWidget(); break;
       case "widget-add": sendAndroidWidget(true); break;
+      case "widget-tip-hide": state.widgetTipDone = true; save(); renderWidgetTip(); break;
+      case "widget-done": state.widgetTipDone = true; save(); renderWidgetTip(); go("home"); toast("Nice. Help is one tap away now."); break;
       case "quick-reset": state.quickHome = defaults.quickHome.slice(); state.quickWidget = defaults.quickWidget.slice(); save(); renderQuick(); sendAndroidWidget(); toast("Standard buttons are back"); break;
     }
   });
@@ -1821,7 +1909,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     if (h === "sos") { go("home"); startCountdown(); return true; }
     if (h === "fakecall-now") { $("fcDelay").value = "5"; scheduleCall(); return true; }
     if (/^q-/.test(h) && QUICK[h.slice(2)]) { QUICK[h.slice(2)].run(); return true; }
-    if (["walk", "timer", "fakecall", "circle", "help", "me", "places", "ride", "date", "record", "plan"].indexOf(h) >= 0) { go(h); return true; }
+    if (["walk", "timer", "fakecall", "circle", "help", "me", "places", "ride", "date", "record", "plan", "widget"].indexOf(h) >= 0) { go(h); return true; }
     return false;
   }
   window.addEventListener("hashchange", function () { route(location.hash); });
@@ -1832,7 +1920,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   if (/[?&]android=2\b/.test(location.search)) { state.androidWidget = true; save(); try { history.replaceState(null, "", location.pathname + location.hash); } catch (e) {} }
   if (/^join-/i.test(hash)) { state.pendingJoin = hash.slice(5); save(); try { history.replaceState(null, "", location.pathname); } catch (e) {} }
   if (PREVIEW) $("previewBanner").hidden = false;
-  fillCountries($("hlCountry")); renderHelp(); renderQuick(); runTimer(); renderNet();
+  fillCountries($("hlCountry")); renderHelp(); renderQuick(); renderWidgetTip(); runTimer(); renderNet();
   if (state.timer) keepAwake();
   if (!PREVIEW && "serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(function () {});
   netInit();
