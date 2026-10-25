@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Get Shecurity, the free safety app</title>
+<meta name="description" content="Get Shecurity on your phone. This link opens Google Play on Android, and the app on iPhone.">
+<link rel="canonical" href="https://shecurity.app/get/">
+<meta name="theme-color" content="#fbf8fa">
+<meta property="og:title" content="Get Shecurity, the free safety app">
+<meta property="og:description" content="One press sends an SOS with your live location to the people you trust. Free forever.">
+<meta property="og:image" content="https://shecurity.app/img/share.png">
+<link rel="icon" href="../icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<script src="../assets/stores.js"></script>
+<script>
+  // phones go straight to their store; computers see the choices below
+  (function () { var to = shecurityStoreLink(); if (to) location.replace(to); })();
+</script>
+<style>
+  .get-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 32px 20px; }
+  .get-page .card { max-width: 460px; width: 100%; background: var(--surface); border-radius: 28px; box-shadow: var(--shadow); padding: 36px 28px; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
+  .get-page img.icon { width: 72px; height: 72px; border-radius: 18px; }
+  .get-page .stores { justify-content: center; }
+</style>
+</head>
+<body>
+<main class="get-page"><div class="card">
+<img class="icon" src="../icon-192.png" alt="" width="72" height="72">
+<h1 style="font-size:1.9rem">Get Shecurity</h1>
+<p class="muted">The free safety app that keeps your people close. Pick your phone:</p>
+<div class="stores">
+<a class="store" href="https://play.google.com/store/apps/details?id=io.github.punselie15.shecurity"><span><small>Get it on</small>Google Play</span></a>
+<a class="store" href="../app/"><span><small>On iPhone or computer</small>Open in browser</span></a>
+</div>
+<p class="muted" style="font-size:14px">Coming soon to the App Store. <a href="../">Learn more about Shecurity</a></p>
+</div></main>
+</body>
+</html>
