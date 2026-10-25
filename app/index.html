@@ -597,7 +597,8 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       <b class="small">Home-screen widget and watch</b>
       <div class="stack" id="qWidget"></div>
       <div class="qprev" id="qPreview" aria-hidden="true"></div>
-      <p class="small muted" id="qWidgetHint">Add the widget: long-press your home screen, tap Edit or +, and choose Shecurity.</p>
+      <p class="small muted" id="qWidgetHint">Add the widget once: long-press your home screen, tap Edit, then Add Widget (or +), and choose Shecurity. Widgets can't add themselves.</p>
+      <button class="btn sm" type="button" id="widgetAdd" data-action="widget-add" hidden style="align-self:flex-start">Add the widget to my home screen</button>
       <button class="btn sm" type="button" id="watchLink" data-action="watch-link" hidden style="align-self:flex-start">Send to my widget and watch</button>
       <button class="btn sm" type="button" data-action="quick-reset" style="align-self:flex-start">Back to the standard buttons</button>
     </div>
@@ -1677,10 +1678,10 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     });
   }
   // the Android app (version 2 and up) opens with ?android=2 and takes the widget buttons through a shecurity:// link
-  function sendAndroidWidget() {
+  function sendAndroidWidget(pin) {
     if (!state.androidWidget) return;
     var b = quickList("quickWidget", 4).map(function (id) { return id + ":" + quickShort(id); }).join("|");
-    var extra = "&e=" + encodeURIComponent(emergencyNo()) + "&c=" + encodeURIComponent((($("fcName") && $("fcName").value) || "Mom").slice(0, 30)) + (state.watchKey ? "&k=" + state.watchKey : "");
+    var extra = "&e=" + encodeURIComponent(emergencyNo()) + "&c=" + encodeURIComponent((($("fcName") && $("fcName").value) || "Mom").slice(0, 30)) + (state.watchKey ? "&k=" + state.watchKey : "") + (pin ? "&pin=1" : "");
     location.href = "intent://widget?b=" + encodeURIComponent(b) + extra + "#Intent;scheme=shecurity;package=io.github.punselie15.shecurity;end";
   }
   function syncWidget() {
@@ -1697,7 +1698,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       syncWatch.busy = true;
       net.sb.rpc("new_watch_key").then(function (r) { syncWatch.busy = false; if (!r.error && r.data) { state.watchKey = r.data; save(); syncWatch(); } }, function () { syncWatch.busy = false; });
     }
-    if (!h) { var wl = $("watchLink"); if (wl) wl.hidden = false; return; }
+    if (!h) { var wl = $("watchLink"), wa = $("widgetAdd"), hint = $("qWidgetHint"); if (wl) wl.hidden = false; if (wa) wa.hidden = false; if (hint) hint.textContent = "Tap below to add the widget, or long-press your home screen, tap Widgets and choose Shecurity."; return; }
     var msg = {
       buttons: quickList("quickWidget", 4).map(function (id) { return { id: id, label: quickShort(id) }; }),
       emergency: emergencyNo(), name: (net.profile && net.profile.display_name) || "", key: state.watchKey || "",
@@ -1796,6 +1797,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       case "copy-sos-link": copy(sosLink()); break;
       case "quick-edit": go("me"); setTimeout(function () { $("quickCard").scrollIntoView({ behavior: "smooth", block: "start" }); }, 50); break;
       case "watch-link": sendAndroidWidget(); break;
+      case "widget-add": sendAndroidWidget(true); break;
       case "quick-reset": state.quickHome = defaults.quickHome.slice(); state.quickWidget = defaults.quickWidget.slice(); save(); renderQuick(); sendAndroidWidget(); toast("Standard buttons are back"); break;
     }
   });
