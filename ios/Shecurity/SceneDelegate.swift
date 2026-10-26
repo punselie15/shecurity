@@ -6,10 +6,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     /// Widget, shortcut and shecurity:// links open a screen of the bundled app, never a website.
     func openInApp(_ link: URL) {
         let target = localURL(for: link)
-        if let f = target.fragment {
-            Shecurity.webView.evaluateJavaScript("location.hash = '\(f)'")
-        } else if Shecurity.webView.url?.scheme != appScheme {
+        // the page isn't there yet (still starting, or iOS closed it in the background): load the screen directly
+        if Shecurity.webView == nil { SceneDelegate.universalLinkToLaunch = link; return }
+        if Shecurity.webView.isLoading || Shecurity.webView.url?.scheme != appScheme {
             Shecurity.webView.load(URLRequest(url: target))
+        } else if let f = target.fragment {
+            Shecurity.webView.evaluateJavaScript("location.hash = '\(f)'")
         }
     }
 

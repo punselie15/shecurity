@@ -13,6 +13,7 @@ private let blush = Color(red: 1.0, green: 0.894, blue: 0.933)
 struct QuickButton: Codable, Hashable {
     let id: String
     let label: String
+    var line: String? = nil   // the line under the label, in the phone's language (newer app versions)
     let url: String
 }
 
@@ -105,7 +106,7 @@ struct Tile: View {
                 .font(.system(size: 16 * size, weight: .bold, design: .rounded))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
-            Text(detail(button.id))
+            Text(button.line.flatMap { $0.isEmpty ? nil : $0 } ?? detail(button.id))
                 .font(.system(size: 12 * min(size, 1.1), weight: .medium, design: .rounded))
                 .opacity(0.7)
                 .lineLimit(1)

@@ -130,7 +130,10 @@ class ViewController: UIViewController, WKNavigationDelegate, UIDocumentInteract
     }
     
     @objc func loadRootUrl(cachePolicy: NSURLRequest.CachePolicy = .useProtocolCachePolicy) {
-        Shecurity.webView.load(URLRequest(url: localURL(for: SceneDelegate.universalLinkToLaunch ?? SceneDelegate.shortcutLinkToLaunch), cachePolicy: cachePolicy))
+        // a launch link is used once, so a reload later never repeats it (an SOS from the widget, say)
+        let link = SceneDelegate.universalLinkToLaunch ?? SceneDelegate.shortcutLinkToLaunch
+        SceneDelegate.universalLinkToLaunch = nil; SceneDelegate.shortcutLinkToLaunch = nil
+        Shecurity.webView.load(URLRequest(url: localURL(for: link), cachePolicy: cachePolicy))
     }
     
     func reloadWebview(
@@ -163,6 +166,12 @@ class ViewController: UIViewController, WKNavigationDelegate, UIDocumentInteract
         }
     }
     
+    // iOS may close the page's process while Shecurity is in the background; open it again instead of a blank screen
+    func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+        htmlIsLoaded = false
+        loadRootUrl()
+    }
+
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         htmlIsLoaded = false;
         
