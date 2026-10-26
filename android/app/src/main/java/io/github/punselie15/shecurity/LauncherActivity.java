@@ -38,7 +38,7 @@ import java.util.List;
  */
 public class LauncherActivity extends Activity {
     static final String HOME = "https://shecurity.app/app/";
-    static final int APP_VERSION = 4; // tells the web app which native features it has
+    static final int APP_VERSION = 5; // tells the web app which native features it has
     private static final int REQ_LOCATION = 1, REQ_MIC = 2, REQ_NOTIFY = 3;
 
     private WebView web;
@@ -204,6 +204,18 @@ public class LauncherActivity extends Activity {
             openOutside(u);
             return true;
         }
+
+        // the phone may stop the page's process to free memory; start fresh instead of closing Shecurity
+        @Override
+        public boolean onRenderProcessGone(WebView view, android.webkit.RenderProcessGoneDetail detail) {
+            if (view.getParent() instanceof android.view.ViewGroup) ((android.view.ViewGroup) view.getParent()).removeView(view);
+            view.destroy();
+            Intent again = new Intent(LauncherActivity.this, LauncherActivity.class);
+            again.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            finish();
+            startActivity(again);
+            return true;
+        }
     }
 
     private class Chrome extends WebChromeClient {
@@ -274,6 +286,14 @@ public class LauncherActivity extends Activity {
             } catch (Exception ignored) { }
             return java.util.Locale.getDefault().getCountry();
         }
+
+        /** Quietly updates the home-screen widget and watch with the buttons, number and caller name the app uses. */
+        @JavascriptInterface public boolean setWidget(String buttons, String emergency, String caller, String key) {
+            return WidgetSyncActivity.save(LauncherActivity.this, buttons, key, emergency, caller);
+        }
+
+        /** Asks the launcher to place the widget. False when the launcher can't, so the app shows the steps. */
+        @JavascriptInterface public boolean pinWidget() { return WidgetSyncActivity.pin(LauncherActivity.this); }
 
         @JavascriptInterface public boolean online() {
             android.net.ConnectivityManager cm = (android.net.ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);

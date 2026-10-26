@@ -84,13 +84,22 @@ public class QuickWidget extends AppWidgetProvider {
             views.setTextViewText(LINES[i], line);
             views.setTextColor(LINES[i], hot ? 0xB3FFFFFF : 0xB32A2152);
             views.setContentDescription(CELLS[i], label + ". " + line);
-            Intent open = new Intent(Intent.ACTION_VIEW,
-                    Uri.parse("https://shecurity.app/app/?android=3#q-" + action),
-                    context, LauncherActivity.class);
+            Intent open;
+            if (action.equals("call")) {
+                // straight to the phone app with the number filled in, no need to open Shecurity first
+                open = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + emergency(context)));
+            } else {
+                open = new Intent(Intent.ACTION_VIEW, Uri.parse(LauncherActivity.HOME + "#q-" + action), context, LauncherActivity.class);
+            }
             open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             views.setOnClickPendingIntent(CELLS[i], PendingIntent.getActivity(context, i, open, flags));
         }
         return views;
+    }
+
+    static String emergency(Context context) {
+        String e = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString("emergency", "112");
+        return e.matches("[0-9]{2,6}") ? e : "112";
     }
 
     // the actions for a real emergency are pink, the rest white

@@ -13,34 +13,34 @@
     </LinearLayout>
     <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="horizontal">
         <LinearLayout android:id="@+id/c0" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="4dp" android:layout_marginBottom="4dp"
-            android:orientation="vertical" android:padding="12dp" android:background="@drawable/wq_white">
-            <ImageView android:id="@+id/i0" android:layout_width="34dp" android:layout_height="34dp" android:padding="8dp" android:background="@drawable/wq_chip_soft" android:importantForAccessibility="no" />
+            android:orientation="vertical" android:padding="12dp" android:background="@drawable/wq_pink">
+            <ImageView android:id="@+id/i0" android:layout_width="34dp" android:layout_height="34dp" android:padding="8dp" android:src="@drawable/wq_bell_w" android:background="@drawable/wq_chip_glass" android:importantForAccessibility="no" />
             <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:minHeight="4dp" />
-            <TextView android:id="@+id/l0" style="@style/QuickLabel" />
-            <TextView android:id="@+id/s0" style="@style/QuickSub" />
+            <TextView android:id="@+id/l0" style="@style/QuickLabel" android:text="Send help" android:textColor="#FFFFFFFF" />
+            <TextView android:id="@+id/s0" style="@style/QuickSub" android:text="Alerts your circle" android:textColor="#B3FFFFFF" />
         </LinearLayout>
         <LinearLayout android:id="@+id/c1" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginStart="4dp" android:layout_marginBottom="4dp"
             android:orientation="vertical" android:padding="12dp" android:background="@drawable/wq_white">
-            <ImageView android:id="@+id/i1" android:layout_width="34dp" android:layout_height="34dp" android:padding="8dp" android:background="@drawable/wq_chip_soft" android:importantForAccessibility="no" />
+            <ImageView android:id="@+id/i1" android:layout_width="34dp" android:layout_height="34dp" android:padding="8dp" android:src="@drawable/wq_pin" android:background="@drawable/wq_chip_soft" android:importantForAccessibility="no" />
             <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:minHeight="4dp" />
-            <TextView android:id="@+id/l1" style="@style/QuickLabel" />
-            <TextView android:id="@+id/s1" style="@style/QuickSub" />
+            <TextView android:id="@+id/l1" style="@style/QuickLabel" android:text="My location" />
+            <TextView android:id="@+id/s1" style="@style/QuickSub" android:text="Texts where you are" />
         </LinearLayout>
     </LinearLayout>
     <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="horizontal">
         <LinearLayout android:id="@+id/c2" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="4dp" android:layout_marginTop="4dp"
             android:orientation="vertical" android:padding="12dp" android:background="@drawable/wq_white">
-            <ImageView android:id="@+id/i2" android:layout_width="34dp" android:layout_height="34dp" android:padding="8dp" android:background="@drawable/wq_chip_soft" android:importantForAccessibility="no" />
+            <ImageView android:id="@+id/i2" android:layout_width="34dp" android:layout_height="34dp" android:padding="8dp" android:src="@drawable/wq_phone" android:background="@drawable/wq_chip_soft" android:importantForAccessibility="no" />
             <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:minHeight="4dp" />
-            <TextView android:id="@+id/l2" style="@style/QuickLabel" />
-            <TextView android:id="@+id/s2" style="@style/QuickSub" />
+            <TextView android:id="@+id/l2" style="@style/QuickLabel" android:text="Call me in 5s" />
+            <TextView android:id="@+id/s2" style="@style/QuickSub" android:text="Your phone rings" />
         </LinearLayout>
         <LinearLayout android:id="@+id/c3" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginStart="4dp" android:layout_marginTop="4dp"
-            android:orientation="vertical" android:padding="12dp" android:background="@drawable/wq_white">
-            <ImageView android:id="@+id/i3" android:layout_width="34dp" android:layout_height="34dp" android:padding="8dp" android:background="@drawable/wq_chip_soft" android:importantForAccessibility="no" />
+            android:orientation="vertical" android:padding="12dp" android:background="@drawable/wq_pink">
+            <ImageView android:id="@+id/i3" android:layout_width="34dp" android:layout_height="34dp" android:padding="8dp" android:src="@drawable/wq_sos_w" android:background="@drawable/wq_chip_glass" android:importantForAccessibility="no" />
             <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:minHeight="4dp" />
-            <TextView android:id="@+id/l3" style="@style/QuickLabel" />
-            <TextView android:id="@+id/s3" style="@style/QuickSub" />
+            <TextView android:id="@+id/l3" style="@style/QuickLabel" android:text="Call 112" android:textColor="#FFFFFFFF" />
+            <TextView android:id="@+id/s3" style="@style/QuickSub" android:text="Emergency services" android:textColor="#B3FFFFFF" />
         </LinearLayout>
     </LinearLayout>
     <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingTop="10dp" android:paddingBottom="2dp" android:gravity="center" android:text="@string/widgetChange" android:textColor="#8CFFFFFF" android:textSize="11sp" android:maxLines="1" />

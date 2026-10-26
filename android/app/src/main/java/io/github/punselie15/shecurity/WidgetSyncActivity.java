@@ -1,6 +1,8 @@
 package io.github.punselie15.shecurity;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Toast;
@@ -20,33 +22,43 @@ public class WidgetSyncActivity extends Activity {
         super.onCreate(savedInstanceState);
         Uri data = getIntent().getData();
         String b = data != null ? data.getQueryParameter("b") : null;
-        if (valid(b)) {
-            String key = data.getQueryParameter("k");
-            if (key == null || !key.matches("shw_[0-9a-f]{48}")) key = getSharedPreferences(QuickWidget.PREFS, MODE_PRIVATE).getString("key", "");
-            String emergency = clean(data.getQueryParameter("e"), "112", 8);
-            String caller = clean(data.getQueryParameter("c"), "Mom", 30);
-            getSharedPreferences(QuickWidget.PREFS, MODE_PRIVATE).edit()
-                    .putString(QuickWidget.KEY, b).putString("key", key).apply();
-            QuickWidget.refresh(this);
-            PutDataMapRequest req = PutDataMapRequest.create("/config");
-            req.getDataMap().putString("buttons", b);
-            req.getDataMap().putString("key", key);
-            req.getDataMap().putString("endpoint", WATCH_ENDPOINT);
-            req.getDataMap().putString("emergency", emergency);
-            req.getDataMap().putString("caller", caller);
-            Wearable.getDataClient(this).putDataItem(req.asPutDataRequest().setUrgent());
-            if ("1".equals(data.getQueryParameter("pin")) && pin()) { finish(); return; }
+        if (save(this, b, data != null ? data.getQueryParameter("k") : null,
+                data != null ? data.getQueryParameter("e") : null, data != null ? data.getQueryParameter("c") : null)) {
+            if ("1".equals(data.getQueryParameter("pin")) && pin(this)) { finish(); return; }
             Toast.makeText(this, "Widget and watch updated", Toast.LENGTH_SHORT).show();
         }
         finish();
     }
 
+    /** Saves the buttons for the widget and hands them to a paired watch. The app also calls this directly. */
+    static boolean save(Context c, String b, String key, String e, String caller) {
+        if (!valid(b)) return false;
+        SharedPreferences prefs = c.getSharedPreferences(QuickWidget.PREFS, MODE_PRIVATE);
+        if (key == null || !key.matches("shw_[0-9a-f]{48}")) key = prefs.getString("key", "");
+        String emergency = clean(e, "112", 8);
+        if (!emergency.matches("[0-9]{2,6}")) emergency = "112";
+        caller = clean(caller, "Mom", 30);
+        boolean same = b.equals(prefs.getString(QuickWidget.KEY, null)) && emergency.equals(prefs.getString("emergency", null))
+                && key.equals(prefs.getString("key", "")) && caller.equals(prefs.getString("caller", null));
+        if (same) return true;
+        prefs.edit().putString(QuickWidget.KEY, b).putString("key", key).putString("emergency", emergency).putString("caller", caller).apply();
+        QuickWidget.refresh(c);
+        PutDataMapRequest req = PutDataMapRequest.create("/config");
+        req.getDataMap().putString("buttons", b);
+        req.getDataMap().putString("key", key);
+        req.getDataMap().putString("endpoint", WATCH_ENDPOINT);
+        req.getDataMap().putString("emergency", emergency);
+        req.getDataMap().putString("caller", caller);
+        Wearable.getDataClient(c).putDataItem(req.asPutDataRequest().setUrgent());
+        return true;
+    }
+
     /** Asks the launcher to place the widget, on Android 8 and newer. */
-    private boolean pin() {
+    static boolean pin(Context c) {
         if (android.os.Build.VERSION.SDK_INT < 26) return false;
-        android.appwidget.AppWidgetManager m = android.appwidget.AppWidgetManager.getInstance(this);
+        android.appwidget.AppWidgetManager m = android.appwidget.AppWidgetManager.getInstance(c);
         if (!m.isRequestPinAppWidgetSupported()) return false;
-        return m.requestPinAppWidget(new android.content.ComponentName(this, QuickWidget.class), null, null);
+        return m.requestPinAppWidget(new android.content.ComponentName(c, QuickWidget.class), null, null);
     }
 
     private static String clean(String v, String fallback, int max) {
