@@ -289,6 +289,56 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
 @media (prefers-reduced-motion: reduce) { .nudge { animation: none; } }
 .toast { position: fixed; left: 50%; bottom: calc(92px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 60; background: var(--ink); color: var(--bg); padding: 11px 18px; border-radius: 999px; font-size: 14px; font-weight: 600; max-width: calc(100% - 32px); text-align: center; box-shadow: var(--shadow); }
 @media (prefers-reduced-motion: reduce) { .sos-btn.holding .fill { transition-duration: 0s; } .sos-btn, .li, .act { transition: none; } }
+
+/* circles: one big circle with small circles inside */
+.whole { position: relative; overflow: hidden; background: linear-gradient(160deg, #35296b 0%, #1c1640 100%); color: #fff; box-shadow: 0 18px 40px rgba(42, 33, 82, .28); }
+.whole::before { content: ""; position: absolute; width: 230px; height: 230px; right: -110px; top: -120px; border-radius: 50%; border: 22px solid rgba(255, 141, 180, .10); pointer-events: none; }
+.whole::after { content: ""; position: absolute; width: 90px; height: 90px; right: 18px; top: -52px; border-radius: 50%; border: 10px solid rgba(255, 141, 180, .08); pointer-events: none; }
+.whole > * { position: relative; }
+.whole .sub { margin-top: 4px; max-width: 30ch; }
+.whole h2 { margin: 0; font-size: 21px; letter-spacing: -0.02em; }
+.whole .sub { font-size: 13.5px; color: rgba(255, 255, 255, .72); line-height: 1.45; }
+.faces { display: flex; align-items: center; padding-left: 8px; min-height: 44px; }
+.faces .avatar { width: 40px; height: 40px; margin-left: -8px; border: 2.5px solid #2a2152; font-size: 15px; }
+.faces .more { background: rgba(255, 255, 255, .16); color: #fff; font-size: 13px; }
+.bubbles { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; margin: 0 -18px; padding: 2px 18px 4px; }
+.bubbles::-webkit-scrollbar { display: none; }
+.bubble { flex: none; display: flex; align-items: center; gap: 8px; padding: 7px 13px 7px 7px; border-radius: 999px; background: rgba(255, 255, 255, .1); border: 0; color: #fff; font: inherit; font-size: 13.5px; font-weight: 650; cursor: pointer; white-space: nowrap; }
+.bubble .dotc { width: 26px; height: 26px; border-radius: 50%; border: 3px solid var(--cc, #ff8db4); display: grid; place-items: center; font-size: 11px; font-weight: 700; }
+.bubble.add { background: transparent; border: 1.5px dashed rgba(255, 255, 255, .35); padding: 7px 14px; }
+.whole .aud-wrap { border-top: 1px solid rgba(255, 255, 255, .12); padding-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.whole .aud-wrap b { font-size: 13px; color: rgba(255, 255, 255, .8); font-weight: 650; }
+.aud { display: flex; gap: 8px; flex-wrap: wrap; }
+.aud button { display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 6px 13px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; font-size: 14px; font-weight: 650; cursor: pointer; transition: background .15s ease, border-color .15s ease, color .15s ease; }
+.aud button i { width: 9px; height: 9px; border-radius: 50%; background: var(--cc, var(--pink)); flex: none; }
+.aud button small { color: var(--muted); font-size: 12px; font-weight: 600; }
+.aud button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.aud button[aria-pressed="true"] small { color: inherit; opacity: .7; }
+.whole .aud button { background: rgba(255, 255, 255, .08); border-color: rgba(255, 255, 255, .18); color: #fff; }
+.whole .aud button small { color: rgba(255, 255, 255, .65); }
+.whole .aud button[aria-pressed="true"] { background: #fff; border-color: #fff; color: #2a2152; }
+.aud-f { display: flex; flex-direction: column; gap: 8px; }
+.aud-f > span { font-size: 14px; font-weight: 650; }
+.cc-head { display: flex; align-items: center; gap: 10px; }
+.cc-head .ring { width: 30px; height: 30px; border-radius: 50%; border: 4px solid var(--cc, var(--pink)); flex: none; }
+.cc-head h2 { flex: 1; min-width: 0; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card.circ { border-top: 0; position: relative; }
+.card.circ.flash { animation: cflash 1.4s ease; }
+@keyframes cflash { 0%, 45% { box-shadow: 0 0 0 3px var(--cc, var(--pink)); } 100% { box-shadow: var(--shadow); } }
+.to { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 650; color: var(--muted); }
+.to i { width: 7px; height: 7px; border-radius: 50%; background: var(--cc, var(--pink)); }
+.person select.addto { width: auto; max-width: 128px; min-height: 34px; padding: 4px 8px; font-size: 13px; border-radius: 10px; }
+/* practice SOS in the welcome */
+.practice { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 6px 0 2px; }
+.practice .sos-btn.done .fill { stroke-dashoffset: 0; }
+.welcome.focus .wart, .welcome.focus .dots { display: none; }
+.practice .sos-btn { width: 150px; height: 150px; box-shadow: 0 0 0 10px rgba(229, 72, 127, .12), 0 12px 28px rgba(229, 72, 127, .28); }
+.practice .ptag { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--pink-ink); background: var(--brand-soft); padding: 4px 10px; border-radius: 999px; }
+.practice .steps { width: 100%; background: var(--surface); border-radius: 16px; padding: 14px; box-shadow: var(--shadow); }
+.practice .step { opacity: 0; transform: translateY(6px); transition: opacity .35s ease, transform .35s ease; }
+.practice .step.show { opacity: 1; transform: none; }
+.practice .calm { font-size: 14px; color: var(--muted); text-align: center; line-height: 1.5; }
+@media (prefers-reduced-motion: reduce) { .practice .step { transition: none; } }
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -363,7 +413,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     <button class="edit-quick" type="button" data-action="quick-edit">Change these buttons</button>
     <div class="card tipcard" id="widgetTip" hidden>
       <div class="t"><b>Put Shecurity on your home screen</b><div class="small muted">Four emergency buttons without opening the app. Takes 20 seconds.</div></div>
-      <div class="stack" style="gap:6px"><button class="btn sm primary" type="button" data-go="widget">Show me</button><button class="btn sm ghost" type="button" data-action="widget-tip-hide">Not now</button></div>
+      <div class="stack" style="gap:6px"><button class="btn sm primary" type="button" id="widgetTipGo" data-go="widget">Show me</button><button class="btn sm ghost" type="button" data-action="widget-tip-hide">Not now</button></div>
     </div>
 
     <div id="homeCircle" hidden>
@@ -408,6 +458,16 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     </div>
 
     <div id="netArea" class="view" hidden>
+      <div class="card whole" id="wholeCard">
+        <div>
+          <h2>Your whole circle</h2>
+          <p class="sub" id="wholeSub">Everyone you trust, together. For the big emergencies.</p>
+        </div>
+        <div class="faces" id="wholeFaces"></div>
+        <div class="bubbles" id="wholeBubbles"></div>
+        <div class="aud-wrap" id="sosAudWrap" hidden><b>When I press SOS, alert</b><div class="aud" data-aud="sos"></div></div>
+      </div>
+
       <div class="card" id="pushCard">
         <div class="row" style="align-items:center;gap:12px;flex-wrap:nowrap">
           <span class="avatar" style="background:var(--surface-2);color:var(--ink)"><svg class="i"><use href="#i-bell"/></svg></span>
@@ -437,11 +497,14 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
 
       <div id="circleList" class="view"></div>
 
-      <div class="card">
-        <h2>Add a circle</h2>
-        <div class="stack">
-          <label class="f">Name it<input type="text" id="ccName" placeholder="Family, Best friends, Flatmates" maxlength="40"></label>
-          <button class="btn primary" type="button" data-action="circle-create">Create and invite</button>
+      <div class="card" id="addPeople">
+        <h2>Add people</h2>
+        <div class="aud-f" id="invAudWrap"><span>Add them to</span><div class="aud" data-aud="invite"></div></div>
+        <p class="small muted" id="invHint">They'll be in your whole circle, so they get alerts you send to everyone.</p>
+        <button class="btn primary" type="button" data-action="invite-to">Send an invite</button>
+        <div class="stack" style="border-top:1px solid var(--line);padding-top:14px">
+          <label class="f">New small circle<span class="hint">Like Family, Best friends or Flatmates. Everyone in it is part of your whole circle too.</span><input type="text" id="ccName" placeholder="Family, Best friends, Flatmates" maxlength="40"></label>
+          <button class="btn" type="button" data-action="circle-create">Create and invite</button>
         </div>
         <div class="stack" style="border-top:1px solid var(--line);padding-top:14px">
           <label class="f">Got an invite code?<input type="text" id="jcCode" placeholder="8 letters" maxlength="12" autocapitalize="characters" autocomplete="off"></label>
@@ -469,6 +532,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       <label class="f">Show it for
         <select id="plHours"><option value="1">1 hour</option><option value="3">3 hours</option><option value="6">6 hours</option><option value="12">12 hours</option><option value="24" selected>24 hours</option><option value="48">2 days</option></select>
       </label>
+      <div class="aud-f" hidden><span>Who can see it</span><div class="aud" data-aud="plan"></div></div>
       <label class="check"><input type="checkbox" id="plLoc"> Add where I am now</label>
       <button class="btn primary block" type="button" data-action="plan-post" id="plPost">Share with my circle</button>
     </div>
@@ -485,6 +549,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       <label class="f">How long will it take?
         <select id="wkMins"><option value="10">10 minutes</option><option value="15" selected>15 minutes</option><option value="20">20 minutes</option><option value="30">30 minutes</option><option value="45">45 minutes</option><option value="60">1 hour</option></select>
       </label>
+      <div class="aud-f" hidden><span>Who follows along</span><div class="aud" data-aud="walk"></div></div>
       <button class="btn primary block" type="button" data-action="walk-start">Start walking</button>
     </div>
     <p class="small muted">Keep Shecurity open while you walk. The screen stays on so your location keeps updating.</p>
@@ -500,6 +565,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       <label class="f">Check in after
         <select id="tmMinutes"><option value="10">10 minutes</option><option value="20">20 minutes</option><option value="30" selected>30 minutes</option><option value="60">1 hour</option><option value="120">2 hours</option><option value="180">3 hours</option></select>
       </label>
+      <div class="aud-f" hidden><span>Who gets told</span><div class="aud" data-aud="timer"></div></div>
       <label class="check"><input type="checkbox" id="tmTell" checked> Let my circle know I started</label>
       <button class="btn primary block" type="button" data-action="timer-start">Start check-in</button>
     </div>
@@ -634,6 +700,13 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       <label class="f">Language<select id="stLang"></select></label>
       <label class="f">Country, for emergency numbers<span class="hint" id="stCountryHint"></span><select id="stCountry"></select></label>
     </div>
+    <div class="card">
+      <div class="row" style="align-items:center;gap:12px;flex-wrap:nowrap">
+        <span class="avatar" style="background:var(--brand-soft);color:var(--pink-ink)"><svg class="i"><use href="#i-bell"/></svg></span>
+        <div style="flex:1;min-width:0"><b>Practice SOS</b><p class="small muted">Try the SOS button safely. Nothing is sent.</p></div>
+      </div>
+      <button class="btn block" type="button" data-action="practice-sos">Practice now</button>
+    </div>
     <div class="card stack" id="meProfile" hidden>
       <h2>Your profile</h2>
       <label class="f">First name<input type="text" id="mpName" maxlength="40"></label>
@@ -658,7 +731,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       <b class="small">Home-screen widget and watch</b>
       <div class="stack" id="qWidget"></div>
       <div class="qprev" id="qPreview" aria-hidden="true"></div>
-      <button class="btn sm" type="button" data-go="widget" style="align-self:flex-start">How to add the widget</button>
+      <button class="btn sm" type="button" id="widgetHow" data-go="widget" style="align-self:flex-start">How to add the widget</button>
       <p class="small muted" id="qWidgetHint">Add the widget once: long-press your home screen, tap Edit, then Add Widget (or +), and choose Shecurity. Widgets can't add themselves.</p>
       <button class="btn sm" type="button" id="widgetAdd" data-action="widget-add" hidden style="align-self:flex-start">Add the widget to my home screen</button>
       <button class="btn sm" type="button" id="watchLink" data-action="watch-link" hidden style="align-self:flex-start">Send to my widget and watch</button>
@@ -727,6 +800,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     <h1 id="sosTitle">Help is on the way</h1>
     <div class="steps" id="sosSteps"></div>
     <div class="card" id="sosResponses" hidden></div>
+    <button class="btn danger block" type="button" id="sosWiden" data-action="sos-widen" hidden>Alert everyone too</button>
     <button class="btn good block" type="button" id="sosSafe" data-action="sos-safe">I'm safe now</button>
     <div class="row">
       <a class="btn" id="sosCall" href="tel:112">Call 112</a>
@@ -951,7 +1025,47 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   // ---------- network (Supabase) ----------
   var net = { sb: null, ready: false, me: null, profile: null, circles: [], people: {}, feed: [], responses: {}, live: [], plans: [], channel: null, error: null };
   function netOn() { return net.ready && net.me && net.profile; }
-  function mates() { var ids = {}; net.circles.forEach(function (c) { c.members.forEach(function (m) { if (m !== net.me) ids[m] = 1; }); }); return Object.keys(ids); }
+  // everyone in all your circles, or the people of one small circle
+  function mates(cid) { var ids = {}; net.circles.forEach(function (c) { if (cid && c.id !== cid) return; c.members.forEach(function (m) { if (m !== net.me) ids[m] = 1; }); }); return Object.keys(ids); }
+  // small circles need the newer database; until then everything goes to everyone, like before
+  function groupsOn() { return net.circles.some(function (c) { return c.is_main !== undefined; }); }
+  function myMain() { return net.circles.filter(function (c) { return c.is_main && c.owner_id === net.me; })[0] || null; }
+  function smallCircles() { var m = myMain(); return net.circles.filter(function (c) { return c !== m; }); }
+  var CC = ["#e5487f", "#7a5af8", "#16a085", "#f08c2e", "#3b82f6", "#c2417a", "#0e9fb8", "#8a6d3b", "#5b8c2a", "#d0453b"];
+  function circleColor(c) { var i = smallCircles().indexOf(c); return CC[(i < 0 ? 0 : i) % CC.length]; }
+  function circleById(id) { return net.circles.filter(function (c) { return c.id === id; })[0] || null; }
+  // who gets it: null is everyone, or one small circle that still exists and has people in it
+  function audOf(key) {
+    var id = (state.aud || {})[key] || null, c = id && circleById(id);
+    return c && groupsOn() && c !== myMain() ? id : null;
+  }
+  function audName(cid) { var c = cid && circleById(cid); return c ? c.name : T("Everyone"); }
+  function setAud(key, id) { state.aud = Object.assign({}, state.aud || {}); state.aud[key] = id || null; save(); renderAud(); }
+  function renderAud() {
+    var list = groupsOn() ? smallCircles() : [], show = list.length > 0;
+    document.querySelectorAll(".aud[data-aud]").forEach(function (box) {
+      var key = box.getAttribute("data-aud"), invite = key === "invite";
+      var wrap = box.parentNode; if (wrap && (wrap.classList.contains("aud-f") || wrap.classList.contains("aud-wrap"))) wrap.hidden = invite ? !groupsOn() : !show;
+      box.innerHTML = "";
+      var cur = invite ? (state.inviteTo || null) : audOf(key);
+      if (invite && cur && !(circleById(cur) && circleById(cur).invite_code)) cur = null;
+      var opts = [{ id: null, name: T("Everyone"), n: mates().length }].concat(list.filter(function (c) { return !invite || c.invite_code; }).map(function (c) { return { id: c.id, name: c.name, n: mates(c.id).length, c: c }; }));
+      opts.forEach(function (o) {
+        var b = el("button"); b.type = "button"; b.setAttribute("aria-pressed", String(o.id === cur));
+        var dot = el("i"); if (o.c) dot.style.setProperty("--cc", circleColor(o.c)); else dot.style.background = "linear-gradient(135deg,#ff8db4,#7a5af8)";
+        b.appendChild(dot); b.appendChild(document.createTextNode(o.name));
+        if (!invite) b.appendChild(el("small", null, String(o.n)));
+        b.addEventListener("click", function () { if (invite) { state.inviteTo = o.id; save(); renderAud(); renderInviteHint(); } else setAud(key, o.id); });
+        box.appendChild(b);
+      });
+    });
+    renderInviteHint();
+  }
+  function renderInviteHint() {
+    var h = $("invHint"); if (!h) return;
+    var c = state.inviteTo && circleById(state.inviteTo);
+    h.textContent = c ? T("They'll join {circle}, and with it your whole circle.", { circle: c.name }) : T("They'll be in your whole circle, so they get alerts you send to everyone.");
+  }
 
   function netInit() {
     if (PREVIEW) { demoNetwork(); return; }
@@ -974,7 +1088,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     return net.sb.from("profiles").select("*").eq("id", net.me).maybeSingle().then(function (r) { if (r.error) throw r.error; net.profile = r.data; });
   }
   function loadCircles() {
-    return net.sb.from("circle_members").select("circle_id, circles(id,name,owner_id,invite_code)").eq("user_id", net.me).then(function (r) {
+    return net.sb.from("circle_members").select("circle_id, circles(*)").eq("user_id", net.me).then(function (r) {
       if (r.error) throw r.error;
       var list = (r.data || []).map(function (x) { return x.circles; }).filter(Boolean);
       var ids = list.map(function (c) { return c.id; });
@@ -1065,6 +1179,24 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       return loadCircles().then(function () { return Promise.all([loadFeed(), loadLive(), loadPlans()]); }).then(renderNet);
     }).catch(function (e) { toast(e.message || T("Couldn't join.")); });
   }
+  // invite to a small circle, or to just the whole circle (her own "everyone only" circle, made on first use)
+  function inviteTo() {
+    if (PREVIEW) { toast(T("Works in the live app.")); return; }
+    var c = state.inviteTo && circleById(state.inviteTo);
+    if (c && c.invite_code) { invite(c); return; }
+    if (!groupsOn()) { var any = net.circles.filter(function (x) { return x.invite_code; })[0]; if (any) invite(any); else { $("ccName").focus(); toast(T("Give your circle a name.")); } return; }
+    var m = myMain(); if (m) { invite(m); return; }
+    net.sb.rpc("main_circle", { p_name: T("{name}'s circle", { name: (net.profile && net.profile.display_name) || T("My") }) }).then(function (r) {
+      if (r.error) throw r.error;
+      return loadCircles().then(function () { renderNet(); invite(r.data); });
+    }).catch(function (e) { toast(e.message || T("Couldn't create the invite.")); });
+  }
+  function addTo(person, c) {
+    if (PREVIEW) { toast(T("Works in the live app.")); return; }
+    net.sb.rpc("move_member", { p_user: person, p_from: null, p_to: c.id }).then(function (r) {
+      if (r.error) throw r.error; toast(T("{name} is now in {circle} too", { name: nameOf(person), circle: c.name })); return loadCircles();
+    }).then(renderNet).catch(function (e) { toast(e.message); });
+  }
   function appUrl() { return NATIVE ? PUBLIC_URL : location.origin + location.pathname; }
   function invite(c) {
     var text = T("Join my Shecurity circle \"{circle}\" so we can look out for each other. Open {link} or enter the code {code}.", { circle: c.name, link: appUrl() + "#join-" + c.invite_code, code: c.invite_code });
@@ -1082,9 +1214,10 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       return loadFeed();
     }).then(renderNet).catch(function (e) { toast(e.message); });
   }
-  function sendAlert(kind, message, loc, bat) {
-    if (!netOn() || !mates().length) return Promise.resolve(null);
+  function sendAlert(kind, message, loc, bat, cid) {
+    if (!netOn() || !mates(cid).length) return Promise.resolve(null);
     var row = { kind: kind, message: message || null, lat: loc ? loc.lat : null, lng: loc ? loc.lng : null, accuracy: loc ? loc.acc : null, battery: bat };
+    if (cid) row.circle_id = cid;
     return net.sb.from("alerts").insert(row).select().single().then(function (r) {
       if (r.error) throw r.error;
       return notify("alert", r.data.id).then(function (n) { r.data._push = n; return r.data; });
@@ -1097,8 +1230,8 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
 
   // live location
   var watch = { id: null, last: 0, pending: null };
-  function startSharing(minutes, note) {
-    state.sharingUntil = Date.now() + minutes * 60000; state.sharingNote = note || ""; save();
+  function startSharing(minutes, note, cid) {
+    state.sharingUntil = Date.now() + minutes * 60000; state.sharingNote = note || ""; if (cid !== undefined) state.sharingTo = cid || null; save();
     if (!netOn() || PREVIEW || !navigator.geolocation) return;
     if (watch.id != null) return;
     try {
@@ -1107,7 +1240,9 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
         if (Date.now() - watch.last < 15000) return;
         watch.last = Date.now();
         getBattery().then(function (bat) {
-          net.sb.from("live_locations").upsert({ user_id: net.me, lat: +p.coords.latitude.toFixed(5), lng: +p.coords.longitude.toFixed(5), accuracy: Math.round(p.coords.accuracy), battery: bat, note: state.sharingNote || null, sharing_until: new Date(state.sharingUntil).toISOString(), updated_at: new Date().toISOString() });
+          var row = { user_id: net.me, lat: +p.coords.latitude.toFixed(5), lng: +p.coords.longitude.toFixed(5), accuracy: Math.round(p.coords.accuracy), battery: bat, note: state.sharingNote || null, sharing_until: new Date(state.sharingUntil).toISOString(), updated_at: new Date().toISOString() };
+          if (groupsOn()) row.circle_id = state.sharingTo && circleById(state.sharingTo) ? state.sharingTo : null;
+          net.sb.from("live_locations").upsert(row);
         });
       }, function () {}, { enableHighAccuracy: true, maximumAge: 10000 });
     } catch (e) {}
@@ -1136,13 +1271,14 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     if (!netOn()) { go("circle"); return; }
     var btn = $("plPost"); btn.disabled = true;
     var row = { user_id: net.me, place: where || null, with_whom: withWhom || null, message: msg || null, lat: null, lng: null, expires_at: new Date(Date.now() + hours * 3600000).toISOString() };
+    var to = audOf("plan"); if (groupsOn()) row.circle_id = to;
     ($("plLoc").checked ? getLocation(8000) : Promise.resolve(null)).then(function (loc) {
       if (loc) { row.lat = loc.lat; row.lng = loc.lng; }
       if (PREVIEW) { row.created_at = new Date().toISOString(); net.plans = net.plans.filter(function (p) { return p.user_id !== net.me; }).concat([row]); return; }
       return net.sb.from("plans").upsert(row).then(function (r) { if (r.error) throw r.error; return loadPlans(); });
     }).then(function () {
       renderNet(); go("circle");
-      toast(mates().length ? T("Your circle can see your plans {until}.", { until: untilText(row.expires_at) }) : T("Saved. Invite people so they can see it."));
+      toast(mates(to).length ? (to ? T("{circle} can see your plans {until}.", { circle: audName(to), until: untilText(row.expires_at) }) : T("Your circle can see your plans {until}.", { until: untilText(row.expires_at) })) : T("Saved. Invite people so they can see it."));
     }).catch(function (e) { toast(e.message || T("Couldn't share your plans.")); })
       .then(function () { btn.disabled = false; });
   }
@@ -1165,6 +1301,8 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     var acts = el("div", "row"), live = liveOf(p.user_id);
     if (live || p.lat != null) { var m = el("a", "btn sm", live ? T("Live location") : T("Map")); m.href = live ? mapLink(live.lat, live.lng) : mapLink(p.lat, p.lng); m.target = "_blank"; m.rel = "noopener"; acts.appendChild(m); }
     if (!me && person.phone) { var c = el("a", "btn sm", T("Call")); c.href = "tel:" + person.phone.replace(/[^\d+]/g, ""); acts.appendChild(c); }
+    var pc = p.circle_id && circleById(p.circle_id);
+    if (me && pc) { var to = el("span", "to"), dt = el("i"); dt.style.setProperty("--cc", circleColor(pc)); to.appendChild(dt); to.appendChild(document.createTextNode(T("Only {circle}", { circle: pc.name }))); t.appendChild(to); }
     if (me) { var e = el("button", "btn sm", T("Edit")); e.type = "button"; e.addEventListener("click", function () { go("plan"); }); acts.appendChild(e); }
     if (acts.childNodes.length) t.appendChild(acts);
     row.appendChild(t);
@@ -1336,6 +1474,8 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       head.appendChild(el("span", "avatar", initial(nameOf(a.sender_id))));
       var t = el("div", "t"); t.appendChild(el("b", null, kindText(a)));
       t.appendChild(el("span", "small muted", ago(a.created_at) + (a.status === "resolved" && a.kind !== "safe" ? " · " + T("resolved") : "") + (a.message ? " · " + a.message : "")));
+      var ac = a.circle_id && circleById(a.circle_id);
+      if (ac && ac !== myMain()) { var to = el("span", "to"), dt = el("i"); dt.style.setProperty("--cc", circleColor(ac)); to.appendChild(dt); to.appendChild(document.createTextNode(T("To {circle}", { circle: ac.name }))); t.appendChild(to); }
       head.appendChild(t);
       if (a._example) head.appendChild(el("span", "example", T("Example")));
       else head.appendChild(el("span", "tag " + k[3], k[0]));
@@ -1347,28 +1487,47 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       feed.appendChild(it);
     });
 
-    // circles
+    renderWhole();
+    // the small circles, each with its own colour
     var cl = $("circleList"); cl.innerHTML = "";
     if (!net.circles.length) {
       var c0 = el("div", "card brand"); c0.appendChild(el("h2", null, T("Invite your first people")));
-      c0.appendChild(el("p", "small", T("Create a circle below and send the invite to 3 to 5 people you trust. They install Shecurity and join with your code.")));
+      c0.appendChild(el("p", "small", T("Send an invite below to 3 to 5 people you trust. They install Shecurity and join with your code.")));
       cl.appendChild(c0);
     }
-    net.circles.forEach(function (c) {
-      var card = el("div", "card");
-      var hd = el("div", "row"); hd.style.justifyContent = "space-between"; hd.style.alignItems = "center";
-      hd.appendChild(el("h2", null, c.name)); hd.appendChild(el("span", "small muted", c.members.length === 1 ? T("1 person") : T("{n} people", { n: c.members.length })));
+    var main = myMain(), mine = net.circles.filter(function (c) { return c.owner_id === net.me; });
+    smallCircles().concat(main && main.members.length > 1 ? [main] : []).forEach(function (c) {
+      var isMain = c === main;
+      var card = el("div", "card circ"); card.id = "circ-" + c.id;
+      if (!isMain) card.style.setProperty("--cc", circleColor(c));
+      var hd = el("div", "cc-head"), ring = el("span", "ring");
+      if (isMain) ring.style.borderColor = "#7a5af8";
+      hd.appendChild(ring);
+      hd.appendChild(el("h2", null, isMain ? T("Only in your whole circle") : c.name));
+      hd.appendChild(el("span", "small muted", c.members.length === 1 ? T("1 person") : T("{n} people", { n: c.members.length })));
       card.appendChild(hd);
+      if (isMain) card.appendChild(el("p", "small muted", T("People you added to everyone without a small circle. They get the alerts you send to everyone.")));
+      var others = mine.filter(function (x) { return x !== c; });
       var list = el("div");
       c.members.forEach(function (m) {
+        if (isMain && m === net.me) return;
         var p = net.people[m] || {}; var row = el("div", "person");
         row.appendChild(el("span", "avatar", initial(p.display_name)));
         var t = el("div", "t"); t.appendChild(el("b", null, m === net.me ? (p.display_name || T("You")) + " (" + T("you") + ")" : (p.display_name || T("Someone")))); t.appendChild(el("span", null, m === c.owner_id ? T("Created this circle") : T("Member"))); row.appendChild(t);
+        // she can also put someone from her circle into one of her other small circles
+        var can = m !== net.me && groupsOn() && others.filter(function (x) { return x.members.indexOf(m) < 0; });
+        if (can && can.length) {
+          var sel = el("select", "addto"); sel.setAttribute("aria-label", T("Add {name} to another circle", { name: p.display_name || T("Someone") }));
+          var o0 = el("option", null, T("Add to…")); o0.value = ""; sel.appendChild(o0);
+          can.forEach(function (x) { var o = el("option", null, x.is_main ? T("Everyone") : x.name); o.value = x.id; sel.appendChild(o); });
+          sel.addEventListener("change", function () { var x = circleById(sel.value); if (x) addTo(m, x); });
+          row.appendChild(sel);
+        }
         if (m !== net.me && p.phone) { var a = el("a", "btn sm", T("Call")); a.href = "tel:" + p.phone.replace(/[^\d+]/g, ""); row.appendChild(a); }
         list.appendChild(row);
       });
       card.appendChild(list);
-      if (c.invite_code) {
+      if (c.invite_code && !isMain) {
         card.appendChild(el("p", "small muted", T("Invite code")));
         card.appendChild(el("div", "code", c.invite_code));
       }
@@ -1379,7 +1538,26 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       r.appendChild(lv); card.appendChild(r);
       cl.appendChild(card);
     });
+    renderAud();
     renderIncoming();
+  }
+  function renderWhole() {
+    var all = mates(), small = smallCircles();
+    $("wholeSub").textContent = all.length ? (small.length > 1 ? T("{n} people in {c} circles, together. For the big emergencies.", { n: all.length, c: small.length }) : T("{n} people you trust, together. For the big emergencies.", { n: all.length })) : T("Everyone you trust, together. Add people below.");
+    var f = $("wholeFaces"); f.innerHTML = "";
+    [net.me].concat(circleOrder()).slice(0, 7).forEach(function (id) { var a = el("span", "avatar", id === net.me ? selfInitial() : initial(nameOf(id))); a.title = nameOf(id); f.appendChild(a); });
+    if (all.length + 1 > 7) f.appendChild(el("span", "avatar more", "+" + (all.length + 1 - 7)));
+    var b = $("wholeBubbles"); b.innerHTML = "";
+    small.forEach(function (c) {
+      var x = el("button", "bubble"); x.type = "button";
+      var d = el("span", "dotc", String(Math.max(0, c.members.length - 1))); d.style.setProperty("--cc", circleColor(c));
+      x.appendChild(d); x.appendChild(document.createTextNode(c.name));
+      x.addEventListener("click", function () { var card = $("circ-" + c.id); if (card) { card.scrollIntoView({ behavior: "smooth", block: "center" }); card.classList.remove("flash"); void card.offsetWidth; card.classList.add("flash"); } });
+      b.appendChild(x);
+    });
+    var add = el("button", "bubble add", "+ " + T("New circle")); add.type = "button";
+    add.addEventListener("click", function () { var i = $("ccName"); i.scrollIntoView({ behavior: "smooth", block: "center" }); setTimeout(function () { i.focus(); }, 350); });
+    b.appendChild(add);
   }
   function responseRow(a) {
     var row = el("div", "row");
@@ -1416,7 +1594,8 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     var now = Date.now(), iso = function (m) { return new Date(now - m * 60000).toISOString(); };
     net.ready = true; net.me = "me"; net.profile = { id: "me", display_name: "Ava", phone: "" };
     net.people = { me: { display_name: "Ava" }, mia: { display_name: "Mia", phone: "+31600000000" }, sam: { display_name: "Sam", phone: "+31600000001" }, lena: { display_name: "Lena" }, mom: { display_name: "Mom", phone: "+31600000002" } };
-    net.circles = [{ id: "c1", name: T("Best friends"), owner_id: "me", invite_code: "K7MQ2XPA", members: ["me", "mia", "sam", "lena"] }, { id: "c2", name: T("Family"), owner_id: "mom", invite_code: null, members: ["me", "mom"] }];
+    net.circles = [{ id: "c1", name: T("Best friends"), owner_id: "me", invite_code: "K7MQ2XPA", is_main: false, members: ["me", "mia", "sam", "lena"] }, { id: "c2", name: T("Family"), owner_id: "mom", invite_code: "F4MILY22", is_main: false, members: ["me", "mom"] }, { id: "c3", name: T("Flatmates"), owner_id: "me", invite_code: "R8NT5QWE", is_main: false, members: ["me", "lena", "noor"] }];
+    net.people.noor = { display_name: "Noor" };
     net.live = [{ user_id: "mia", lat: 52.3702, lng: 4.8952, battery: 64, note: "Walking home from the station", updated_at: iso(0.3), sharing_until: new Date(now + 900000).toISOString() }];
     net.feed = [
       { id: "f1", sender_id: "mia", kind: "walk", message: "Walking home from the station", created_at: iso(4), status: "active", lat: 52.37, lng: 4.895, _example: true },
@@ -1456,7 +1635,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   }
   function openSos(opts) {
     opts = opts || {};
-    $("sosSteps").innerHTML = ""; $("sosResponses").hidden = true;
+    $("sosSteps").innerHTML = ""; $("sosResponses").hidden = true; $("sosWiden").hidden = true; sos.cid = null; sos.extra = null;
     $("sosTitle").textContent = opts.title || T("Getting you help");
     $("sosCall").href = "tel:" + emergencyNo(); $("sosCall").textContent = T("Call {number}", { number: emergencyNo() });
     $("sosSafe").hidden = opts.kind === "location";
@@ -1466,8 +1645,12 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     var head = opts.body || state.template, kind = opts.kind || "sos";
     setSosMessage(head + "\n" + T("Sent {time} from Shecurity.", { time: hhmm() }));
     step("st-loc", T("Finding your location"), "");
-    var networked = netOn() && mates().length > 0;
-    if (networked) step("st-net", T("Alerting your circle"), "");
+    // a missed check-in goes to whoever she picked for it; SOS goes to her SOS choice (everyone unless she changed it)
+    var to = opts.to !== undefined ? (opts.to && circleById(opts.to) ? opts.to : null) : audOf("sos");
+    if (!mates(to).length) to = null;
+    sos.cid = to;
+    var networked = netOn() && mates(to).length > 0;
+    if (networked) step("st-net", to ? T("Alerting {circle}", { circle: audName(to) }) : T("Alerting your circle"), "");
     else if (!PREVIEW) step("st-net", netOn() ? T("Your circle is empty. Send as text instead.") : T("Not in a circle yet. Send as text instead."), "fail");
     if (PREVIEW) { step("st-loc", T("Location found") + " (" + T("example") + ")", "done"); step("st-net", T("{n} people alerted", { n: 3 }) + " (" + T("example") + ")", "done"); step("st-live", T("Sharing your live location for 1 hour") + " (" + T("example") + ")", "done"); return; }
     Promise.all([getLocation(), getBattery()]).then(function (r) {
@@ -1475,12 +1658,13 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       step("st-loc", loc ? T("Location found") : T("Couldn't find your location"), loc ? "done" : "fail");
       setSosMessage(head + "\n" + locLine(loc) + (bat != null ? "\n" + T("Battery: {n}%", { n: bat }) : "") + "\n" + T("Sent {time} from Shecurity.", { time: hhmm() }));
       if (!networked) return;
-      return sendAlert(kind, opts.netMessage || (kind === "sos" ? null : head), loc, bat).then(function (a) {
+      return sendAlert(kind, opts.netMessage || (kind === "sos" ? null : head), loc, bat, to).then(function (a) {
         if (!a) { step("st-net", T("Couldn't reach your circle. Send as text."), "fail"); return; }
-        sos.alertId = a.id;
-        var n = mates().length, pushed = a._push && a._push.sent;
-        step("st-net", n === 1 ? T(pushed ? "1 person alerted on their phone" : "1 person alerted") : T(pushed ? "{n} people alerted on their phones" : "{n} people alerted", { n: n }), "done");
-        if (kind !== "location") { startSharing(60, "SOS"); step("st-live", T("Sharing your live location for 1 hour"), "done"); }
+        sos.alertId = a.id; sos.loc = loc; sos.bat = bat; sos.kind = kind; sos.netMessage = opts.netMessage || (kind === "sos" ? null : head);
+        var n = mates(to).length, pushed = a._push && a._push.sent;
+        step("st-net", (n === 1 ? T(pushed ? "1 person alerted on their phone" : "1 person alerted") : T(pushed ? "{n} people alerted on their phones" : "{n} people alerted", { n: n })) + (to ? " · " + audName(to) : ""), "done");
+        if (kind !== "location") { startSharing(60, "SOS", to); step("st-live", T("Sharing your live location for 1 hour"), "done"); }
+        $("sosWiden").hidden = !to || mates().length <= n;
         watchResponses();
       });
     });
@@ -1495,11 +1679,23 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     }
     show(); sos.poll = setInterval(function () { if ($("sosSheet").hidden) { clearInterval(sos.poll); return; } show(); }, 1500);
   }
+  // sent to a small circle and it's worse than she thought: tell everyone too
+  function widenSos() {
+    $("sosWiden").hidden = true;
+    if (!netOn() || sos.extra) return;
+    step("st-all", T("Alerting everyone"), "");
+    sendAlert(sos.kind || "sos", sos.netMessage, sos.loc, sos.bat, null).then(function (a) {
+      if (!a) { step("st-all", T("Couldn't reach everyone. Send as text."), "fail"); return; }
+      sos.extra = a.id; sos.cid = null; startSharing(60, "SOS", null);
+      step("st-all", T("{n} people alerted", { n: mates().length }) + " · " + T("Everyone"), "done");
+    });
+  }
   function markSafe() {
-    var id = sos.alertId; sos.alertId = null;
+    var id = sos.alertId, extra = sos.extra, to = sos.cid; sos.alertId = null; sos.extra = null;
     stopSiren(); stopSharing(); $("sosSheet").hidden = true;
     if (netOn() && id) {
-      resolveAlert(id).then(function () { return sendAlert("safe", T("Marked safe at {time}", { time: hhmm() }), null, null); }).then(function () { return loadFeed(); }).then(renderNet);
+      if (extra) resolveAlert(extra);
+      resolveAlert(id).then(function () { return sendAlert("safe", T("Marked safe at {time}", { time: hhmm() }), null, null, extra ? null : to); }).then(function () { return loadFeed(); }).then(renderNet);
       toast(T("Your circle has been told you're safe."));
     } else toast(T("Glad you're safe."));
   }
@@ -1789,13 +1985,13 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible" && (state.timer || state.sharingUntil > Date.now())) keepAwake(); });
 
   function startTimer(o) {
-    state.timer = { end: Date.now() + o.minutes * 60000, note: o.note || "", label: o.label || "Check-in", share: !!o.share, alertId: null };
+    state.timer = { end: Date.now() + o.minutes * 60000, note: o.note || "", label: o.label || "Check-in", share: !!o.share, alertId: null, to: o.to || null };
     save(); keepAwake(); runTimer();
-    if (o.share) startSharing(o.minutes + 15, o.note);
+    if (o.share) startSharing(o.minutes + 15, o.note, o.to || null);
     var tell = o.tell !== false;
-    if (tell && netOn() && mates().length) {
+    if (tell && netOn() && mates(o.to).length) {
       getLocation(6000).then(function (loc) {
-        return sendAlert(o.kind || "checkin_started", o.netMessage || ((o.note ? o.note + " · " : "") + T("check in by {time}", { time: hhmm(new Date(state.timer.end)) })), loc, null);
+        return sendAlert(o.kind || "checkin_started", o.netMessage || ((o.note ? o.note + " · " : "") + T("check in by {time}", { time: hhmm(new Date(state.timer.end)) })), loc, null, o.to);
       }).then(function (a) { if (a && state.timer) { state.timer.alertId = a.id; save(); } });
     } else if (tell && !netOn() && state.contacts.length && !PREVIEW) {
       getLocation(6000).then(function (loc) { window.location.href = smsHref(T("Heads up: I've started a {n}-minute safety check-in.", { n: o.minutes }) + " " + (o.note || "") + "\n" + locLine(loc)); });
@@ -1811,7 +2007,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       var left = (t.end - Date.now()) / 1000;
       $("timerCardTime").textContent = mmss(left); $("timerCardNote").textContent = t.note;
       $("timerCardLabel").textContent = T("{what} running", { what: T(t.label) });
-      $("timerCardShare").textContent = t.share && netOn() ? T("Circle can see your location") : "";
+      $("timerCardShare").textContent = t.share && netOn() ? (t.to && circleById(t.to) ? T("{circle} can see your location", { circle: audName(t.to) }) : T("Circle can see your location")) : "";
       if (left <= 0) { clearInterval(tick); tick = null; startGrace(); }
     }
     update(); if (state.timer) tick = setInterval(update, 1000);
@@ -1826,7 +2022,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       left--; $("graceTime").textContent = left; if (left % 3 === 0) beep();
       if (left <= 0) {
         var t = state.timer; endGrace(); finishTimer(false);
-        openSos({ kind: "missed_checkin", title: T("Your circle is being alerted"), body: T("I didn't check in when I said I would. I may need help.") + (t && t.note ? " " + T("I was: {note}.", { note: t.note }) : ""), netMessage: t && t.note ? t.note : null, siren: state.sirenOnSos });
+        openSos({ kind: "missed_checkin", title: T("Your circle is being alerted"), body: T("I didn't check in when I said I would. I may need help.") + (t && t.note ? " " + T("I was: {note}.", { note: t.note }) : ""), netMessage: t && t.note ? t.note : null, siren: state.sirenOnSos, to: t ? t.to : undefined });
       }
     }, 1000), ctx: ctx };
   }
@@ -1836,7 +2032,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     if (t && t.alertId) resolveAlert(t.alertId);
     if (safe) {
       if (t && t.share) stopSharing();
-      if (t && netOn() && mates().length && (t.share || t.alertId)) sendAlert("safe", T(t.label === "Walk" ? "Arrived safely" : "Checked in safe"), null, null).then(function () { return loadFeed(); }).then(renderNet);
+      if (t && netOn() && mates(t.to).length && (t.share || t.alertId)) sendAlert("safe", T(t.label === "Walk" ? "Arrived safely" : "Checked in safe"), null, null, t.to).then(function () { return loadFeed(); }).then(renderNet);
       if (!state.sharingUntil) releaseAwake();
       state.safeCount = (state.safeCount || 0) + 1; save();
       setTimeout(function () { maybeNudge(t && t.label === "Walk" ? "walk" : "checkin"); }, 4000);
@@ -1941,6 +2137,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     quickList("quickWidget", 4).forEach(function (id) { var t = el("span", /^(help|call|siren)$/.test(id) ? "u" : ""); var ic = el("b"); ic.appendChild(iconEl(QUICK[id].icon)); t.appendChild(ic); t.appendChild(document.createTextNode(quickShort(id))); prev.appendChild(t); });
     pickers("quickHome", 3, $("qHome")); pickers("quickWidget", 4, $("qWidget"));
     syncWidget();
+    if (window.ShecurityNative && ShecurityNative.setWidget) sendAndroidWidget();
   }
   function pickers(key, n, box) {
     box.innerHTML = "";
@@ -1964,7 +2161,16 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     // the app from version 4 also takes the line under each button, so the widget speaks her language
     var clean = function (x) { return String(x).replace(/[:|]/g, " "); };
     var b = quickList("quickWidget", 4).map(function (id) { return id + ":" + clean(quickShort(id)).slice(0, 28) + (state.androidVersion >= 4 ? ":" + clean(T(QUICK_LINE[id] || "")).slice(0, 32) : ""); }).join("|");
-    var extra = "&e=" + encodeURIComponent(emergencyNo()) + "&c=" + encodeURIComponent((($("fcName") && $("fcName").value) || T("Mom")).slice(0, 30)) + (state.watchKey ? "&k=" + state.watchKey : "") + (pin ? "&pin=1" : "");
+    var caller = (($("fcName") && $("fcName").value) || T("Mom")).slice(0, 30);
+    // the app from version 5 takes them quietly through the bridge, no screen flashes by
+    if (window.ShecurityNative && ShecurityNative.setWidget) {
+      try {
+        ShecurityNative.setWidget(b, emergencyNo(), caller, state.watchKey || "");
+        if (pin && !ShecurityNative.pinWidget()) { go("widget"); }
+        return;
+      } catch (e) {}
+    }
+    var extra = "&e=" + encodeURIComponent(emergencyNo()) + "&c=" + encodeURIComponent(caller) + (state.watchKey ? "&k=" + state.watchKey : "") + (pin ? "&pin=1" : "");
     location.href = "intent://widget?b=" + encodeURIComponent(b) + extra + "#Intent;scheme=shecurity;package=io.github.punselie15.shecurity;end";
   }
   // step-by-step widget help for the phone she is holding
@@ -2023,9 +2229,13 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   function renderWidgetTip() {
     var p = platform();
     $("widgetTip").hidden = !!state.widgetTipDone || !(p === "ios-app" || p === "android-app");
+    // on Android one button adds it, no steps needed
+    var go1 = $("widgetTipGo"), and = p === "android-app";
+    if (and) { go1.removeAttribute("data-go"); go1.setAttribute("data-action", "widget-add"); go1.textContent = T("Add widget"); }
+    $("widgetHow").hidden = and;
   }
   function syncWidget() {
-    var buttons = quickList("quickWidget", 4).map(function (id) { return { id: id, label: quickShort(id), url: "shecurity://shecurity.app/app/#q-" + id }; });
+    var buttons = quickList("quickWidget", 4).map(function (id) { return { id: id, label: quickShort(id), line: T(QUICK_LINE[id] || ""), url: "shecurity://shecurity.app/app/#q-" + id }; });
     try { window.webkit.messageHandlers["widget-config"].postMessage({ buttons: buttons }); } catch (e) {}
     syncWatch();
   }
@@ -2036,9 +2246,9 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     if (PREVIEW || (!h && !state.androidWidget)) return;
     if (!state.watchKey && netOn() && !syncWatch.busy) {
       syncWatch.busy = true;
-      net.sb.rpc("new_watch_key").then(function (r) { syncWatch.busy = false; if (!r.error && r.data) { state.watchKey = r.data; save(); syncWatch(); } }, function () { syncWatch.busy = false; });
+      net.sb.rpc("new_watch_key").then(function (r) { syncWatch.busy = false; if (!r.error && r.data) { state.watchKey = r.data; save(); syncWatch(); if (window.ShecurityNative && ShecurityNative.setWidget) sendAndroidWidget(); } }, function () { syncWatch.busy = false; });
     }
-    if (!h) { var wl = $("watchLink"), wa = $("widgetAdd"), hint = $("qWidgetHint"); if (wl) wl.hidden = false; if (wa) wa.hidden = false; if (hint) hint.textContent = T("Tap below to add the widget, or long-press your home screen, tap Widgets and choose Shecurity."); return; }
+    if (!h) { var wl = $("watchLink"), wa = $("widgetAdd"), hint = $("qWidgetHint"); if (wl) wl.hidden = false; if (wa) wa.hidden = false; if (hint) hint.hidden = true; return; }
     var msg = {
       buttons: quickList("quickWidget", 4).map(function (id) { return { id: id, label: quickShort(id) }; }),
       emergency: emergencyNo(), name: (net.profile && net.profile.display_name) || "", key: state.watchKey || "",
@@ -2107,14 +2317,18 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       case "fakecall-start": scheduleCall(); break;
       case "call-accept": acceptCall(); break;
       case "call-decline": case "call-end": endCall(); break;
-      case "timer-start": startTimer({ minutes: parseInt($("tmMinutes").value, 10), note: v("tmNote"), tell: $("tmTell").checked }); break;
+      case "sos-widen": widenSos(); break;
+      case "invite-to": inviteTo(); break;
+      case "practice-sos": openPractice(); break;
+      case "timer-start": startTimer({ minutes: parseInt($("tmMinutes").value, 10), note: v("tmNote"), tell: $("tmTell").checked, to: audOf("timer") }); break;
       case "walk-start":
         var wm = parseInt($("wkMins").value, 10), to = v("wkTo");
-        startTimer({ minutes: wm, note: to ? T("Walking: {to}", { to: to }) : T("Walking"), label: "Walk", share: true, kind: "walk", netMessage: to || null, tell: true, toast: T(netOn() && mates().length ? "Your circle is walking with you." : "Timer started. Join a circle so people can follow you.") });
+        var wto = audOf("walk");
+        startTimer({ minutes: wm, note: to ? T("Walking: {to}", { to: to }) : T("Walking"), label: "Walk", share: true, kind: "walk", netMessage: to || null, tell: true, to: wto, toast: netOn() && mates(wto).length ? (wto ? T("{circle} is walking with you.", { circle: audName(wto) }) : T("Your circle is walking with you.")) : T("Timer started. Join a circle so people can follow you.") });
         break;
       case "timer-safe": endGrace(); finishTimer(true); toast(T("Glad you're safe.")); break;
       case "timer-add": if (state.timer) { state.timer.end += 15 * 60000; if (state.timer.share) state.sharingUntil += 15 * 60000; save(); runTimer(); } break;
-      case "grace-help": var gt = state.timer; endGrace(); finishTimer(false); openSos({ body: state.template + (gt && gt.note ? " " + T("I was: {note}.", { note: gt.note }) : ""), siren: state.sirenOnSos }); break;
+      case "grace-help": var gt = state.timer; endGrace(); finishTimer(false); openSos({ body: state.template + (gt && gt.note ? " " + T("I was: {note}.", { note: gt.note }) : ""), siren: state.sirenOnSos, to: gt ? gt.to : undefined }); break;
       case "ride-send": rideSend(); break;
       case "date-send": dateSend(); break;
       case "plan-post": postPlan(); break;
@@ -2152,7 +2366,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       case "copy-sos-link": copy(sosLink()); break;
       case "quick-edit": go("me"); setTimeout(function () { $("quickCard").scrollIntoView({ behavior: "smooth", block: "start" }); }, 50); break;
       case "watch-link": sendAndroidWidget(); break;
-      case "widget-add": sendAndroidWidget(true); break;
+      case "widget-add": sendAndroidWidget(true); state.widgetTipDone = true; save(); renderWidgetTip(); break;
       case "welcome-main": welcomeAct("main"); break;
       case "welcome-alt": welcomeAct("alt"); break;
       case "welcome-next": welcomeAct("next"); break;
@@ -2196,9 +2410,10 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
 
 
   // ---------- first start: a short hello, the widget, then the circle ----------
-  var wStep = 0;
+  var wStep = 0, wOnly = null, practice = { t: null, done: false };
   function welcomeSteps() {
-    var p = platform(), list = ["hello"];
+    if (wOnly) return [wOnly];
+    var p = platform(), list = ["hello", "practice"];
     if (p === "android-app" || p === "ios-app") list.push("widget");
     list.push("circle");
     return list;
@@ -2208,6 +2423,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     if (!step) { closeWelcome(); return; }
     $("wDots").innerHTML = list.map(function (x, i) { return '<i class="' + (i === wStep ? "on" : "") + '"></i>'; }).join("");
     $("wAlt").hidden = true; $("wSkip").textContent = T("Skip");
+    $("welcome").classList.toggle("focus", step === "practice");
     var body = $("wBody");
     if (step === "hello") {
       $("wIcon").innerHTML = '<use href="#i-heart"/>';
@@ -2215,24 +2431,64 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       body.innerHTML = T("<p>For the moments that feel wrong. I'm free, most of me works without internet, and your data stays on your phone unless you share it.</p>") +
         T("<ul><li><b>Hold SOS</b> to alert the people you trust with where you are.</li><li><b>Fake call</b> gives you a reason to leave.</li><li><b>Walk with me</b> and check-ins keep an eye out when you're on your own.</li></ul>");
       $("wMain").textContent = T("Next"); $("wSkip").hidden = true;
+    } else if (step === "practice") {
+      $("wIcon").innerHTML = '<use href="#i-bell"/>';
+      $("wTitle").textContent = T("Try SOS, just for practice");
+      body.innerHTML = '<div class="practice"><span class="ptag">' + T("Practice") + '</span>' +
+        '<button class="sos-btn" id="pSos" type="button" aria-label="' + T("Practice SOS. Press and hold until the ring closes") + '">' + $("sosBtn").innerHTML.replace(/sosG/g, "sosGp") + '</button>' +
+        '<p class="hold-hint" id="pHint">' + T("Press and hold until the ring closes") + '</p>' +
+        '<div class="steps" id="pSteps" hidden></div>' +
+        '<p class="calm" id="pCalm">' + T("Nothing is sent. This is how it feels, so you know what to do when it counts.") + '</p></div>';
+      $("wMain").textContent = T(practice.done ? "Next" : "Skip practice"); $("wSkip").hidden = true;
+      holdPractice();
     } else if (step === "widget") {
       $("wIcon").innerHTML = '<use href="#i-phone"/>';
       $("wTitle").textContent = T("Put me on your home screen");
       body.innerHTML = T("<p>Then help is one tap away, even without opening the app: four buttons for SOS, a fake call, your location and calling {number}.</p>", { number: emergencyNo() }) +
         (p === "ios-app" ? T("<ol><li>Touch and hold an empty spot on your home screen until the apps wiggle.</li><li>Tap <b>Edit</b>, then <b>Add Widget</b> (or <b>+</b>).</li><li>Search <b>Shecurity</b>, pick the middle size and tap <b>Add Widget</b>.</li></ol>")
-          : T("<p>Tap the button below and choose <b>Add</b>. If your phone doesn't ask, I'll show you the steps.</p>"));
+          : "");
       $("wMain").textContent = T(p === "android-app" ? "Add it for me" : "I'll do it now");
-      $("wAlt").hidden = false; $("wAlt").textContent = T(p === "android-app" ? "Show me the steps" : "Show me with pictures");
+      $("wAlt").hidden = p === "android-app"; $("wAlt").textContent = T("Show me with pictures");
       $("wSkip").hidden = false; $("wSkip").textContent = T("Later");
     } else {
       $("wIcon").innerHTML = '<use href="#i-people"/>';
       $("wTitle").textContent = T("Who should I tell?");
-      body.innerHTML = T("<p>Your circle is 3 to 5 people you trust. When you need help, they get an alert with where you are. You can also skip this and use SOS by text message.</p>");
+      body.innerHTML = T("<p>Your circle is the people you trust. Make small circles like Family or Best friends, and together they form your whole circle for the big emergencies. You choose who gets what.</p>") + T("<p>You can also skip this and use SOS by text message.</p>");
       $("wMain").textContent = T("Set up my circle"); $("wSkip").hidden = false; $("wSkip").textContent = T("Maybe later");
     }
   }
-  function openWelcome() { wStep = 0; $("welcome").hidden = false; renderWelcome(); }
-  function closeWelcome() { $("welcome").hidden = true; state.welcomed = true; save(); }
+  function openWelcome() { wStep = 0; wOnly = null; practice.done = false; $("welcome").hidden = false; renderWelcome(); }
+  function openPractice() { wStep = 0; wOnly = "practice"; practice.done = false; $("welcome").hidden = false; renderWelcome(); }
+  function closeWelcome() { clearTimeout(practice.t); $("welcome").hidden = true; if (!wOnly) { state.welcomed = true; save(); } wOnly = null; }
+  // the practice SOS: same button and the same steps she'd see, but nothing leaves the phone
+  function holdPractice() {
+    var btn = $("pSos"), t = null;
+    function start(e) { if (e.button && e.button !== 0) return; btn.classList.add("holding"); vibrate(30); t = setTimeout(function () { btn.classList.remove("holding"); t = null; runPractice(); }, 1500); }
+    function cancel() { btn.classList.remove("holding"); if (t) { clearTimeout(t); t = null; if (!practice.done) $("pHint").textContent = T("Keep holding until the ring closes"); } }
+    btn.addEventListener("pointerdown", start);
+    ["pointerup", "pointerleave", "pointercancel"].forEach(function (ev) { btn.addEventListener(ev, cancel); });
+    btn.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+    btn.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); runPractice(); } });
+  }
+  function runPractice() {
+    vibrate([200, 100, 200]);
+    var n = netOn() ? mates(audOf("sos")).length : 0, box = $("pSteps");
+    $("pSos").classList.add("done");
+    var lines = [T("Location found"), n ? (n === 1 ? T("1 person alerted on their phone") : T("{n} people alerted on their phones", { n: n })) : T("Your circle gets an alert with where you are"), T("Sharing your live location for 1 hour"), T("They tap \"I'm on my way\" and you see it here")];
+    box.hidden = false; box.innerHTML = "";
+    $("pHint").textContent = T("Practice: this is what happens");
+    lines.forEach(function (txt, i) {
+      var st = el("div", "step"); st.appendChild(el("span", "s")); st.appendChild(el("span", null, txt)); box.appendChild(st);
+      practice.t = setTimeout(function () { st.classList.add("show", "done"); st.firstChild.innerHTML = '<svg class="i"><use href="#i-check"/></svg>'; if (i === lines.length - 1) donePractice(); }, 450 + i * 650);
+      setTimeout(function () { st.classList.add("show"); }, 120 + i * 650);
+    });
+  }
+  function donePractice() {
+    if (!$("pCalm")) return;
+    practice.done = true;
+    $("pCalm").innerHTML = T("<b>That was practice, nothing was sent.</b> For real, you also get buttons to call {number}, send a text and say you're safe.", { number: emergencyNo() });
+    $("wMain").textContent = T(wOnly ? "Done" : "Next");
+  }
   function welcomeAct(which) {
     var step = welcomeSteps()[wStep];
     if (which === "next") { wStep++; renderWelcome(); return; }

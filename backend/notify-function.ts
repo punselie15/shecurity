@@ -83,8 +83,9 @@ Deno.serve(async (req) => {
     const { data: alert } = await admin.from("alerts").select("*").eq("id", alert_id).maybeSingle();
     if (!alert) return json({ error: "alert not found" }, 404);
 
+    // sent to one small circle, or to everyone in all the sender's circles
     const { data: senderCircles } = await admin.from("circle_members").select("circle_id").eq("user_id", alert.sender_id);
-    const circleIds = (senderCircles || []).map((r) => r.circle_id);
+    const circleIds = (senderCircles || []).map((r) => r.circle_id).filter((id) => !alert.circle_id || id === alert.circle_id);
     const { data: mates } = circleIds.length
       ? await admin.from("circle_members").select("user_id").in("circle_id", circleIds)
       : { data: [] as { user_id: string }[] };
