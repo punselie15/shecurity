@@ -195,7 +195,7 @@ struct ShecurityWidget: Widget {
         }
         .configurationDisplayName("Shecurity quick buttons")
         .description("Your four safety buttons, one tap away. Pink ones are for emergencies. Change them in Shecurity under You.")
-        .supportedFamilies([.systemMedium, .systemLarge, .systemSmall, .accessoryCircular, .accessoryRectangular])
+        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge, .accessoryCircular, .accessoryRectangular])
     }
 }
 
