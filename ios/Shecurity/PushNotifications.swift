@@ -155,7 +155,7 @@ func handleFCMToken(){
         Messaging.messaging().token { token, error in
             if let error = error {
                 print("Error fetching FCM registration token: \(error)")
-                checkViewAndEvaluate(event: "push-token", detail: "ERROR GET TOKEN")
+                checkViewAndEvaluate(event: "push-token", detail: "'ERROR GET TOKEN'")
             } else if let token = token {
                 print("FCM registration token: \(token)")
                 checkViewAndEvaluate(event: "push-token", detail: "'\(token)'")
