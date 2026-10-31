@@ -170,6 +170,8 @@ input[type=text], input[type=tel], input[type=number], select, textarea { width:
 input::placeholder, textarea::placeholder { color: var(--muted); opacity: .75; }
 input:focus, select:focus, textarea:focus { outline: 2px solid var(--pink); outline-offset: 0; background: var(--surface); }
 textarea { min-height: 88px; resize: vertical; }
+/* 16px or more, or iPhone zooms in on the field and stays zoomed */
+input, select, textarea { font-size: 16px; }
 .check { display: flex; gap: 12px; align-items: center; font-size: 15px; }
 .check input { width: 22px; height: 22px; accent-color: var(--pink); flex: none; }
 .code { font-family: var(--mono); font-size: 22px; letter-spacing: .18em; font-weight: 600; text-align: center; padding: 12px; border-radius: 14px; background: var(--surface-2); user-select: all; }
@@ -331,7 +333,7 @@ html.ios-app .no-ios { display: none !important; }
 .person .more { min-height: 34px; min-width: 34px; padding: 4px 8px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface-2); color: inherit; font: inherit; font-size: 16px; line-height: 1; cursor: pointer; }
 .person-acts { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 0 10px 52px; border-bottom: 1px solid var(--line); }
 .person-acts[hidden] { display: none; }
-.person select.addto { width: auto; max-width: 128px; min-height: 34px; padding: 4px 8px; font-size: 13px; border-radius: 10px; }
+.person select.addto { width: auto; max-width: 128px; min-height: 34px; padding: 4px 8px; font-size: 16px; border-radius: 10px; }
 /* practice SOS in the welcome */
 .practice { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 6px 0 2px; }
 .practice .sos-btn.done .fill { stroke-dashoffset: 0; }
@@ -1634,7 +1636,7 @@ html.ios-app .no-ios { display: none !important; }
   }
   function renderWhole() {
     var all = mates(), small = smallCircles();
-    $("wholeSub").textContent = all.length ? (small.length > 1 ? T("{n} people in {c} circles, together. For the big emergencies.", { n: all.length, c: small.length }) : T("{n} people you trust, together. For the big emergencies.", { n: all.length })) : T("Everyone you trust, together. Add people below.");
+    $("wholeSub").textContent = all.length ? (small.length > 1 ? T("{n} people in {c} circles, together. For the big emergencies.", { n: all.length, c: small.length }) : all.length === 1 ? T("1 person you trust, together. For the big emergencies.") : T("{n} people you trust, together. For the big emergencies.", { n: all.length })) : T("Everyone you trust, together. Add people below.");
     var f = $("wholeFaces"); f.innerHTML = "";
     [net.me].concat(circleOrder()).slice(0, 7).forEach(function (id) { var a = el("span", "avatar", id === net.me ? selfInitial() : initial(nameOf(id))); a.title = nameOf(id); f.appendChild(a); });
     if (all.length + 1 > 7) f.appendChild(el("span", "avatar more", "+" + (all.length + 1 - 7)));

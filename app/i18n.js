@@ -1,6 +1,7 @@
 // Shecurity in other languages. Keys are the English text; missing ones stay English.
 window.SHC_I18N = {
 "nl": {
+"1 person you trust, together. For the big emergencies.": "1 persoon die je vertrouwt, samen. Voor de grote noodgevallen.",
 "Your circle is private and invite-only. Be kind: no abusive or harmful messages. You can remove, block or report anyone from your circle at any time.": "Je kring is privé en alleen op uitnodiging. Wees aardig: geen beledigende of kwetsende berichten. Je kunt iedereen in je kring altijd verwijderen, blokkeren of melden.",
 "Blocked people": "Geblokkeerde mensen",
 "Contact us": "Contact",
@@ -614,6 +615,7 @@ window.SHC_I18N = {
 "Done": "Klaar"
 },
 "fr": {
+"1 person you trust, together. For the big emergencies.": "1 personne de confiance, ensemble. Pour les grandes urgences.",
 "Your circle is private and invite-only. Be kind: no abusive or harmful messages. You can remove, block or report anyone from your circle at any time.": "Ton cercle est privé et sur invitation. Sois bienveillante : pas de messages insultants ou blessants. Tu peux retirer, bloquer ou signaler n'importe qui de ton cercle à tout moment.",
 "Blocked people": "Personnes bloquées",
 "Contact us": "Nous contacter",
@@ -1227,6 +1229,7 @@ window.SHC_I18N = {
 "Done": "Terminé"
 },
 "de": {
+"1 person you trust, together. For the big emergencies.": "1 Person, der du vertraust, zusammen. Für die großen Notfälle.",
 "Your circle is private and invite-only. Be kind: no abusive or harmful messages. You can remove, block or report anyone from your circle at any time.": "Dein Kreis ist privat und nur mit Einladung. Sei freundlich: keine beleidigenden oder verletzenden Nachrichten. Du kannst jede Person aus deinem Kreis jederzeit entfernen, blockieren oder melden.",
 "Blocked people": "Blockierte Personen",
 "Contact us": "Kontakt",
@@ -1840,6 +1843,7 @@ window.SHC_I18N = {
 "Done": "Fertig"
 },
 "es": {
+"1 person you trust, together. For the big emergencies.": "1 persona de confianza, juntos. Para las grandes emergencias.",
 "Your circle is private and invite-only. Be kind: no abusive or harmful messages. You can remove, block or report anyone from your circle at any time.": "Tu círculo es privado y solo por invitación. Sé amable: nada de mensajes ofensivos o dañinos. Puedes quitar, bloquear o denunciar a cualquiera de tu círculo en cualquier momento.",
 "Blocked people": "Personas bloqueadas",
 "Contact us": "Contacto",
@@ -2453,6 +2457,7 @@ window.SHC_I18N = {
 "Done": "Listo"
 },
 "pt": {
+"1 person you trust, together. For the big emergencies.": "1 pessoa de confiança, juntos. Para as grandes emergências.",
 "Your circle is private and invite-only. Be kind: no abusive or harmful messages. You can remove, block or report anyone from your circle at any time.": "O teu círculo é privado e só por convite. Sê gentil: nada de mensagens ofensivas ou prejudiciais. Podes remover, bloquear ou denunciar qualquer pessoa do teu círculo a qualquer momento.",
 "Blocked people": "Pessoas bloqueadas",
 "Contact us": "Contacto",
