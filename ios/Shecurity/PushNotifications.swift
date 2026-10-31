@@ -25,6 +25,7 @@ class SubscribeMessage {
 }
 
 func handleSubscribeTouch(message: WKScriptMessage) {
+    guard pushReady else { return }
   // [START subscribe_topic]
     let subscribeMessages = parseSubscribeMessage(message: message)
     if (subscribeMessages.count > 0){
@@ -81,6 +82,7 @@ func returnPermissionState(state: String){
 }
 
 func handlePushPermission() {
+    guard pushReady else { returnPermissionResult(isGranted: false); return }
     UNUserNotificationCenter.current().getNotificationSettings () { settings in
             switch settings.authorizationStatus {
             case .notDetermined:
@@ -108,6 +110,7 @@ func handlePushPermission() {
                 returnPermissionResult(isGranted: false)
             case .authorized, .ephemeral, .provisional:
                 returnPermissionResult(isGranted: true)
+                DispatchQueue.main.async { UIApplication.shared.registerForRemoteNotifications() }
             @unknown default:
                 return;
             }
@@ -147,6 +150,7 @@ func checkViewAndEvaluate(event: String, detail: String) {
 }
 
 func handleFCMToken(){
+    guard pushReady else { checkViewAndEvaluate(event: "push-token", detail: "'ERROR NO PUSH'"); return }
     DispatchQueue.main.async(execute: {
         Messaging.messaging().token { token, error in
             if let error = error {
