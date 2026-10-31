@@ -2,6 +2,8 @@ name: iOS compile check
 on:
   push:
     branches: [ios]
+  pull_request:
+    branches: [ios]
   workflow_dispatch:
 jobs:
   build:

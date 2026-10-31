@@ -24,6 +24,8 @@ func createWebView(container: UIView, WKSMH: WKScriptMessageHandler, WKND: WKNav
     // the phone's region setting, so the app shows the right emergency number
     let region = (Locale.current.regionCode ?? "").filter { $0.isLetter }.prefix(2)
     userContentController.addUserScript(WKUserScript(source: "window.SHECURITY_REGION = '\(region)';", injectionTime: .atDocumentStart, forMainFrameOnly: true))
+    // tells the web app whether circle alerts can come through Apple push (Firebase set up)
+    userContentController.addUserScript(WKUserScript(source: "window.SHECURITY_PUSH = \(pushReady ? "true" : "false");", injectionTime: .atDocumentStart, forMainFrameOnly: true))
 
     config.userContentController = userContentController
     config.setURLSchemeHandler(localApp, forURLScheme: appScheme)
@@ -54,7 +56,7 @@ func createWebView(container: UIView, WKSMH: WKScriptMessageHandler, WKND: WKNav
     let deviceModel = UIDevice.current.model
     let osVersion = UIDevice.current.systemVersion
     webView.configuration.applicationNameForUserAgent = "Safari/604.1"
-    webView.customUserAgent = "Mozilla/5.0 (\(deviceModel); CPU \(deviceModel) OS \(osVersion.replacingOccurrences(of: ".", with: "_")) like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/\(osVersion) Mobile/15E148 Safari/604.1 PWAShell ShecurityApp/4"
+    webView.customUserAgent = "Mozilla/5.0 (\(deviceModel); CPU \(deviceModel) OS \(osVersion.replacingOccurrences(of: ".", with: "_")) like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/\(osVersion) Mobile/15E148 Safari/604.1 PWAShell ShecurityApp/5"
 
     webView.addObserver(NSO, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: NSKeyValueObservingOptions.new, context: nil)
     

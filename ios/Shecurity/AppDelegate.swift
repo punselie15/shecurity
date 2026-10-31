@@ -3,6 +3,10 @@ import FirebaseCore
 import FirebaseMessaging
 
 
+/// True once Firebase is set up for this app (a real GoogleService-Info.plist for this bundle id).
+/// Without it, Firebase is never touched and the web app shows alerts only while it is open.
+var pushReady = false
+
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
     
@@ -11,12 +15,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication,
                        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 
-// TODO: if we're using Firebase, uncomment next string
-        //FirebaseApp.configure()
-
-        // [START set_messaging_delegate]
-        Messaging.messaging().delegate = self
-        // [END set_messaging_delegate]
+        if let options = FirebaseOptions.defaultOptions(), options.bundleID == Bundle.main.bundleIdentifier {
+            FirebaseApp.configure(options: options)
+            pushReady = true
+            Messaging.messaging().delegate = self
+        }
         // Register for remote notifications. This shows a permission dialog on first run, to
         // show the dialog at a more appropriate time move this registration accordingly.
         // [START register_for_notifications]
@@ -28,8 +31,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
       //      options: authOptions,
       //      completionHandler: {_, _ in })
 
-// TODO: if we're using Firebase, uncomment next string
-        // application.registerForRemoteNotifications()
+        // she already said yes to alerts: register again so Firebase gets a fresh Apple token
+        if pushReady {
+            UNUserNotificationCenter.current().getNotificationSettings { settings in
+                if settings.authorizationStatus == .authorized {
+                    DispatchQueue.main.async { application.registerForRemoteNotifications() }
+                }
+            }
+        }
 
         // [END register_for_notifications]
         return true
