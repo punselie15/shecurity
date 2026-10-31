@@ -327,6 +327,10 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
 @keyframes cflash { 0%, 45% { box-shadow: 0 0 0 3px var(--cc, var(--pink)); } 100% { box-shadow: var(--shadow); } }
 .to { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 650; color: var(--muted); }
 .to i { width: 7px; height: 7px; border-radius: 50%; background: var(--cc, var(--pink)); }
+html.ios-app .no-ios { display: none !important; }
+.person .more { min-height: 34px; min-width: 34px; padding: 4px 8px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface-2); color: inherit; font: inherit; font-size: 16px; line-height: 1; cursor: pointer; }
+.person-acts { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 0 10px 52px; border-bottom: 1px solid var(--line); }
+.person-acts[hidden] { display: none; }
 .person select.addto { width: auto; max-width: 128px; min-height: 34px; padding: 4px 8px; font-size: 13px; border-radius: 10px; }
 /* practice SOS in the welcome */
 .practice { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 6px 0 2px; }
@@ -450,6 +454,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       <label class="f">Your mobile number (optional)<span class="hint">So your circle can call you from an alert.</span><input type="tel" id="jnPhone" maxlength="24" placeholder="+31 6 1234 5678" autocomplete="tel"></label>
       <button class="btn primary block" type="button" data-action="net-join">Continue</button>
       <p class="xs muted">No email or password needed. Your account lives on this phone.</p>
+      <p class="xs muted">Your circle is private and invite-only. Be kind: no abusive or harmful messages. You can remove, block or report anyone from your circle at any time.</p>
     </div>
 
     <div class="card" id="netOffline" hidden>
@@ -746,12 +751,12 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     <div class="card brand stack free" id="freeCard">
       <div class="row" style="gap:10px;align-items:center"><span class="heart"><svg class="i"><use href="#i-heart"/></svg></span><h2>Free forever</h2></div>
       <p class="small">Every safety feature in Shecurity is free and always will be: SOS, your circle, live location, check-ins, fake call and siren. No ads, ever, because nothing should get in the way in an emergency.</p>
-      <p class="small">Shecurity is a profit-free project: nobody earns money from it. If you'd like to help pay for future upgrades, you can give any amount you like. Every bit goes into making Shecurity better.</p>
-      <a class="btn primary" target="_blank" rel="noopener" href="https://getshecurity.com/#support">Support future upgrades</a>
-      <a class="btn" target="_blank" rel="noopener" href="https://getshecurity.com/plans/">See what we're building next</a>
-      <p class="small muted" style="margin:0">Donating is completely optional and changes nothing in the app.</p>
+      <p class="small no-ios">Shecurity is a profit-free project: nobody earns money from it. If you'd like to help pay for future upgrades, you can give any amount you like. Every bit goes into making Shecurity better.</p>
+      <a class="btn primary no-ios" target="_blank" rel="noopener" href="https://getshecurity.com/#support">Support future upgrades</a>
+      <a class="btn no-ios" target="_blank" rel="noopener" href="https://getshecurity.com/plans/">See what we're building next</a>
+      <p class="small muted no-ios" style="margin:0">Donating is completely optional and changes nothing in the app.</p>
     </div>
-    <div class="card brand stack">
+    <div class="card brand stack no-ios">
       <div class="row" style="justify-content:space-between;align-items:center"><h2>Shecurity Plus</h2><span class="tag">Coming later</span></div>
       <p class="small">Optional extras for people who want more, about $2.99 a month. They help keep the free app running.</p>
       <ul class="small" style="margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:6px">
@@ -770,6 +775,8 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
         <li>Alerts are deleted after 30 days. Backup contacts and settings stay on this phone.</li>
         <li>No ads, no tracking, no selling data. Ever.</li>
       </ul>
+      <div id="blockedBox" class="stack" hidden><b class="small">Blocked people</b><div id="blockedList"></div></div>
+      <a class="btn" href="mailto:hello@getshecurity.com?subject=Shecurity%20help">Contact us</a>
       <button class="btn" type="button" data-action="wipe">Delete my account and data</button>
     </div>
   </section>
@@ -870,6 +877,10 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   var NATIVE = !!window.ShecurityNative || /ShecurityApp\//.test(navigator.userAgent);
   var PUBLIC_URL = "https://shecurity.app/app/";
   if (NATIVE) document.documentElement.classList.add("native");
+  // the iPhone app: no donation or upgrade links (App Store rules), alerts through Apple push
+  var IOS_APP = /ShecurityApp\//.test(navigator.userAgent) && /iPhone|iPad|iPod/.test(navigator.userAgent);
+  if (IOS_APP) document.documentElement.classList.add("ios-app");
+  var SUPPORT_EMAIL = "hello@getshecurity.com";
   var CONFIG = {
     url: "https://cgihqwekhbyhhadoizeb.supabase.co",
     key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnaWhxd2VraGJ5aGhhZG9pemViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NDU3MzQsImV4cCI6MjEwODQyMTczNH0.jfeNmxsolNk9MHommYBRxAivYRblUr2WH9b4flQ0lzs",
@@ -1104,10 +1115,12 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       });
     });
   }
+  // people she blocked: nothing from them is shown, and they are taken out of her circles
+  function blocked(id) { return !!(state.blocked && state.blocked[id]); }
   function loadFeed() {
     var since = new Date(Date.now() - 86400000).toISOString();
     return net.sb.from("alerts").select("*").gte("created_at", since).order("created_at", { ascending: false }).limit(30).then(function (r) {
-      if (r.error) throw r.error; net.feed = r.data || [];
+      if (r.error) throw r.error; net.feed = (r.data || []).filter(function (a) { return !blocked(a.sender_id); });
       var ids = net.feed.map(function (a) { return a.id; });
       if (!ids.length) { net.responses = {}; return; }
       return net.sb.from("alert_responses").select("*").in("alert_id", ids).then(function (x) {
@@ -1116,10 +1129,10 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     });
   }
   function loadLive() {
-    return net.sb.from("live_locations").select("*").gt("sharing_until", new Date().toISOString()).then(function (r) { net.live = (r.data || []).filter(function (l) { return l.user_id !== net.me; }); });
+    return net.sb.from("live_locations").select("*").gt("sharing_until", new Date().toISOString()).then(function (r) { net.live = (r.data || []).filter(function (l) { return l.user_id !== net.me && !blocked(l.user_id); }); });
   }
   function loadPlans() {
-    return net.sb.from("plans").select("*").gt("expires_at", new Date().toISOString()).then(function (r) { if (!r.error) net.plans = r.data || []; });
+    return net.sb.from("plans").select("*").gt("expires_at", new Date().toISOString()).then(function (r) { if (!r.error) net.plans = (r.data || []).filter(function (p) { return !blocked(p.user_id); }); });
   }
   function subscribe() {
     if (!net.sb || net.channel) return;
@@ -1127,7 +1140,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     net.channel = net.sb.channel("circle")
       .on("postgres_changes", { event: "*", schema: "public", table: "alerts" }, function (p) {
         var a = p.new;
-        if (p.eventType === "INSERT" && a && a.sender_id !== net.me && (a.kind === "sos" || a.kind === "missed_checkin")) incomingAlarm(a);
+        if (p.eventType === "INSERT" && a && a.sender_id !== net.me && !blocked(a.sender_id) && (a.kind === "sos" || a.kind === "missed_checkin")) incomingAlarm(a);
         refresh();
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "alert_responses" }, function (p) {
@@ -1206,6 +1219,38 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     var owner = c.owner_id === net.me;
     var q = owner ? net.sb.from("circles").delete().eq("id", c.id) : net.sb.from("circle_members").delete().eq("circle_id", c.id).eq("user_id", net.me);
     q.then(function (r) { if (r.error) throw r.error; toast(owner ? T("Circle deleted") : T("You left {circle}", { circle: c.name })); return loadCircles(); }).then(renderNet).catch(function (e) { toast(e.message); });
+  }
+  function removeMember(c, m) {
+    if (PREVIEW) { toast(T("Works in the live app.")); return; }
+    var name = nameOf(m);
+    if (!window.confirm(T("Remove {name} from {circle}?", { name: name, circle: c.is_main ? T("Everyone") : c.name }))) return;
+    net.sb.from("circle_members").delete().eq("circle_id", c.id).eq("user_id", m).then(function (r) {
+      if (r.error) throw r.error; toast(T("{name} was removed", { name: name })); return loadCircles();
+    }).then(renderNet).catch(function (e) { toast(e.message); });
+  }
+  function blockPerson(m) {
+    if (PREVIEW) { toast(T("Works in the live app.")); return; }
+    var name = nameOf(m);
+    if (!window.confirm(T("Block {name}? They are removed from your circles, you leave circles they made, and you won't see their alerts, plans or location anymore.", { name: name }))) return;
+    state.blocked = Object.assign({}, state.blocked); state.blocked[m] = name; save();
+    var jobs = [];
+    net.circles.forEach(function (c) {
+      if (c.members.indexOf(m) < 0) return;
+      if (c.owner_id === net.me) jobs.push(net.sb.from("circle_members").delete().eq("circle_id", c.id).eq("user_id", m));
+      else if (c.owner_id === m) jobs.push(net.sb.from("circle_members").delete().eq("circle_id", c.id).eq("user_id", net.me));
+    });
+    Promise.all(jobs).then(refreshAll).then(function () { renderNet(); renderMe(); toast(T("{name} is blocked", { name: name })); })
+      .catch(function () { renderNet(); renderMe(); toast(T("{name} is blocked", { name: name })); });
+  }
+  function unblockPerson(m) {
+    state.blocked = Object.assign({}, state.blocked); delete state.blocked[m]; save();
+    renderMe(); if (netOn()) refreshAll().then(renderNet, renderNet);
+  }
+  function reportPerson(m, c) {
+    var name = nameOf(m);
+    var body = T("Please tell us what happened:") + "\n\n\n---\n" + "Reported: " + name + " (" + m + ")\n" + "Circle: " + (c ? c.name + " (" + c.id + ")" : "-") + "\n" + "Reported by: " + (net.me || "-") + "\n" + "Sent from Shecurity";
+    location.href = "mailto:" + SUPPORT_EMAIL + "?subject=" + encodeURIComponent("Report: " + name) + "&body=" + encodeURIComponent(body);
+    setTimeout(function () { toast(T("Thanks for telling us. We look at every report.")); }, 600);
   }
   function respond(alert, response) {
     if (PREVIEW) { toast(T("Works in the live app.")); return; }
@@ -1368,7 +1413,32 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   // push notifications
   function urlB64(b) { var p = "=".repeat((4 - b.length % 4) % 4), s = (b + p).replace(/-/g, "+").replace(/_/g, "/"), raw = atob(s), out = new Uint8Array(raw.length); for (var i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i); return out; }
   function nativePush() { try { return !!(window.ShecurityNative && ShecurityNative.pushAvailable()); } catch (e) { return false; } }
-  function pushSupported() { return nativePush() || (!NATIVE && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window); }
+  // the iPhone app says SHECURITY_PUSH = true once Firebase is set up in it; it answers through window events
+  function iosPush() { try { return IOS_APP && window.SHECURITY_PUSH === true && !!webkit.messageHandlers["push-permission-request"]; } catch (e) { return false; } }
+  function iosAsk(name, event, wait) {
+    return new Promise(function (ok) {
+      var done = false, h = function (e) { if (done) return; done = true; window.removeEventListener(event, h); ok(e.detail); };
+      window.addEventListener(event, h);
+      setTimeout(function () { if (!done) { done = true; window.removeEventListener(event, h); ok(null); } }, wait);
+      try { webkit.messageHandlers[name].postMessage(""); } catch (e) { ok(null); }
+    });
+  }
+  function saveIosToken(t) {
+    if (!t || typeof t !== "string" || /ERROR/.test(t)) throw new Error(T("Couldn't turn on alerts. Check your connection and try again."));
+    var old = state.fcmToken; state.fcmToken = t; state.iosPush = true; save();
+    var q = net.sb.from("push_subscriptions").upsert({ endpoint: "fcm:" + t, user_id: net.me, p256dh: "fcm", auth: "fcm" });
+    if (old && old !== t) q = q.then(function (r) { net.sb.from("push_subscriptions").delete().eq("endpoint", "fcm:" + old).then(function () {}); return r; });
+    return q;
+  }
+  if (IOS_APP) {
+    // Firebase can hand out a new token at any start; keep the saved one current
+    window.addEventListener("push-token", function (e) {
+      var t = e.detail;
+      if (state.iosPush && netOn() && typeof t === "string" && t && !/ERROR/.test(t) && t !== state.fcmToken) saveIosToken(t).then(function () {}, function () {});
+    });
+    window.addEventListener("push-notification-click", function () { go("circle"); });
+  }
+  function pushSupported() { return nativePush() || iosPush() || (!NATIVE && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window); }
   // in the store app, alerts come through Firebase: the phone gives a token, saved like a web push subscription
   function saveNativeToken(tries) {
     var t = ""; try { t = ShecurityNative.pushToken(); } catch (e) {}
@@ -1379,6 +1449,8 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   function pushState() {
     if (PREVIEW) return Promise.resolve("example");
     if (nativePush()) return Promise.resolve(ShecurityNative.notifyPermission() === "granted" && state.fcmToken ? "on" : "off");
+    if (iosPush()) return iosAsk("push-permission-state", "push-permission-state", 1500).then(function (p) { return p === "denied" ? "denied" : (state.iosPush && state.fcmToken ? "on" : "off"); });
+    if (IOS_APP) return Promise.resolve("ios-open");
     if (!pushSupported()) return Promise.resolve(isIOS() && !NATIVE ? "ios-install" : "unsupported");
     if (Notification.permission === "denied") return Promise.resolve("denied");
     return navigator.serviceWorker.ready.then(function (reg) { return reg.pushManager.getSubscription(); }).then(function (s) { return s ? "on" : "off"; }).catch(function () { return "off"; });
@@ -1392,6 +1464,14 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
           .catch(function (e) { toast(e.message || T("Couldn't turn on alerts.")); });
       };
       ShecurityNative.askNotify(); return;
+    }
+    if (iosPush()) {
+      iosAsk("push-permission-request", "push-permission-request", 60000).then(function (p) {
+        if (p !== "granted") throw new Error(T("Alerts are blocked. Allow notifications for Shecurity in your phone settings."));
+        return iosAsk("push-token", "push-token", 15000);
+      }).then(saveIosToken).then(function (r) { if (r && r.error) throw r.error; toast(T("Alerts are on.")); renderNet(); })
+        .catch(function (e) { toast(e.message || T("Couldn't turn on alerts.")); });
+      return;
     }
     if (!pushSupported()) { toast(isIOS() && !NATIVE ? T("On iPhone, add Shecurity to your home screen first.") : T("This phone can't show alerts yet.")); return; }
     Notification.requestPermission().then(function (perm) {
@@ -1445,9 +1525,9 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       chipA.lastChild.textContent = T((s === "on" || s === "example") ? "Alerts on" : "Alerts off");
       var card = $("pushCard"), btn = $("pushBtn");
       card.hidden = s === "on" || s === "example";
-      $("pushTitle").textContent = T(s === "denied" ? "Alerts are blocked" : s === "ios-install" ? "Add to home screen for alerts" : "Turn on alerts");
-      $("pushText").textContent = T(s === "denied" ? "Allow notifications for Shecurity in your phone settings, then come back." : s === "ios-install" ? "On iPhone, alerts work once Shecurity is on your home screen: tap Share, then Add to Home Screen, and open it from there." : s === "unsupported" ? "This browser can't show alerts. Try Chrome or Safari." : "So your phone tells you when someone in your circle needs help, even when the app is closed.");
-      btn.hidden = s === "denied" || s === "ios-install" || s === "unsupported";
+      $("pushTitle").textContent = T(s === "denied" ? "Alerts are blocked" : s === "ios-install" ? "Add to home screen for alerts" : s === "ios-open" ? "Alerts while Shecurity is open" : "Turn on alerts");
+      $("pushText").textContent = T(s === "denied" ? "Allow notifications for Shecurity in your phone settings, then come back." : s === "ios-install" ? "On iPhone, alerts work once Shecurity is on your home screen: tap Share, then Add to Home Screen, and open it from there." : s === "ios-open" ? "When someone in your circle needs help, Shecurity sounds an alarm while it's open. Alerts when the app is closed are coming in an update." : s === "unsupported" ? "This phone can't show alerts yet." : "So your phone tells you when someone in your circle needs help, even when the app is closed.");
+      btn.hidden = s === "denied" || s === "ios-install" || s === "unsupported" || s === "ios-open";
     });
     if (!joined) { $("homeCircle").hidden = true; renderIncoming(); return; }
 
@@ -1525,6 +1605,17 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
         }
         if (m !== net.me && p.phone) { var a = el("a", "btn sm", T("Call")); a.href = "tel:" + p.phone.replace(/[^\d+]/g, ""); row.appendChild(a); }
         list.appendChild(row);
+        if (m !== net.me) {
+          // remove (her own circles), block and report, for everyone in a circle
+          var mo = el("button", "more", "\u22EF"); mo.type = "button"; mo.setAttribute("aria-label", T("Options for {name}", { name: p.display_name || T("Someone") }));
+          var acts = el("div", "person-acts"); acts.hidden = true;
+          mo.setAttribute("aria-expanded", "false");
+          mo.addEventListener("click", function () { acts.hidden = !acts.hidden; mo.setAttribute("aria-expanded", acts.hidden ? "false" : "true"); });
+          if (c.owner_id === net.me) { var rm = el("button", "btn sm", T("Remove from circle")); rm.type = "button"; rm.addEventListener("click", function () { removeMember(c, m); }); acts.appendChild(rm); }
+          var bl = el("button", "btn sm", T("Block")); bl.type = "button"; bl.addEventListener("click", function () { blockPerson(m); }); acts.appendChild(bl);
+          var rp = el("button", "btn sm", T("Report")); rp.type = "button"; rp.addEventListener("click", function () { reportPerson(m, c); }); acts.appendChild(rp);
+          row.appendChild(mo); list.appendChild(acts);
+        }
       });
       card.appendChild(list);
       if (c.invite_code && !isMain) {
@@ -2046,7 +2137,7 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
   function calmNow() { return !state.timer && !state.sharingUntil && $("sosSheet").hidden && $("sosCountdown").hidden && $("graceScreen").hidden; }
   function maybeNudge(kind) {
     var n = state.nudge || {}, now = Date.now();
-    if (PREVIEW || n.never || (n.shown || 0) >= 3) return;
+    if (PREVIEW || IOS_APP || n.never || (n.shown || 0) >= 3) return;
     if (now - (state.firstSeen || now) < 7 * DAY || (state.safeCount || 0) < 3) return;
     if (n.last && now - n.last < 60 * DAY) return;
     if (!calmNow()) return;
@@ -2272,7 +2363,18 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
     Object.keys(LANGS).forEach(function (k) { var o = el("option", null, LANGS[k]); o.value = k; sel.appendChild(o); });
     sel.value = LANGS[state.lang] ? state.lang : "auto";
   }
+  function renderBlocked() {
+    var ids = Object.keys(state.blocked || {}), box = $("blockedList");
+    $("blockedBox").hidden = !ids.length; box.innerHTML = "";
+    ids.forEach(function (id) {
+      var row = el("div", "person"); row.appendChild(el("span", "avatar", initial(state.blocked[id])));
+      var t = el("div", "t"); t.appendChild(el("b", null, state.blocked[id] || T("Someone"))); row.appendChild(t);
+      var u = el("button", "btn sm", T("Unblock")); u.type = "button"; u.addEventListener("click", function () { unblockPerson(id); }); row.appendChild(u);
+      box.appendChild(row);
+    });
+  }
   function renderMe() {
+    renderBlocked();
     var list = $("contactList"); list.innerHTML = "";
     state.contacts.forEach(function (c, i) {
       var row = el("div", "person"); row.appendChild(el("span", "avatar", initial(c.name)));
@@ -2301,7 +2403,13 @@ nav.tabs .badge { position: absolute; top: 4px; left: calc(50% + 8px); width: 9p
       btn.removeAttribute("data-armed"); btn.textContent = T("Delete my account and data"); renderMe(); renderNet(); runTimer(); toast(T("Everything deleted"));
     };
     stopSharing();
-    if (netOn() && !PREVIEW) net.sb.rpc("delete_my_account").then(function () { return net.sb.auth.signOut(); }).then(done, done); else done();
+    if (netOn() && !PREVIEW) net.sb.rpc("delete_my_account").then(function (r) {
+      if (r && r.error) throw r.error;
+      return net.sb.auth.signOut().catch(function () {});
+    }).then(done, function () {
+      btn.removeAttribute("data-armed"); btn.textContent = T("Delete my account and data");
+      toast(T("Couldn't delete your account. Check your connection and try again."));
+    }); else done();
   }
 
   // ---------- events ----------
