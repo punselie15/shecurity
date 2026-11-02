@@ -1,7 +1,7 @@
-// Where "Get Shecurity" sends each phone. Fill in APPLE once the App Store listing is live.
+// Where "Get Shecurity" sends each phone.
 var SHECURITY_STORES = {
   play: "https://play.google.com/store/apps/details?id=io.github.punselie15.shecurity",
-  apple: "",
+  apple: "https://apps.apple.com/app/id6826622812",
   web: "https://shecurity.app/app/"
 };
 function shecurityPlatform() {
