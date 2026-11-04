@@ -92,35 +92,87 @@ struct QuickProvider: TimelineProvider {
 struct Tile: View {
     let button: QuickButton
     var size: CGFloat = 1   // 1 for medium, bigger for small and large
+    var compact = false     // medium: icon beside the text so two rows fit on every iPhone
+
+    private var hot: Bool { urgent(button.id) }
+    private var lineText: String { button.line.flatMap { $0.isEmpty ? nil : $0 } ?? detail(button.id) }
 
     var body: some View {
-        let hot = urgent(button.id)
-        VStack(alignment: .leading, spacing: 0) {
-            Image(systemName: symbol(button.id))
-                .font(.system(size: 17 * size, weight: .bold))
-                .foregroundStyle(hot ? Color.white : pink)
-                .frame(width: 34 * size, height: 34 * size)
-                .background(Circle().fill(hot ? Color.white.opacity(0.24) : blush))
-            Spacer(minLength: 4)
-            Text(button.label)
-                .font(.system(size: 16 * size, weight: .bold, design: .rounded))
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-            Text(button.line.flatMap { $0.isEmpty ? nil : $0 } ?? detail(button.id))
-                .font(.system(size: 12 * min(size, 1.1), weight: .medium, design: .rounded))
-                .opacity(0.7)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
+        Group {
+            if compact {
+                // try with the small line first; drop it, then shrink, if the phone gives less room
+                ViewThatFits(in: .vertical) {
+                    row(icon: 30, label: 15, showLine: true)
+                    row(icon: 28, label: 14, showLine: false)
+                    row(icon: 22, label: 13, showLine: false)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+            } else {
+                ViewThatFits(in: .vertical) {
+                    stack(scale: size, showLine: true)
+                    stack(scale: size * 0.85, showLine: true)
+                    stack(scale: size * 0.8, showLine: false)
+                }
+                .padding(10 * min(size, 1.25))
+            }
         }
         .foregroundStyle(hot ? Color.white : ink)
-        .padding(12 * min(size, 1.3))
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
+            RoundedRectangle(cornerRadius: compact ? 16 : 18, style: .continuous)
                 .fill(hot ? AnyShapeStyle(LinearGradient(colors: [pinkLight, pink], startPoint: .topLeading, endPoint: .bottomTrailing)) : AnyShapeStyle(Color.white))
         )
+        .clipShape(RoundedRectangle(cornerRadius: compact ? 16 : 18, style: .continuous))
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isButton)
+    }
+
+    private func icon(_ side: CGFloat) -> some View {
+        Image(systemName: symbol(button.id))
+            .font(.system(size: side * 0.5, weight: .bold))
+            .foregroundStyle(hot ? Color.white : pink)
+            .frame(width: side, height: side)
+            .background(Circle().fill(hot ? Color.white.opacity(0.24) : blush))
+    }
+
+    private func row(icon side: CGFloat, label: CGFloat, showLine: Bool) -> some View {
+        HStack(spacing: 8) {
+            icon(side)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(button.label)
+                    .font(.system(size: label, weight: .bold, design: .rounded))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.65)
+                if showLine {
+                    Text(lineText)
+                        .font(.system(size: 11, weight: .medium, design: .rounded))
+                        .opacity(0.75)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
+                }
+            }
+            Spacer(minLength: 0)
+        }
+    }
+
+    private func stack(scale: CGFloat, showLine: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            icon(34 * scale)
+            Spacer(minLength: 4)
+            Text(button.label)
+                .font(.system(size: 16 * scale, weight: .bold, design: .rounded))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            if showLine {
+                Text(lineText)
+                    .font(.system(size: 12 * min(scale, 1.1), weight: .medium, design: .rounded))
+                    .opacity(0.7)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -132,7 +184,7 @@ struct QuickWidgetView: View {
         let b = entry.buttons
         switch family {
         case .systemSmall:
-            Tile(button: b[0], size: 1.3)
+            Tile(button: b[0], size: 1.2)
                 .widgetURL(URL(string: b[0].url))
         case .accessoryCircular:
             ZStack {
@@ -161,28 +213,30 @@ struct QuickWidgetView: View {
                 }
                 .foregroundStyle(.white)
                 .padding(.horizontal, 4)
-                grid(b, size: 1.25)
+                grid(b, size: 1.2)
                 Text("Change these in Shecurity › You")
                     .font(.system(size: 11, weight: .medium, design: .rounded))
                     .foregroundStyle(.white.opacity(0.55))
             }
         default:
-            grid(b, size: 1)
+            grid(b, size: 1, compact: true)
         }
     }
 
-    func grid(_ b: [QuickButton], size: CGFloat) -> some View {
-        Grid(horizontalSpacing: 8, verticalSpacing: 8) {
-            GridRow { cell(b[0], size); cell(b[1], size) }
-            GridRow { cell(b[2], size); cell(b[3], size) }
+    func grid(_ b: [QuickButton], size: CGFloat, compact: Bool = false) -> some View {
+        let gap: CGFloat = compact ? 6 : 8
+        return VStack(spacing: gap) {
+            HStack(spacing: gap) { cell(b[0], size, compact); cell(b[1], size, compact) }
+            HStack(spacing: gap) { cell(b[2], size, compact); cell(b[3], size, compact) }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    @ViewBuilder func cell(_ button: QuickButton, _ size: CGFloat) -> some View {
+    @ViewBuilder func cell(_ button: QuickButton, _ size: CGFloat, _ compact: Bool) -> some View {
         if let url = URL(string: button.url) {
-            Link(destination: url) { Tile(button: button, size: size) }
+            Link(destination: url) { Tile(button: button, size: size, compact: compact) }
         } else {
-            Tile(button: button, size: size)
+            Tile(button: button, size: size, compact: compact)
         }
     }
 }
