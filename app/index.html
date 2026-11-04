@@ -345,9 +345,131 @@ html.ios-app .no-ios { display: none !important; }
 .practice .step.show { opacity: 1; transform: none; }
 .practice .calm { font-size: 14px; color: var(--muted); text-align: center; line-height: 1.5; }
 @media (prefers-reduced-motion: reduce) { .practice .step { transition: none; } }
+
+/* ===== 2026-11 redesign: calmer home, tool grid, floating tab bar, Now/Circles, add sheet, grouped settings ===== */
+:root { --r: 22px; --tile: #fff; --soft-ring: rgba(229, 72, 127, .10); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --tile: #1f1b27; } }
+:root[data-theme="dark"] { --tile: #1f1b27; }
+body { background: radial-gradient(120% 60% at 50% -10%, var(--brand-soft), transparent 60%) var(--bg) no-repeat; }
+.top { background: transparent; -webkit-backdrop-filter: saturate(1.4) blur(14px); backdrop-filter: saturate(1.4) blur(14px); }
+.top-inner { justify-content: space-between; }
+.mark { width: 30px; height: 30px; display: block; filter: drop-shadow(0 4px 10px rgba(229, 72, 127, .28)); }
+.mark svg { width: 100%; height: 100%; display: block; }
+.exit { background: var(--surface); box-shadow: var(--shadow); color: var(--ink); }
+main { padding-bottom: calc(118px + env(safe-area-inset-bottom, 0px)); }
+.view { gap: 18px; }
+h1 { font-size: 30px; letter-spacing: -0.03em; }
+.section-title { margin: 0; padding: 0 2px; font-size: 13px; text-transform: none; }
+#homeCircle .section-title { display: block; margin-bottom: 10px; }
+#homeCircle > .card { margin-top: 0 !important; }
+.sec-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: -8px; }
+.sec-head .edit-quick { margin: 0; padding: 2px 4px; text-decoration: none; color: var(--pink-ink); font-weight: 700; }
+
+/* home */
+.hello { text-align: left; padding: 2px 2px 0; }
+.hello b { font-size: 26px; letter-spacing: -0.03em; }
+.status { justify-content: flex-start; }
+.sos-wrap { padding: 8px 0 0; gap: 14px; background: radial-gradient(closest-side, var(--glow), transparent) center 56% / 360px 360px no-repeat; }
+.sos-wrap .status { order: 3; justify-content: center; }
+.sos-btn { width: 232px; height: 232px; max-width: 66vw; max-height: 66vw; box-shadow: 0 0 0 14px var(--soft-ring), 0 0 0 30px rgba(229, 72, 127, .05), 0 18px 40px rgba(229, 72, 127, .32); }
+@media (prefers-reduced-motion: no-preference) {
+  .sos-btn:not(.holding) { animation: breathe 4.5s ease-in-out infinite; }
+  @keyframes breathe { 50% { box-shadow: 0 0 0 18px var(--soft-ring), 0 0 0 38px rgba(229, 72, 127, .04), 0 18px 40px rgba(229, 72, 127, .32); } }
+}
+.hold-hint { font-size: 13.5px; font-weight: 650; color: var(--muted); }
+.actions3 { gap: 12px; }
+.act { padding: 16px 6px 13px; border-radius: 22px; font-size: 13.5px; gap: 10px; background: var(--tile); }
+.act .ic { width: 48px; height: 48px; border-radius: 16px; background: linear-gradient(135deg, #ff8db4, #e5487f); color: #fff; box-shadow: 0 6px 14px rgba(229, 72, 127, .28); }
+.tools { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 8px; background: var(--tile); border-radius: var(--r); padding: 18px 10px 14px; box-shadow: var(--shadow); }
+.tool { background: none; border: 0; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 7px; font-size: 12px; font-weight: 650; color: var(--ink); cursor: pointer; text-align: center; line-height: 1.25; transition: transform .12s ease; }
+.tool .ic { width: 50px; height: 50px; border-radius: 17px; display: grid; place-items: center; background: var(--brand-soft); color: var(--pink-ink); }
+.tool:active { transform: scale(.94); }
+button.trust.link { justify-content: center; text-align: center; padding: 4px 0 0; align-items: center; font-size: 13px; gap: 6px; }
+button.trust.link svg { color: var(--muted); width: 16px; height: 16px; margin: 0; }
+
+/* floating tab bar */
+nav.tabs { left: 50%; right: auto; transform: translateX(-50%); bottom: calc(12px + env(safe-area-inset-bottom, 0px)); width: min(440px, calc(100% - 28px)); border-radius: 28px; padding: 0; background: color-mix(in srgb, var(--surface) 86%, transparent); -webkit-backdrop-filter: saturate(1.6) blur(18px); backdrop-filter: saturate(1.6) blur(18px); box-shadow: 0 0 0 1px var(--line), 0 14px 36px rgba(42, 33, 82, .16); }
+nav.tabs .in { padding: 6px; }
+nav.tabs button { padding: 6px 2px; border-radius: 22px; gap: 2px; font-size: 11px; transition: background .2s ease, color .2s ease; }
+nav.tabs button svg { padding: 0; width: 24px; height: 24px; background: none !important; }
+nav.tabs button[aria-current="page"] { background: var(--brand-soft); }
+nav.tabs .badge { top: 5px; }
+.toast { bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+.nudge { bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+
+/* feature pages */
+.back { width: 40px; height: 40px; justify-content: center; border-radius: 50%; background: var(--surface); box-shadow: var(--shadow); font-size: 0; gap: 0; color: var(--ink); padding: 0; margin-bottom: -6px; }
+.back svg { width: 20px; height: 20px; }
+.view > h1 + p.muted { font-size: 15px; margin-top: -10px; }
+.tip { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--muted); padding: 0 4px; line-height: 1.45; }
+.tip svg { width: 18px; height: 18px; flex: none; margin-top: 1px; color: var(--pink-ink); }
+.list .li { padding: 15px 16px; }
+
+/* circle tab */
+.page-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.round-add { width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--brand); color: var(--brand-ink); display: grid; place-items: center; cursor: pointer; box-shadow: 0 8px 20px rgba(42, 33, 82, .25); }
+.round-add .i { width: 22px; height: 22px; stroke-width: 2.2; }
+.whole { border-radius: 26px; }
+.bubble.add { border-color: rgba(255, 255, 255, .5); background: rgba(255, 141, 180, .18); }
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 16px; background: var(--surface-2); }
+.seg button { border: 0; background: none; padding: 10px; border-radius: 12px; font-weight: 700; font-size: 14px; color: var(--muted); cursor: pointer; transition: background .2s ease, color .2s ease, box-shadow .2s ease; }
+.seg button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+.pane > div > .section-title, #liveWrap > .section-title { display: block; margin-bottom: 10px; }
+.pane > div > .card, #liveWrap > .card { margin-top: 0 !important; }
+.card.circ { gap: 10px; }
+.cc-head .ring { width: 26px; height: 26px; }
+.circ .person { padding: 8px 0; border-bottom: 0; }
+.circ .person-acts { border-bottom: 0; padding-bottom: 6px; align-items: center; }
+.circ-foot { align-items: center; border-top: 1px solid var(--line); padding-top: 12px; flex-wrap: nowrap; }
+.circ-foot > .btn { flex: 0 0 auto; }
+.circ-foot > .btn.primary { margin-left: auto; }
+.code-pill { font-family: var(--mono); font-size: 13px; letter-spacing: .12em; font-weight: 600; padding: 7px 10px; border-radius: 10px; background: var(--surface-2); color: var(--muted); user-select: all; white-space: nowrap; }
+
+/* bottom sheet */
+.sheet { position: fixed; inset: 0; z-index: 65; display: flex; flex-direction: column; justify-content: flex-end; }
+.sheet-bg { position: absolute; inset: 0; background: rgba(20, 14, 36, .42); animation: fadeIn .2s ease; }
+.sheet-card { position: relative; width: 100%; max-width: 520px; margin: 0 auto; background: var(--bg); border-radius: 28px 28px 0 0; padding: 10px max(18px, env(safe-area-inset-left, 0px)) calc(22px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 16px; box-shadow: 0 -10px 40px rgba(20, 14, 36, .2); animation: sheetUp .32s cubic-bezier(.2, .9, .3, 1); max-height: 92vh; overflow-y: auto; }
+.grab { width: 40px; height: 5px; border-radius: 3px; background: var(--line); align-self: center; }
+.sheet-card h2 { font-size: 22px; }
+.pick3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.pick3 button { border: 2px solid transparent; background: var(--surface); box-shadow: var(--shadow); border-radius: 20px; padding: 14px 6px 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--ink); cursor: pointer; transition: border-color .15s ease, transform .12s ease; }
+.pick3 .ic { width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center; background: var(--brand-soft); color: var(--pink-ink); }
+.pick3 button[aria-selected="true"] { border-color: var(--pink); }
+.pick3 button[aria-selected="true"] .ic { background: linear-gradient(135deg, #ff8db4, #e5487f); color: #fff; }
+.pick3 button:active { transform: scale(.96); }
+.presets { display: flex; gap: 8px; flex-wrap: wrap; margin-top: -4px; }
+.presets button { border: 0; background: var(--surface); box-shadow: var(--shadow); border-radius: 999px; padding: 8px 14px; font-size: 14px; font-weight: 650; color: var(--ink); cursor: pointer; }
+.codein { font-family: var(--mono); letter-spacing: .2em; text-transform: uppercase; text-align: center; font-size: 20px !important; }
+@keyframes sheetUp { from { transform: translateY(100%); } }
+@keyframes fadeIn { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .sheet-bg, .sheet-card { animation: none; } }
+
+/* You: one grouped list */
+.practice-row { display: flex; align-items: center; gap: 14px; width: 100%; padding: 16px; border: 0; border-radius: var(--r); background: linear-gradient(160deg, #35296b 0%, #1c1640 100%); color: #fff; text-align: left; cursor: pointer; box-shadow: 0 14px 32px rgba(42, 33, 82, .24); }
+.practice-row .ic { width: 44px; height: 44px; flex: none; }
+.practice-row .ic svg { width: 100%; height: 100%; display: block; }
+.practice-row .t { flex: 1; display: flex; flex-direction: column; }
+.practice-row .t span { font-size: 13px; color: rgba(255, 255, 255, .72); }
+.practice-row .chev { opacity: .7; }
+.set-group { background: var(--surface); border-radius: var(--r); box-shadow: var(--shadow); overflow: hidden; }
+details.set { background: none; box-shadow: none; border-radius: 0; padding: 0; border-bottom: 1px solid var(--line); }
+details.set:last-child { border-bottom: 0; }
+details.set > summary { list-style: none; display: flex; align-items: center; gap: 14px; padding: 13px 16px; margin: 0 !important; }
+details.set > summary::-webkit-details-marker { display: none; }
+details.set > summary b { flex: 1; font-weight: 650; font-size: 15px; }
+details.set > summary .ic { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; background: var(--brand-soft); color: var(--pink-ink); flex: none; }
+details.set > summary .ic .i { width: 19px; height: 19px; }
+details.set > summary .chev { width: 18px; height: 18px; color: var(--muted); opacity: .6; transition: transform .2s ease; }
+details.set[open] > summary .chev { transform: rotate(90deg); }
+.set-body { padding: 2px 16px 18px; }
+details.set.free > summary .ic { background: var(--pink); color: #fff; }
+
+/* help lines */
+[data-view="help"] details { box-shadow: var(--shadow); }
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs><linearGradient id="markG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8db4"/><stop offset="1" stop-color="#e5487f"/></linearGradient></defs>
   <symbol id="i-walk" viewBox="0 0 24 24"><circle cx="13" cy="4" r="2"/><path d="m9 20 3-6 3 3v4M6 12l2-4 4-1 3 4 3 1"/></symbol>
   <symbol id="i-timer" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></symbol>
   <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></symbol>
@@ -366,11 +488,16 @@ html.ios-app .no-ios { display: none !important; }
   <symbol id="i-people" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6.5 6.5 0 0 1 4 6"/></symbol>
   <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01"/></symbol>
   <symbol id="i-me" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3M15 8l2 2"/></symbol>
+  <symbol id="i-ring" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/></symbol>
   <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4l2-2zM10 20a2 2 0 0 0 4 0"/></symbol>
 </svg>
 
 <header class="top">
   <div class="top-inner">
+    <span class="mark" aria-hidden="true"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="url(#markG)"/><path d="M60.26 21.81 A30 30 0 1 1 39.74 21.81" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round"/><circle cx="50" cy="50" r="17" fill="#2a2152"/></svg></span>
     <button class="exit" id="quickExit" type="button" aria-label="Quick exit: leave this app and open a weather page">Quick exit</button>
   </div>
 </header>
@@ -412,11 +539,9 @@ html.ios-app .no-ios { display: none !important; }
         </svg>
       </button>
       <p class="hold-hint" id="holdHint">Press and hold until the ring closes</p>
-      <p class="small muted" style="text-align:center;max-width:30ch">Alerts your circle with your live location. Nothing is sent if you let go early.</p>
     </div>
 
     <div class="actions3" id="homeQuick"></div>
-    <button class="edit-quick" type="button" data-action="quick-edit">Change these buttons</button>
     <div class="card tipcard" id="widgetTip" hidden>
       <div class="t"><b>Put Shecurity on your home screen</b><div class="small muted">Four emergency buttons without opening the app. Takes 20 seconds.</div></div>
       <div class="stack" style="gap:6px"><button class="btn sm primary" type="button" id="widgetTipGo" data-go="widget">Show me</button><button class="btn sm ghost" type="button" data-action="widget-tip-hide">Not now</button></div>
@@ -430,24 +555,24 @@ html.ios-app .no-ios { display: none !important; }
       </button>
     </div>
 
-    <span class="section-title">More tools</span>
-    <div class="list">
-      <button class="li" type="button" data-go="plan"><svg class="i"><use href="#i-plan"/></svg><span class="t"><b>Share my plans</b><span>Where you're going and who with, for a few hours</span></span><svg class="i chev"><use href="#i-chev"/></svg></button>
-      <button class="li" type="button" data-action="siren"><svg class="i"><use href="#i-siren"/></svg><span class="t"><b>Loud siren</b><span>Alarm sound and flashing screen</span></span><svg class="i chev"><use href="#i-chev"/></svg></button>
-      <button class="li" type="button" data-action="share-location"><svg class="i"><use href="#i-pin"/></svg><span class="t"><b>Send my location</b><span>Let your circle know where you are, no alarm</span></span><svg class="i chev"><use href="#i-chev"/></svg></button>
-      <button class="li" type="button" data-go="ride"><svg class="i"><use href="#i-car"/></svg><span class="t"><b>Ride check</b><span>Share the car and driver before you get in</span></span><svg class="i chev"><use href="#i-chev"/></svg></button>
-      <button class="li" type="button" data-go="date"><svg class="i"><use href="#i-heart"/></svg><span class="t"><b>Date safety</b><span>Tell a friend who you're meeting and where</span></span><svg class="i chev"><use href="#i-chev"/></svg></button>
-      <button class="li" type="button" data-go="record"><svg class="i"><use href="#i-mic"/></svg><span class="t"><b>Record</b><span>Audio you can send to someone right away</span></span><svg class="i chev"><use href="#i-chev"/></svg></button>
-      <button class="li" type="button" data-go="places"><svg class="i"><use href="#i-place"/></svg><span class="t"><b>Safe places nearby</b><span>Police, hospital, open pharmacy</span></span><svg class="i chev"><use href="#i-chev"/></svg></button>
+    <div class="sec-head"><span class="section-title">Tools</span><button class="edit-quick" type="button" data-action="quick-edit">Edit</button></div>
+    <div class="tools">
+      <button class="tool" type="button" data-go="plan"><span class="ic"><svg class="i"><use href="#i-plan"/></svg></span>My plans</button>
+      <button class="tool" type="button" data-action="share-location"><span class="ic"><svg class="i"><use href="#i-pin"/></svg></span>My location</button>
+      <button class="tool" type="button" data-action="siren"><span class="ic"><svg class="i"><use href="#i-siren"/></svg></span>Siren</button>
+      <button class="tool" type="button" data-go="fakecall"><span class="ic"><svg class="i"><use href="#i-phone"/></svg></span>Fake call</button>
+      <button class="tool" type="button" data-go="ride"><span class="ic"><svg class="i"><use href="#i-car"/></svg></span>Ride</button>
+      <button class="tool" type="button" data-go="date"><span class="ic"><svg class="i"><use href="#i-heart"/></svg></span>Date</button>
+      <button class="tool" type="button" data-go="record"><span class="ic"><svg class="i"><use href="#i-mic"/></svg></span>Record</button>
+      <button class="tool" type="button" data-go="places"><span class="ic"><svg class="i"><use href="#i-place"/></svg></span>Safe places</button>
     </div>
 
-    <p class="trust"><svg class="i"><use href="#i-lock"/></svg><span>Free forever, no ads. Only people you invite can see you, and your location is shared only when you choose.</span></p>
-    <button class="trust link" type="button" data-action="free-info"><svg class="i"><use href="#i-heart"/></svg><span>Safety is always free.<b class="no-ios"> Support future upgrades</b></span></button>
+    <button class="trust link" type="button" data-action="free-info"><svg class="i"><use href="#i-lock"/></svg><span>Safety is always free.<b class="no-ios"> Support future upgrades</b></span></button>
   </section>
 
   <!-- CIRCLE -->
   <section class="view" data-view="circle" hidden>
-    <h1>Your circle</h1>
+    <div class="page-head"><h1>Your circle</h1><button class="round-add" type="button" id="addOpen" data-action="add-open" aria-label="Add people" hidden><svg class="i"><use href="#i-plus"/></svg></button></div>
 
     <div class="card brand" id="netJoin" hidden>
       <h2>Build your safety network</h2>
@@ -483,6 +608,12 @@ html.ios-app .no-ios { display: none !important; }
         <button class="btn primary block" type="button" id="pushBtn" data-action="push-on">Turn on alerts</button>
       </div>
 
+      <div class="seg" role="tablist" aria-label="Circle">
+        <button type="button" role="tab" data-seg="now" aria-selected="true">Now</button>
+        <button type="button" role="tab" data-seg="people" aria-selected="false">Circles</button>
+      </div>
+
+      <div class="pane view" data-pane="now">
       <div>
         <span class="section-title">What everyone's up to</span>
         <div class="card" style="margin-top:16px">
@@ -502,21 +633,11 @@ html.ios-app .no-ios { display: none !important; }
         <div class="card" id="feed" style="margin-top:16px"></div>
       </div>
 
-      <div id="circleList" class="view"></div>
+      </div>
 
-      <div class="card" id="addPeople">
-        <h2>Add people</h2>
-        <div class="aud-f" id="invAudWrap"><span>Add them to</span><div class="aud" data-aud="invite"></div></div>
-        <p class="small muted" id="invHint">They'll be in your whole circle, so they get alerts you send to everyone.</p>
-        <button class="btn primary" type="button" data-action="invite-to">Send an invite</button>
-        <div class="stack" style="border-top:1px solid var(--line);padding-top:14px">
-          <label class="f">New small circle<span class="hint">Like Family, Best friends or Flatmates. Everyone in it is part of your whole circle too.</span><input type="text" id="ccName" placeholder="Family, Best friends, Flatmates" maxlength="40"></label>
-          <button class="btn" type="button" data-action="circle-create">Create and invite</button>
-        </div>
-        <div class="stack" style="border-top:1px solid var(--line);padding-top:14px">
-          <label class="f">Got an invite code?<input type="text" id="jcCode" placeholder="8 letters" maxlength="12" autocapitalize="characters" autocomplete="off"></label>
-          <button class="btn" type="button" data-action="circle-join">Join circle</button>
-        </div>
+      <div class="pane view" data-pane="people" hidden>
+        <div id="circleList" class="view"></div>
+        <button class="btn primary block" type="button" data-action="add-open">Add people</button>
       </div>
     </div>
   </section>
@@ -525,7 +646,7 @@ html.ios-app .no-ios { display: none !important; }
   <section class="view" data-view="plan" hidden>
     <button class="back" type="button" data-go="circle"><svg class="i"><use href="#i-back"/></svg>Back</button>
     <h1>Share my plans</h1>
-    <p class="muted">Let your circle know where you're going and who you're with. It shows on their app until the time you pick, then disappears.</p>
+    <p class="muted">Where you're going and who with, for a few hours</p>
     <div class="card brand" id="planJoin" hidden>
       <h2>Join the network first</h2>
       <p class="small">Plans are shared with your circle, so you need a circle first. It takes a minute and needs no email.</p>
@@ -543,7 +664,6 @@ html.ios-app .no-ios { display: none !important; }
       <label class="check"><input type="checkbox" id="plLoc"> Add where I am now</label>
       <button class="btn primary block" type="button" data-action="plan-post" id="plPost">Share with my circle</button>
     </div>
-    <p class="small muted">Only people in your circles can see your plans. Want them to follow you live? Use Walk with me or Check-in.</p>
   </section>
 
   <!-- WALK -->
@@ -559,7 +679,7 @@ html.ios-app .no-ios { display: none !important; }
       <div class="aud-f" hidden><span>Who follows along</span><div class="aud" data-aud="walk"></div></div>
       <button class="btn primary block" type="button" data-action="walk-start">Start walking</button>
     </div>
-    <p class="small muted">Keep Shecurity open while you walk. The screen stays on so your location keeps updating.</p>
+    <p class="tip"><svg class="i"><use href="#i-info"/></svg><span>Keep Shecurity open while you walk. The screen stays on so your location keeps updating.</span></p>
   </section>
 
   <!-- TIMER -->
@@ -576,7 +696,7 @@ html.ios-app .no-ios { display: none !important; }
       <label class="check"><input type="checkbox" id="tmTell" checked> Let my circle know I started</label>
       <button class="btn primary block" type="button" data-action="timer-start">Start check-in</button>
     </div>
-    <p class="small muted">Keep Shecurity open. A locked or dead phone can't raise the alarm, so tell someone your plan too.</p>
+    <p class="tip"><svg class="i"><use href="#i-info"/></svg><span>Keep Shecurity open. A locked or dead phone can't raise the alarm, so tell someone your plan too.</span></p>
   </section>
 
   <!-- WIDGET GUIDE -->
@@ -600,7 +720,7 @@ html.ios-app .no-ios { display: none !important; }
   <section class="view" data-view="fakecall" hidden>
     <button class="back" type="button" data-go="home"><svg class="i"><use href="#i-back"/></svg>Back</button>
     <h1>Fake call</h1>
-    <p class="muted">Your phone rings with a realistic call. Answer it and a voice talks to you, so you have a reason to leave.</p>
+    <p class="muted">Your phone rings</p>
     <div class="card stack">
       <label class="f">Caller name<input type="text" id="fcName" value="Mom" maxlength="30"></label>
       <label class="f">What they say
@@ -612,14 +732,14 @@ html.ios-app .no-ios { display: none !important; }
       <label class="check" id="fcListenRow"><input type="checkbox" id="fcListen" checked> The caller hears you and answers (uses the microphone, nothing is recorded)</label>
       <button class="btn primary block" type="button" data-action="fakecall-start">Schedule call</button>
     </div>
-    <p class="small muted">Keep Shecurity open. When you answer, hold the phone to your ear: the voice is quiet, like a real call.</p>
+    <p class="tip"><svg class="i"><use href="#i-info"/></svg><span>Keep Shecurity open. When you answer, hold the phone to your ear: the voice is quiet, like a real call.</span></p>
   </section>
 
   <!-- RIDE -->
   <section class="view" data-view="ride" hidden>
     <button class="back" type="button" data-go="home"><svg class="i"><use href="#i-back"/></svg>Back</button>
     <h1>Ride check</h1>
-    <p class="muted">Before you get in, share the car and driver with your circle. Your location is shared for the trip.</p>
+    <p class="muted">Share the car and driver before you get in</p>
     <div class="card stack">
       <label class="f">Service<input type="text" id="rdService" placeholder="Uber, Bolt, taxi" maxlength="40"></label>
       <label class="f">Car<input type="text" id="rdCar" placeholder="Grey Toyota Corolla" maxlength="60"></label>
@@ -634,7 +754,7 @@ html.ios-app .no-ios { display: none !important; }
   <section class="view" data-view="date" hidden>
     <button class="back" type="button" data-go="home"><svg class="i"><use href="#i-back"/></svg>Back</button>
     <h1>Date safety</h1>
-    <p class="muted">Meeting someone new? Tell your circle who and where, and set a time to check in.</p>
+    <p class="muted">Tell a friend who you're meeting and where</p>
     <div class="card stack">
       <label class="f">Their name<input type="text" id="dtName" maxlength="40"></label>
       <label class="f">Their phone or profile link<input type="text" id="dtProfile" maxlength="120"></label>
@@ -651,7 +771,7 @@ html.ios-app .no-ios { display: none !important; }
   <section class="view" data-view="record" hidden>
     <button class="back" type="button" data-go="home"><svg class="i"><use href="#i-back"/></svg>Back</button>
     <h1>Record</h1>
-    <p class="muted">Record audio, then send it straight to someone you trust, so it's safe even if your phone is taken.</p>
+    <p class="muted">Audio you can send to someone right away</p>
     <div class="card stack">
       <div class="timer-big" id="recTime">00:00</div>
       <button class="btn primary block" type="button" id="recBtn" data-action="record-toggle">Start recording</button>
@@ -660,14 +780,14 @@ html.ios-app .no-ios { display: none !important; }
         <a class="btn" id="recSave" download="shecurity-recording.webm" href="#">Save to phone</a>
       </div>
     </div>
-    <p class="small muted">Recording laws differ by place. In some US states and countries everyone in a conversation must agree to be recorded.</p>
+    <p class="tip"><svg class="i"><use href="#i-info"/></svg><span>Recording laws differ by place. In some US states and countries everyone in a conversation must agree to be recorded.</span></p>
   </section>
 
   <!-- PLACES -->
   <section class="view" data-view="places" hidden>
     <button class="back" type="button" data-go="home"><svg class="i"><use href="#i-back"/></svg>Back</button>
     <h1>Safe places nearby</h1>
-    <p class="muted">Opens your maps app with the nearest places. Busy, well-lit places with staff are best for waiting.</p>
+    <p class="muted">Police, hospital, open pharmacy</p>
     <div class="list">
       <a class="li" target="_blank" rel="noopener" href="https://www.google.com/maps/search/police+station+near+me"><svg class="i"><use href="#i-place"/></svg><span class="t"><b>Police station</b></span><svg class="i chev"><use href="#i-chev"/></svg></a>
       <a class="li" target="_blank" rel="noopener" href="https://www.google.com/maps/search/hospital+emergency+near+me"><svg class="i"><use href="#i-place"/></svg><span class="t"><b>Hospital</b></span><svg class="i chev"><use href="#i-chev"/></svg></a>
@@ -702,26 +822,26 @@ html.ios-app .no-ios { display: none !important; }
   <!-- ME -->
   <section class="view" data-view="me" hidden>
     <h1>You</h1>
-    <div class="card stack">
-      <h2>Language and country</h2>
-      <label class="f">Language<select id="stLang"></select></label>
-      <label class="f">Country, for emergency numbers<span class="hint" id="stCountryHint"></span><select id="stCountry"></select></label>
-    </div>
-    <div class="card">
-      <div class="row" style="align-items:center;gap:12px;flex-wrap:nowrap">
-        <span class="avatar" style="background:var(--brand-soft);color:var(--pink-ink)"><svg class="i"><use href="#i-bell"/></svg></span>
-        <div style="flex:1;min-width:0"><b>Practice SOS</b><p class="small muted">Try the SOS button safely. Nothing is sent.</p></div>
-      </div>
-      <button class="btn block" type="button" data-action="practice-sos">Practice now</button>
-    </div>
-    <div class="card stack" id="meProfile" hidden>
-      <h2>Your profile</h2>
+    <button class="practice-row" type="button" data-action="practice-sos"><span class="ic"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="50" fill="url(#markG)"/><path d="M60.26 21.81 A30 30 0 1 1 39.74 21.81" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round"/><circle cx="50" cy="50" r="17" fill="#2a2152"/></svg></span><span class="t"><b>Practice SOS</b><span>Try the SOS button safely. Nothing is sent.</span></span><svg class="i chev"><use href="#i-chev"/></svg></button>
+    <div class="set-group">
+    <details class="set" id="meProfile" hidden>
+      <summary><span class="ic"><svg class="i"><use href="#i-me"/></svg></span><b>Your profile</b><svg class="i chev"><use href="#i-chev"/></svg></summary>
+      <div class="set-body stack">
       <label class="f">First name<input type="text" id="mpName" maxlength="40"></label>
       <label class="f">Mobile number<span class="hint">Visible only to your circle.</span><input type="tel" id="mpPhone" maxlength="24"></label>
       <button class="btn" type="button" data-action="profile-save">Save profile</button>
-    </div>
-    <div class="card">
-      <h2>Text message backup</h2>
+      </div>
+    </details>
+    <details class="set">
+      <summary><span class="ic"><svg class="i"><use href="#i-help"/></svg></span><b>Language and country</b><svg class="i chev"><use href="#i-chev"/></svg></summary>
+      <div class="set-body stack">
+      <label class="f">Language<select id="stLang"></select></label>
+      <label class="f">Country, for emergency numbers<span class="hint" id="stCountryHint"></span><select id="stCountry"></select></label>
+      </div>
+    </details>
+    <details class="set">
+      <summary><span class="ic"><svg class="i"><use href="#i-phone"/></svg></span><b>Text message backup</b><svg class="i chev"><use href="#i-chev"/></svg></summary>
+      <div class="set-body stack">
       <p class="small muted">For people who don't have Shecurity, or when there's no internet. They get your SOS as a normal text.</p>
       <div id="contactList"></div>
       <div class="stack">
@@ -729,9 +849,11 @@ html.ios-app .no-ios { display: none !important; }
         <label class="f">Mobile number with country code<input type="tel" id="ctPhone" placeholder="+1 555 123 4567" maxlength="24" autocomplete="off"></label>
         <button class="btn" type="button" data-action="contact-add">Add backup contact</button>
       </div>
-    </div>
-    <div class="card stack" id="quickCard">
-      <h2>Your quick buttons</h2>
+      </div>
+    </details>
+    <details class="set" id="quickCard">
+      <summary><span class="ic"><svg class="i"><use href="#i-home"/></svg></span><b>Your quick buttons</b><svg class="i chev"><use href="#i-chev"/></svg></summary>
+      <div class="set-body stack">
       <p class="small muted">Pick what's one tap away. Choose what you'd reach for in a hurry.</p>
       <b class="small">Under the SOS button</b>
       <div class="stack" id="qHome"></div>
@@ -743,23 +865,32 @@ html.ios-app .no-ios { display: none !important; }
       <button class="btn sm" type="button" id="widgetAdd" data-action="widget-add" hidden style="align-self:flex-start">Add the widget to my home screen</button>
       <button class="btn sm" type="button" id="watchLink" data-action="watch-link" hidden style="align-self:flex-start">Send to my widget and watch</button>
       <button class="btn sm" type="button" data-action="quick-reset" style="align-self:flex-start">Back to the standard buttons</button>
-    </div>
-    <div class="card stack">
-      <h2>SOS settings</h2>
+      </div>
+    </details>
+    <details class="set">
+      <summary><span class="ic"><svg class="i"><use href="#i-bell"/></svg></span><b>SOS settings</b><svg class="i chev"><use href="#i-chev"/></svg></summary>
+      <div class="set-body stack">
       <label class="f">Your SOS message<textarea id="stTemplate" maxlength="300"></textarea></label>
       <label class="check"><input type="checkbox" id="stSiren"> Sound the siren when I press SOS</label>
       <button class="btn" type="button" data-action="settings-save">Save settings</button>
+      </div>
+    </details>
     </div>
-    <div class="card brand stack free" id="freeCard">
-      <div class="row" style="gap:10px;align-items:center"><span class="heart"><svg class="i"><use href="#i-heart"/></svg></span><h2>Free forever</h2></div>
-      <p class="small">Every safety feature in Shecurity is free and always will be: SOS, your circle, live location, check-ins, fake call and siren. No ads, ever, because nothing should get in the way in an emergency.</p>
+    <div class="set-group">
+    <details class="set free" id="freeCard">
+      <summary><span class="ic"><svg class="i"><use href="#i-heart"/></svg></span><b>Free forever</b><svg class="i chev"><use href="#i-chev"/></svg></summary>
+      <div class="set-body stack">
+
+            <p class="small">Every safety feature in Shecurity is free and always will be: SOS, your circle, live location, check-ins, fake call and siren. No ads, ever, because nothing should get in the way in an emergency.</p>
       <p class="small no-ios">Shecurity is a profit-free project: nobody earns money from it. If you'd like to help pay for future upgrades, you can give any amount you like. Every bit goes into making Shecurity better.</p>
       <a class="btn primary no-ios" target="_blank" rel="noopener" href="https://getshecurity.com/#support">Support future upgrades</a>
       <a class="btn no-ios" target="_blank" rel="noopener" href="https://getshecurity.com/plans/">See what we're building next</a>
       <p class="small muted no-ios" style="margin:0">Donating is completely optional and changes nothing in the app.</p>
-    </div>
-    <div class="card brand stack no-ios">
-      <div class="row" style="justify-content:space-between;align-items:center"><h2>Shecurity Plus</h2><span class="tag">Coming later</span></div>
+      </div>
+    </details>
+    <details class="set no-ios">
+      <summary><span class="ic"><svg class="i"><use href="#i-plan"/></svg></span><b>Shecurity Plus</b><span class="tag">Coming later</span><svg class="i chev"><use href="#i-chev"/></svg></summary>
+      <div class="set-body stack">
       <p class="small">Optional extras for people who want more, about $2.99 a month. They help keep the free app running.</p>
       <ul class="small" style="margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:6px">
         <li>Automatic texts to people who don't have Shecurity</li>
@@ -768,9 +899,11 @@ html.ios-app .no-ios { display: none !important; }
         <li>A friendly AI voice that keeps you company on the walk home</li>
       </ul>
       <button class="btn primary" type="button" id="plusBtn" data-action="plus-interest">Tell me when Plus launches</button>
-    </div>
-    <div class="card stack">
-      <h2>Privacy</h2>
+      </div>
+    </details>
+    <details class="set">
+      <summary><span class="ic"><svg class="i"><use href="#i-lock"/></svg></span><b>Privacy</b><svg class="i chev"><use href="#i-chev"/></svg></summary>
+      <div class="set-body stack">
       <ul class="small" style="margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:6px">
         <li>Only people in your circles can see your name, alerts and location.</li>
         <li>Your location is shared only during an SOS, a walk, a ride or a missed check-in, and stops automatically.</li>
@@ -780,6 +913,8 @@ html.ios-app .no-ios { display: none !important; }
       <div id="blockedBox" class="stack" hidden><b class="small">Blocked people</b><div id="blockedList"></div></div>
       <a class="btn" href="mailto:hello@getshecurity.com?subject=Shecurity%20help">Contact us</a>
       <button class="btn" type="button" data-action="wipe">Delete my account and data</button>
+      </div>
+    </details>
     </div>
   </section>
 </main>
@@ -792,6 +927,34 @@ html.ios-app .no-ios { display: none !important; }
     <button type="button" data-go="me"><svg class="i"><use href="#i-me"/></svg>You</button>
   </div>
 </nav>
+
+<!-- ADD PEOPLE / NEW CIRCLE / JOIN: one bottom sheet -->
+<div class="sheet" id="addSheet" hidden role="dialog" aria-modal="true" aria-labelledby="addTitle">
+  <div class="sheet-bg" data-action="add-close"></div>
+  <div class="sheet-card" id="addPeople">
+    <span class="grab" aria-hidden="true"></span>
+    <h2 id="addTitle">Add people</h2>
+    <div class="pick3" role="tablist">
+      <button type="button" role="tab" data-addpane="invite" aria-selected="true"><span class="ic"><svg class="i"><use href="#i-people"/></svg></span>Invite people</button>
+      <button type="button" role="tab" data-addpane="new" aria-selected="false"><span class="ic"><svg class="i"><use href="#i-ring"/></svg></span>New circle</button>
+      <button type="button" role="tab" data-addpane="join" aria-selected="false"><span class="ic"><svg class="i"><use href="#i-key"/></svg></span>Join circle</button>
+    </div>
+    <div class="stack" data-apane="invite">
+      <div class="aud-f" id="invAudWrap"><span>Add them to</span><div class="aud" data-aud="invite"></div></div>
+      <p class="small muted" id="invHint">They'll be in your whole circle, so they get alerts you send to everyone.</p>
+      <button class="btn primary block" type="button" data-action="invite-to">Send an invite</button>
+    </div>
+    <div class="stack" data-apane="new" hidden>
+      <label class="f">New small circle<input type="text" id="ccName" placeholder="Family, Best friends, Flatmates" maxlength="40"></label>
+      <div class="presets"><button type="button" data-preset>Family</button><button type="button" data-preset>Best friends</button><button type="button" data-preset>Flatmates</button></div>
+      <button class="btn primary block" type="button" data-action="circle-create">Create and invite</button>
+    </div>
+    <div class="stack" data-apane="join" hidden>
+      <label class="f">Got an invite code?<input type="text" id="jcCode" class="codein" placeholder="8 letters" maxlength="12" autocapitalize="characters" autocomplete="off"></label>
+      <button class="btn primary block" type="button" data-action="circle-join">Join circle</button>
+    </div>
+  </div>
+</div>
 
 <!-- SOS COUNTDOWN (from the home-screen shortcut) -->
 <div class="overlay" id="sosCountdown" hidden role="alertdialog" aria-modal="true" aria-labelledby="cdTitle">
@@ -1180,7 +1343,7 @@ html.ios-app .no-ios { display: none !important; }
     var n = $("ccName").value.trim(); if (!n) { toast(T("Give your circle a name.")); return; }
     if (PREVIEW) { toast(T("Works in the live app.")); return; }
     net.sb.rpc("create_circle", { p_name: n }).then(function (r) {
-      if (r.error) throw r.error; $("ccName").value = "";
+      if (r.error) throw r.error; $("ccName").value = ""; closeAdd();
       return loadCircles().then(function () { renderNet(); invite(r.data); });
     }).catch(function (e) { toast(e.message || T("Couldn't create the circle.")); });
   }
@@ -1189,7 +1352,7 @@ html.ios-app .no-ios { display: none !important; }
     if (code.length < 6) { toast(T("Enter the 8-letter code.")); return Promise.resolve(); }
     if (PREVIEW) { toast(T("Works in the live app.")); return Promise.resolve(); }
     return net.sb.rpc("join_circle", { p_code: code }).then(function (r) {
-      if (r.error) throw r.error; $("jcCode").value = "";
+      if (r.error) throw r.error; $("jcCode").value = ""; closeAdd();
       toast(T("You joined {circle}", { circle: r.data.name }));
       return loadCircles().then(function () { return Promise.all([loadFeed(), loadLive(), loadPlans()]); }).then(renderNet);
     }).catch(function (e) { toast(e.message || T("Couldn't join.")); });
@@ -1199,7 +1362,7 @@ html.ios-app .no-ios { display: none !important; }
     if (PREVIEW) { toast(T("Works in the live app.")); return; }
     var c = state.inviteTo && circleById(state.inviteTo);
     if (c && c.invite_code) { invite(c); return; }
-    if (!groupsOn()) { var any = net.circles.filter(function (x) { return x.invite_code; })[0]; if (any) invite(any); else { $("ccName").focus(); toast(T("Give your circle a name.")); } return; }
+    if (!groupsOn()) { var any = net.circles.filter(function (x) { return x.invite_code; })[0]; if (any) invite(any); else { openAdd("new"); toast(T("Give your circle a name.")); } return; }
     var m = myMain(); if (m) { invite(m); return; }
     net.sb.rpc("main_circle", { p_name: T("{name}'s circle", { name: (net.profile && net.profile.display_name) || T("My") }) }).then(function (r) {
       if (r.error) throw r.error;
@@ -1367,6 +1530,7 @@ html.ios-app .no-ios { display: none !important; }
     if (tag === "button") b.addEventListener("click", function () {
       if (me && !plan) { go("plan"); return; }
       var r = $("plan-" + id);
+      if (r && r.closest("[data-pane]")) setSeg("now");
       if (r) { r.scrollIntoView({ behavior: "smooth", block: "center" }); r.classList.remove("flash"); void r.offsetWidth; r.classList.add("flash"); }
       else toast(live ? T("{name} is sharing her live location below.", { name: nameOf(id) }) : T("{name} hasn't shared any plans right now.", { name: nameOf(id) }));
     });
@@ -1509,6 +1673,7 @@ html.ios-app .no-ios { display: none !important; }
     $("netJoin").hidden = joined || !!net.error && !PREVIEW;
     $("netOffline").hidden = !(net.error && !joined && !PREVIEW);
     $("netArea").hidden = !joined;
+    $("addOpen").hidden = !joined;
     $("meProfile").hidden = !joined;
     if (joined) { $("mpName").value = net.profile.display_name; $("mpPhone").value = net.profile.phone || ""; }
 
@@ -1595,15 +1760,14 @@ html.ios-app .no-ios { display: none !important; }
         if (isMain && m === net.me) return;
         var p = net.people[m] || {}; var row = el("div", "person");
         row.appendChild(el("span", "avatar", initial(p.display_name)));
-        var t = el("div", "t"); t.appendChild(el("b", null, m === net.me ? (p.display_name || T("You")) + " (" + T("you") + ")" : (p.display_name || T("Someone")))); t.appendChild(el("span", null, m === c.owner_id ? T("Created this circle") : T("Member"))); row.appendChild(t);
+        var t = el("div", "t"); t.appendChild(el("b", null, m === net.me ? (p.display_name || T("You")) + " (" + T("you") + ")" : (p.display_name || T("Someone")))); if (m === c.owner_id) t.appendChild(el("span", null, T("Created this circle"))); row.appendChild(t);
         // she can also put someone from her circle into one of her other small circles
-        var can = m !== net.me && groupsOn() && others.filter(function (x) { return x.members.indexOf(m) < 0; });
+        var sel = null, can = m !== net.me && groupsOn() && others.filter(function (x) { return x.members.indexOf(m) < 0; });
         if (can && can.length) {
-          var sel = el("select", "addto"); sel.setAttribute("aria-label", T("Add {name} to another circle", { name: p.display_name || T("Someone") }));
+          sel = el("select", "addto"); sel.setAttribute("aria-label", T("Add {name} to another circle", { name: p.display_name || T("Someone") }));
           var o0 = el("option", null, T("Add to…")); o0.value = ""; sel.appendChild(o0);
           can.forEach(function (x) { var o = el("option", null, x.is_main ? T("Everyone") : x.name); o.value = x.id; sel.appendChild(o); });
           sel.addEventListener("change", function () { var x = circleById(sel.value); if (x) addTo(m, x); });
-          row.appendChild(sel);
         }
         if (m !== net.me && p.phone) { var a = el("a", "btn sm", T("Call")); a.href = "tel:" + p.phone.replace(/[^\d+]/g, ""); row.appendChild(a); }
         list.appendChild(row);
@@ -1611,6 +1775,7 @@ html.ios-app .no-ios { display: none !important; }
           // remove (her own circles), block and report, for everyone in a circle
           var mo = el("button", "more", "\u22EF"); mo.type = "button"; mo.setAttribute("aria-label", T("Options for {name}", { name: p.display_name || T("Someone") }));
           var acts = el("div", "person-acts"); acts.hidden = true;
+          if (sel) acts.appendChild(sel);
           mo.setAttribute("aria-expanded", "false");
           mo.addEventListener("click", function () { acts.hidden = !acts.hidden; mo.setAttribute("aria-expanded", acts.hidden ? "false" : "true"); });
           if (c.owner_id === net.me) { var rm = el("button", "btn sm", T("Remove from circle")); rm.type = "button"; rm.addEventListener("click", function () { removeMember(c, m); }); acts.appendChild(rm); }
@@ -1620,13 +1785,10 @@ html.ios-app .no-ios { display: none !important; }
         }
       });
       card.appendChild(list);
-      if (c.invite_code && !isMain) {
-        card.appendChild(el("p", "small muted", T("Invite code")));
-        card.appendChild(el("div", "code", c.invite_code));
-      }
-      var r = el("div", "row");
-      var inv = el("button", "btn primary", T("Invite people")); inv.type = "button"; inv.addEventListener("click", function () { invite(c); }); r.appendChild(inv);
-      var lv = el("button", "btn", c.owner_id === net.me ? T("Delete circle") : T("Leave")); lv.type = "button";
+      var r = el("div", "row circ-foot");
+      if (c.invite_code && !isMain) { var cp = el("span", "code-pill", c.invite_code); cp.title = T("Invite code"); r.appendChild(cp); }
+      var inv = el("button", "btn primary sm", T("Invite people")); inv.type = "button"; inv.addEventListener("click", function () { invite(c); }); r.appendChild(inv);
+      var lv = el("button", "btn ghost sm", c.owner_id === net.me ? T("Delete circle") : T("Leave")); lv.type = "button";
       lv.addEventListener("click", function () { if (lv.getAttribute("data-armed") !== "1") { lv.setAttribute("data-armed", "1"); lv.textContent = T("Tap again to confirm"); return; } leaveCircle(c); });
       r.appendChild(lv); card.appendChild(r);
       cl.appendChild(card);
@@ -1645,11 +1807,11 @@ html.ios-app .no-ios { display: none !important; }
       var x = el("button", "bubble"); x.type = "button";
       var d = el("span", "dotc", String(Math.max(0, c.members.length - 1))); d.style.setProperty("--cc", circleColor(c));
       x.appendChild(d); x.appendChild(document.createTextNode(c.name));
-      x.addEventListener("click", function () { var card = $("circ-" + c.id); if (card) { card.scrollIntoView({ behavior: "smooth", block: "center" }); card.classList.remove("flash"); void card.offsetWidth; card.classList.add("flash"); } });
+      x.addEventListener("click", function () { setSeg("people"); var card = $("circ-" + c.id); if (card) { card.scrollIntoView({ behavior: "smooth", block: "center" }); card.classList.remove("flash"); void card.offsetWidth; card.classList.add("flash"); } });
       b.appendChild(x);
     });
     var add = el("button", "bubble add", "+ " + T("New circle")); add.type = "button";
-    add.addEventListener("click", function () { var i = $("ccName"); i.scrollIntoView({ behavior: "smooth", block: "center" }); setTimeout(function () { i.focus(); }, 350); });
+    add.addEventListener("click", function () { openAdd("new"); });
     b.appendChild(add);
   }
   function responseRow(a) {
@@ -1707,6 +1869,7 @@ html.ios-app .no-ios { display: none !important; }
   // ---------- navigation ----------
   var TABS = { home: "home", circle: "circle", help: "help", me: "me", plan: "circle", widget: "home" };
   function go(view) {
+    var sh = document.getElementById("addSheet"); if (sh) sh.hidden = true;
     document.querySelectorAll(".view[data-view]").forEach(function (v) { v.hidden = v.getAttribute("data-view") !== view; });
     var tab = TABS[view] || "home";
     document.querySelectorAll("nav.tabs button").forEach(function (b) { if (b.getAttribute("data-go") === tab) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
@@ -2414,6 +2577,23 @@ html.ios-app .no-ios { display: none !important; }
     }); else done();
   }
 
+  // ---------- circle tab: Now / Circles, and the add sheet ----------
+  function setSeg(k) {
+    document.querySelectorAll("[data-seg]").forEach(function (b) { b.setAttribute("aria-selected", b.getAttribute("data-seg") === k ? "true" : "false"); });
+    document.querySelectorAll("[data-pane]").forEach(function (p) { p.hidden = p.getAttribute("data-pane") !== k; });
+  }
+  function addPane(k) {
+    document.querySelectorAll("[data-addpane]").forEach(function (b) { b.setAttribute("aria-selected", b.getAttribute("data-addpane") === k ? "true" : "false"); });
+    document.querySelectorAll("[data-apane]").forEach(function (p) { p.hidden = p.getAttribute("data-apane") !== k; });
+  }
+  function openAdd(k) { addPane(k || "invite"); $("addSheet").hidden = false; if (k === "new") setTimeout(function () { $("ccName").focus(); }, 250); }
+  function closeAdd() { $("addSheet").hidden = true; }
+  document.addEventListener("click", function (e) {
+    var sg = e.target.closest("[data-seg]"); if (sg) { setSeg(sg.getAttribute("data-seg")); return; }
+    var ap = e.target.closest("[data-addpane]"); if (ap) { addPane(ap.getAttribute("data-addpane")); return; }
+    var pr = e.target.closest("[data-preset]"); if (pr) { $("ccName").value = pr.textContent; $("ccName").focus(); }
+  });
+
   // ---------- events ----------
   document.addEventListener("click", function (e) {
     var g = e.target.closest("[data-go]"); if (g) { go(g.getAttribute("data-go")); return; }
@@ -2429,6 +2609,8 @@ html.ios-app .no-ios { display: none !important; }
       case "call-decline": case "call-end": endCall(); break;
       case "sos-widen": widenSos(); break;
       case "invite-to": inviteTo(); break;
+      case "add-open": openAdd(a.getAttribute("data-pane")); break;
+      case "add-close": closeAdd(); break;
       case "practice-sos": openPractice(); break;
       case "timer-start": startTimer({ minutes: parseInt($("tmMinutes").value, 10), note: v("tmNote"), tell: $("tmTell").checked, to: audOf("timer") }); break;
       case "walk-start":
@@ -2465,7 +2647,7 @@ html.ios-app .no-ios { display: none !important; }
       case "nudge-go": closeNudge(true); break;
       case "nudge-later": closeNudge(false); break;
       case "nudge-never": closeNudge(true); break;
-      case "free-info": go("me"); setTimeout(function () { $("freeCard").scrollIntoView({ behavior: "smooth", block: "center" }); }, 60); break;
+      case "free-info": go("me"); $("freeCard").open = true; setTimeout(function () { $("freeCard").scrollIntoView({ behavior: "smooth", block: "center" }); }, 60); break;
       case "plus-interest":
         state.plusInterest = true; save(); renderPlus();
         if (netOn() && !PREVIEW) net.sb.from("profiles").update({ plus_interest: true }).eq("id", net.me).then(function () {});
@@ -2474,7 +2656,7 @@ html.ios-app .no-ios { display: none !important; }
       case "cd-cancel": stopCountdown(); toast(T("Cancelled. Nothing was sent.")); break;
       case "cd-now": stopCountdown(); openSos({ siren: state.sirenOnSos }); break;
       case "copy-sos-link": copy(sosLink()); break;
-      case "quick-edit": go("me"); setTimeout(function () { $("quickCard").scrollIntoView({ behavior: "smooth", block: "start" }); }, 50); break;
+      case "quick-edit": go("me"); $("quickCard").open = true; setTimeout(function () { $("quickCard").scrollIntoView({ behavior: "smooth", block: "start" }); }, 50); break;
       case "watch-link": sendAndroidWidget(); break;
       case "widget-add": sendAndroidWidget(true); state.widgetTipDone = true; save(); renderWidgetTip(); break;
       case "welcome-main": welcomeAct("main"); break;
