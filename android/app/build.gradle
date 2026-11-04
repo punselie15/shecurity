@@ -61,8 +61,8 @@ android {
         applicationId "io.github.punselie15.shecurity"
         minSdkVersion 24
         targetSdkVersion 36
-        versionCode 7
-        versionName "1.1.1"
+        versionCode 8
+        versionName "1.2.0"
 
         // The name for the application
         resValue "string", "appName", twaManifest.name
