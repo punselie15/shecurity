@@ -2,7 +2,6 @@ package io.github.punselie15.shecurity;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -11,7 +10,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
-import android.view.WindowInsets;
 import android.webkit.GeolocationPermissions;
 import android.webkit.JavascriptInterface;
 import android.webkit.PermissionRequest;
@@ -24,6 +22,12 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 
+import androidx.activity.ComponentActivity;
+import androidx.activity.EdgeToEdge;
+import androidx.activity.SystemBarStyle;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.webkit.WebViewAssetLoader;
 
 import java.io.IOException;
@@ -36,7 +40,7 @@ import java.util.List;
  * at https://shecurity.app/app/ by WebViewAssetLoader, so it opens instantly and works offline.
  * Only the circle (Supabase), maps and donations go to the internet.
  */
-public class LauncherActivity extends Activity {
+public class LauncherActivity extends ComponentActivity {
     static final String HOME = "https://shecurity.app/app/";
     static final int APP_VERSION = 5; // tells the web app which native features it has
     private static final int REQ_LOCATION = 1, REQ_MIC = 2, REQ_NOTIFY = 3;
@@ -50,11 +54,11 @@ public class LauncherActivity extends Activity {
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // edge to edge the modern way: transparent bars, dark icons on the light app and light icons in dark mode
+        EdgeToEdge.enable(this, SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT), SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT));
         super.onCreate(savedInstanceState);
-        getWindow().setStatusBarColor(Color.parseColor("#FBF8FA"));
-        getWindow().setNavigationBarColor(Color.parseColor("#FBF8FA"));
-        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-                | (Build.VERSION.SDK_INT >= 26 ? View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR : 0));
+        boolean night = (getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES;
+        int bg = Color.parseColor(night ? "#121017" : "#FBF8FA");
 
         assets = new WebViewAssetLoader.Builder()
                 .setDomain("shecurity.app")
@@ -62,20 +66,15 @@ public class LauncherActivity extends Activity {
                 .build();
 
         FrameLayout root = new FrameLayout(this);
-        root.setBackgroundColor(Color.parseColor("#FBF8FA"));
+        root.setBackgroundColor(bg);
         web = new WebView(this);
-        web.setBackgroundColor(Color.parseColor("#FBF8FA"));
+        web.setBackgroundColor(bg);
         root.addView(web, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
         // Android 15+ draws apps edge to edge, so keep the page clear of the status and navigation bars
-        root.setOnApplyWindowInsetsListener((v, insets) -> {
-            if (Build.VERSION.SDK_INT >= 30) {
-                android.graphics.Insets bars = insets.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.ime());
-                v.setPadding(bars.left, bars.top, bars.right, bars.bottom);
-            } else {
-                v.setPadding(insets.getSystemWindowInsetLeft(), insets.getSystemWindowInsetTop(),
-                        insets.getSystemWindowInsetRight(), insets.getSystemWindowInsetBottom());
-            }
-            return insets;
+        ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
+            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout() | WindowInsetsCompat.Type.ime());
+            v.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+            return WindowInsetsCompat.CONSUMED;
         });
         setContentView(root);
 
