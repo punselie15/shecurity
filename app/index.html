@@ -1206,14 +1206,16 @@ details.set.free > summary .ic { background: var(--pink); color: #fff; }
   // small circles need the newer database; until then everything goes to everyone, like before
   function groupsOn() { return net.circles.some(function (c) { return c.is_main !== undefined; }); }
   function myMain() { return net.circles.filter(function (c) { return c.is_main && c.owner_id === net.me; })[0] || null; }
-  function smallCircles() { var m = myMain(); return net.circles.filter(function (c) { return c !== m; }); }
+  // someone else's whole circle, when that person is also in hers (two-way): she sees them in her own circle instead
+  function mirrored(c) { var m = myMain(); return !!(c.is_main && c.owner_id !== net.me && m && m.members.indexOf(c.owner_id) >= 0); }
+  function smallCircles() { var m = myMain(); return net.circles.filter(function (c) { return c !== m && !mirrored(c); }); }
   var CC = ["#e5487f", "#7a5af8", "#16a085", "#f08c2e", "#3b82f6", "#c2417a", "#0e9fb8", "#8a6d3b", "#5b8c2a", "#d0453b"];
   function circleColor(c) { var i = smallCircles().indexOf(c); return CC[(i < 0 ? 0 : i) % CC.length]; }
   function circleById(id) { return net.circles.filter(function (c) { return c.id === id; })[0] || null; }
   // who gets it: null is everyone, or one small circle that still exists and has people in it
   function audOf(key) {
     var id = (state.aud || {})[key] || null, c = id && circleById(id);
-    return c && groupsOn() && c !== myMain() ? id : null;
+    return c && groupsOn() && c !== myMain() && !mirrored(c) ? id : null;
   }
   function audName(cid) { var c = cid && circleById(cid); return c ? c.name : T("Everyone"); }
   function setAud(key, id) { state.aud = Object.assign({}, state.aud || {}); state.aud[key] = id || null; save(); renderAud(); }
@@ -1224,8 +1226,8 @@ details.set.free > summary .ic { background: var(--pink); color: #fff; }
       var wrap = box.parentNode; if (wrap && (wrap.classList.contains("aud-f") || wrap.classList.contains("aud-wrap"))) wrap.hidden = invite ? !groupsOn() : !show;
       box.innerHTML = "";
       var cur = invite ? (state.inviteTo || null) : audOf(key);
-      if (invite && cur && !(circleById(cur) && circleById(cur).invite_code)) cur = null;
-      var opts = [{ id: null, name: T("Everyone"), n: mates().length }].concat(list.filter(function (c) { return !invite || c.invite_code; }).map(function (c) { return { id: c.id, name: c.name, n: mates(c.id).length, c: c }; }));
+      if (invite && cur && !(circleById(cur) && circleById(cur).invite_code && circleById(cur).owner_id === net.me)) cur = null;
+      var opts = [{ id: null, name: T("Everyone"), n: mates().length }].concat(list.filter(function (c) { return !invite || (c.invite_code && c.owner_id === net.me); }).map(function (c) { return { id: c.id, name: c.name, n: mates(c.id).length, c: c }; }));
       opts.forEach(function (o) {
         var b = el("button"); b.type = "button"; b.setAttribute("aria-pressed", String(o.id === cur));
         var dot = el("i"); if (o.c) dot.style.setProperty("--cc", circleColor(o.c)); else dot.style.background = "linear-gradient(135deg,#ff8db4,#7a5af8)";
@@ -1361,8 +1363,8 @@ details.set.free > summary .ic { background: var(--pink); color: #fff; }
   function inviteTo() {
     if (PREVIEW) { toast(T("Works in the live app.")); return; }
     var c = state.inviteTo && circleById(state.inviteTo);
-    if (c && c.invite_code) { invite(c); return; }
-    if (!groupsOn()) { var any = net.circles.filter(function (x) { return x.invite_code; })[0]; if (any) invite(any); else { openAdd("new"); toast(T("Give your circle a name.")); } return; }
+    if (c && c.invite_code && c.owner_id === net.me) { invite(c); return; }
+    if (!groupsOn()) { var any = net.circles.filter(function (x) { return x.invite_code && x.owner_id === net.me; })[0]; if (any) invite(any); else { openAdd("new"); toast(T("Give your circle a name.")); } return; }
     var m = myMain(); if (m) { invite(m); return; }
     net.sb.rpc("main_circle", { p_name: T("{name}'s circle", { name: (net.profile && net.profile.display_name) || T("My") }) }).then(function (r) {
       if (r.error) throw r.error;
@@ -1380,16 +1382,18 @@ details.set.free > summary .ic { background: var(--pink); color: #fff; }
     var text = T("Join my Shecurity circle \"{circle}\" so we can look out for each other. Open {link} or enter the code {code}.", { circle: c.name, link: appUrl() + "#join-" + c.invite_code, code: c.invite_code });
     shareText(text);
   }
+  // try the newer database function, fall back when it isn't there yet
+  function orOld(q, old) { return q.then(function (r) { return r.error && (r.error.code === "PGRST202" || r.error.code === "42883") ? old() : r; }); }
   function leaveCircle(c) {
     var owner = c.owner_id === net.me;
-    var q = owner ? net.sb.from("circles").delete().eq("id", c.id) : net.sb.from("circle_members").delete().eq("circle_id", c.id).eq("user_id", net.me);
+    var q = owner ? net.sb.from("circles").delete().eq("id", c.id) : orOld(net.sb.rpc("leave_circle", { p_circle: c.id }), function () { return net.sb.from("circle_members").delete().eq("circle_id", c.id).eq("user_id", net.me); });
     q.then(function (r) { if (r.error) throw r.error; toast(owner ? T("Circle deleted") : T("You left {circle}", { circle: c.name })); return loadCircles(); }).then(renderNet).catch(function (e) { toast(e.message); });
   }
   function removeMember(c, m) {
     if (PREVIEW) { toast(T("Works in the live app.")); return; }
     var name = nameOf(m);
     if (!window.confirm(T("Remove {name} from {circle}?", { name: name, circle: c.is_main ? T("Everyone") : c.name }))) return;
-    net.sb.from("circle_members").delete().eq("circle_id", c.id).eq("user_id", m).then(function (r) {
+    orOld(net.sb.rpc("remove_member", { p_circle: c.id, p_user: m }), function () { return net.sb.from("circle_members").delete().eq("circle_id", c.id).eq("user_id", m); }).then(function (r) {
       if (r.error) throw r.error; toast(T("{name} was removed", { name: name })); return loadCircles();
     }).then(renderNet).catch(function (e) { toast(e.message); });
   }
@@ -1786,8 +1790,10 @@ details.set.free > summary .ic { background: var(--pink); color: #fff; }
       });
       card.appendChild(list);
       var r = el("div", "row circ-foot");
-      if (c.invite_code && !isMain) { var cp = el("span", "code-pill", c.invite_code); cp.title = T("Invite code"); r.appendChild(cp); }
-      var inv = el("button", "btn primary sm", T("Invite people")); inv.type = "button"; inv.addEventListener("click", function () { invite(c); }); r.appendChild(inv);
+      if (c.owner_id === net.me) {
+        if (c.invite_code && !isMain) { var cp = el("span", "code-pill", c.invite_code); cp.title = T("Invite code"); r.appendChild(cp); }
+        var inv = el("button", "btn primary sm", T("Invite people")); inv.type = "button"; inv.addEventListener("click", function () { invite(c); }); r.appendChild(inv);
+      }
       var lv = el("button", "btn ghost sm", c.owner_id === net.me ? T("Delete circle") : T("Leave")); lv.type = "button";
       lv.addEventListener("click", function () { if (lv.getAttribute("data-armed") !== "1") { lv.setAttribute("data-armed", "1"); lv.textContent = T("Tap again to confirm"); return; } leaveCircle(c); });
       r.appendChild(lv); card.appendChild(r);
