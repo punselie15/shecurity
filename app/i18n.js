@@ -694,7 +694,15 @@ window.SHC_I18N = {
 "{name} is no longer in {circle}": "{name} zit niet meer in {circle}",
 "{name} is now in {circle}": "{name} zit nu in {circle}",
 "{n} earlier clips": "{n} eerdere fragmenten",
-"{n} sound clips sent to your circle": "{n} geluidsfragmenten naar je kring gestuurd"
+"{n} sound clips sent to your circle": "{n} geluidsfragmenten naar je kring gestuurd",
+"You're in each other's circle. Tap someone to call, sort or remove them.": "Jullie zitten in elkaars kring. Tik op iemand om te bellen, in te delen of te verwijderen.",
+"Invite": "Uitnodigen",
+"Small circles": "Kleine kringen",
+"Groups only you see, like Family. Choose them when you press SOS, walk home or share plans.": "Groepjes die alleen jij ziet, zoals Familie. Kies ze als je op SOS drukt, naar huis loopt of plannen deelt.",
+"Empty": "Leeg",
+"You have no small circles yet.": "Je hebt nog geen kleine kringen.",
+"Who's in it": "Wie zit erin",
+"Or they enter the code {code}. They'll join {circle} and your circle.": "Of ze vullen de code {code} in. Ze komen dan in {circle} en in je kring."
 },
 "fr": {
 "Now": "En ce moment",
@@ -1390,7 +1398,15 @@ window.SHC_I18N = {
 "{name} is no longer in {circle}": "{name} n'est plus dans {circle}",
 "{name} is now in {circle}": "{name} est maintenant dans {circle}",
 "{n} earlier clips": "{n} extraits précédents",
-"{n} sound clips sent to your circle": "{n} extraits sonores envoyés à ton cercle"
+"{n} sound clips sent to your circle": "{n} extraits sonores envoyés à ton cercle",
+"You're in each other's circle. Tap someone to call, sort or remove them.": "Vous êtes dans le cercle les uns des autres. Touche une personne pour l'appeler, la classer ou la retirer.",
+"Invite": "Inviter",
+"Small circles": "Petits cercles",
+"Groups only you see, like Family. Choose them when you press SOS, walk home or share plans.": "Des groupes que toi seule vois, comme Famille. Choisis-les quand tu appuies sur SOS, rentres à pied ou partages tes projets.",
+"Empty": "Vide",
+"You have no small circles yet.": "Tu n'as pas encore de petit cercle.",
+"Who's in it": "Qui est dedans",
+"Or they enter the code {code}. They'll join {circle} and your circle.": "Ou elle entre le code {code}. Elle rejoindra {circle} et ton cercle."
 },
 "de": {
 "Now": "Jetzt",
@@ -2086,7 +2102,15 @@ window.SHC_I18N = {
 "{name} is no longer in {circle}": "{name} ist nicht mehr in {circle}",
 "{name} is now in {circle}": "{name} ist jetzt in {circle}",
 "{n} earlier clips": "{n} frühere Aufnahmen",
-"{n} sound clips sent to your circle": "{n} Tonaufnahmen an deinen Kreis gesendet"
+"{n} sound clips sent to your circle": "{n} Tonaufnahmen an deinen Kreis gesendet",
+"You're in each other's circle. Tap someone to call, sort or remove them.": "Ihr seid gegenseitig in euren Kreisen. Tippe auf jemanden, um anzurufen, zu sortieren oder zu entfernen.",
+"Invite": "Einladen",
+"Small circles": "Kleine Kreise",
+"Groups only you see, like Family. Choose them when you press SOS, walk home or share plans.": "Gruppen, die nur du siehst, wie Familie. Wähle sie, wenn du SOS drückst, heimgehst oder Pläne teilst.",
+"Empty": "Leer",
+"You have no small circles yet.": "Du hast noch keine kleinen Kreise.",
+"Who's in it": "Wer ist drin",
+"Or they enter the code {code}. They'll join {circle} and your circle.": "Oder sie gibt den Code {code} ein. Dann ist sie in {circle} und in deinem Kreis."
 },
 "es": {
 "Now": "Ahora",
@@ -2782,7 +2806,15 @@ window.SHC_I18N = {
 "{name} is no longer in {circle}": "{name} ya no está en {circle}",
 "{name} is now in {circle}": "{name} ya está en {circle}",
 "{n} earlier clips": "{n} clips anteriores",
-"{n} sound clips sent to your circle": "{n} clips de sonido enviados a tu círculo"
+"{n} sound clips sent to your circle": "{n} clips de sonido enviados a tu círculo",
+"You're in each other's circle. Tap someone to call, sort or remove them.": "Estáis en el círculo de los demás. Toca a alguien para llamar, ordenar o quitar.",
+"Invite": "Invitar",
+"Small circles": "Círculos pequeños",
+"Groups only you see, like Family. Choose them when you press SOS, walk home or share plans.": "Grupos que solo ves tú, como Familia. Elígelos al pulsar SOS, volver a casa o compartir planes.",
+"Empty": "Vacío",
+"You have no small circles yet.": "Aún no tienes círculos pequeños.",
+"Who's in it": "Quién está",
+"Or they enter the code {code}. They'll join {circle} and your circle.": "O introduce el código {code}. Entrará en {circle} y en tu círculo."
 },
 "pt": {
 "Now": "Agora",
@@ -3478,6 +3510,14 @@ window.SHC_I18N = {
 "{name} is no longer in {circle}": "{name} já não está em {circle}",
 "{name} is now in {circle}": "{name} está agora em {circle}",
 "{n} earlier clips": "{n} clipes anteriores",
-"{n} sound clips sent to your circle": "{n} clipes de som enviados ao teu círculo"
+"{n} sound clips sent to your circle": "{n} clipes de som enviados ao teu círculo",
+"You're in each other's circle. Tap someone to call, sort or remove them.": "Estão no círculo uns dos outros. Toca em alguém para ligar, organizar ou remover.",
+"Invite": "Convidar",
+"Small circles": "Círculos pequenos",
+"Groups only you see, like Family. Choose them when you press SOS, walk home or share plans.": "Grupos que só tu vês, como Família. Escolhe-os quando carregas em SOS, vais a pé para casa ou partilhas planos.",
+"Empty": "Vazio",
+"You have no small circles yet.": "Ainda não tens círculos pequenos.",
+"Who's in it": "Quem está",
+"Or they enter the code {code}. They'll join {circle} and your circle.": "Ou introduz o código {code}. Entra em {circle} e no teu círculo."
 }
 };

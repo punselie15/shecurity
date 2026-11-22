@@ -430,7 +430,29 @@ nav.tabs .badge { top: 5px; }
 .person.sos .t b { color: var(--sos); }
 .person.flash { animation: cflash 1.4s ease; }
 .maplibregl-ctrl-attrib { font-size: 10px; }
-.dots { display: flex; flex-wrap: wrap; gap: 2px 10px; }
+.faces-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px 6px; }
+.face { display: flex; flex-direction: column; align-items: center; gap: 6px; border: 0; background: none; padding: 0; font: inherit; color: inherit; cursor: pointer; min-width: 0; }
+.face .avatar { width: 56px; height: 56px; font-size: 20px; position: relative; overflow: visible; }
+.face.add .avatar { background: var(--surface-2); color: var(--ink); border: 1.5px dashed var(--line); font-size: 24px; }
+.face .fname { font-size: 13px; font-weight: 650; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.face .fdots { position: absolute; bottom: -3px; left: 50%; transform: translateX(-50%); display: flex; gap: 2px; }
+.face .fdots i { width: 10px; height: 10px; border-radius: 50%; background: var(--cc); border: 2px solid var(--surface); }
+.face .live { position: absolute; top: 0; right: 0; width: 12px; height: 12px; border-radius: 50%; background: #22c55e; border: 2px solid var(--surface); }
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tile { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 14px; border-radius: 18px; border: 0; background: var(--surface-2); color: inherit; font: inherit; text-align: left; cursor: pointer; min-height: 116px; }
+.tile .ring { width: 22px; height: 22px; border-radius: 50%; border: 4px solid var(--cc, var(--pink)); }
+.tile b { font-size: 15px; }
+.tile.new { border: 1.5px dashed var(--line); background: none; justify-content: center; align-items: center; text-align: center; }
+.tile.new .plus { font-size: 26px; line-height: 1; color: var(--muted); }
+.tile.flash { animation: cflash 1.4s ease; }
+.stack-av { display: flex; margin-top: auto; }
+.stack-av .avatar { width: 28px; height: 28px; font-size: 12px; margin-right: -8px; border: 2px solid var(--surface-2); }
+.sheet-person { display: flex; align-items: center; gap: 14px; }
+.avatar.big { width: 56px; height: 56px; font-size: 22px; }
+.check.crow { padding: 8px 0; border-bottom: 1px solid var(--line); }
+.check.crow .avatar { width: 32px; height: 32px; font-size: 13px; }
+.cdot { width: 14px; height: 14px; border-radius: 50%; background: var(--cc); flex: none; }
+#infoCard { max-height: 82vh; overflow-y: auto; }
 .clips { display: flex; flex-direction: column; gap: 6px; }
 .clip { display: flex; align-items: center; gap: 8px; }
 .clip audio { flex: 1; min-width: 0; height: 38px; }
@@ -617,16 +639,6 @@ details.set.free > summary .ic { background: var(--pink); color: #fff; }
 
     <div id="netArea" class="view" hidden>
       <div class="card sos" id="incomingCircle" hidden></div>
-      <div class="card whole" id="wholeCard">
-        <div>
-          <h2>Your whole circle</h2>
-          <p class="sub" id="wholeSub">Everyone you trust, together. For the big emergencies.</p>
-        </div>
-        <div class="faces" id="wholeFaces"></div>
-        <div class="bubbles" id="wholeBubbles"></div>
-        <div class="aud-wrap" id="sosAudWrap" hidden><b>When I press SOS, alert</b><div class="aud" data-aud="sos"></div></div>
-      </div>
-
       <div class="card" id="pushCard">
         <div class="row" style="align-items:center;gap:12px;flex-wrap:nowrap">
           <span class="avatar" style="background:var(--surface-2);color:var(--ink)"><svg class="i"><use href="#i-bell"/></svg></span>
@@ -642,6 +654,16 @@ details.set.free > summary .ic { background: var(--pink); color: #fff; }
       </div>
 
       <div class="pane view" data-pane="now">
+      <div class="card whole" id="wholeCard">
+        <div>
+          <h2>Your whole circle</h2>
+          <p class="sub" id="wholeSub">Everyone you trust, together. For the big emergencies.</p>
+        </div>
+        <div class="faces" id="wholeFaces"></div>
+        <div class="bubbles" id="wholeBubbles"></div>
+        <div class="aud-wrap" id="sosAudWrap" hidden><b>When I press SOS, alert</b><div class="aud" data-aud="sos"></div></div>
+      </div>
+
       <div>
         <span class="section-title">What everyone's up to</span>
         <div class="card" style="margin-top:16px">
@@ -678,7 +700,6 @@ details.set.free > summary .ic { background: var(--pink); color: #fff; }
 
       <div class="pane view" data-pane="people" hidden>
         <div id="circleList" class="view"></div>
-        <button class="btn primary block" type="button" data-action="add-open">Add people</button>
       </div>
     </div>
   </section>
@@ -1015,6 +1036,12 @@ details.set.free > summary .ic { background: var(--pink); color: #fff; }
     <div class="aud" id="placeList"></div>
     <button class="btn primary block" type="button" data-action="place-close">Done</button>
   </div>
+</div>
+
+<!-- A PERSON OR A SMALL CIRCLE: one bottom sheet, filled by the app -->
+<div class="sheet" id="infoSheet" hidden role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+  <div class="sheet-bg" data-action="info-close"></div>
+  <div class="sheet-card stack" id="infoCard"></div>
 </div>
 
 <!-- SOS COUNTDOWN (from the home-screen shortcut) -->
@@ -1429,7 +1456,7 @@ details.set.free > summary .ic { background: var(--pink); color: #fff; }
     if (PREVIEW) { toast(T("Works in the live app.")); return; }
     net.sb.rpc("create_circle", { p_name: n }).then(function (r) {
       if (r.error) throw r.error; $("ccName").value = ""; closeAdd();
-      return loadCircles().then(function () { renderNet(); setSeg("people"); toast(T("{circle} is ready. Add people from your circle, or invite someone new.", { circle: r.data.name })); flashCard("circ-" + r.data.id, true); });
+      return loadCircles().then(function () { renderNet(); setSeg("people"); openCircleSheet(r.data.id); });
     }).catch(function (e) { toast(e.message || T("Couldn't create the circle.")); });
   }
   function joinCircle(code) {
@@ -1898,89 +1925,109 @@ details.set.free > summary .ic { background: var(--pink); color: #fff; }
     if (scroll) card.scrollIntoView({ behavior: "smooth", block: "center" });
     card.classList.remove("flash"); void card.offsetWidth; card.classList.add("flash");
   }
-  function personMenu(m, row, list) {
-    var p = net.people[m] || {};
-    var mo = el("button", "more", "⋯"); mo.type = "button"; mo.setAttribute("aria-label", T("Options for {name}", { name: p.display_name || T("Someone") }));
-    var acts = el("div", "person-acts"); acts.hidden = true; mo.setAttribute("aria-expanded", "false");
-    mo.addEventListener("click", function () { acts.hidden = !acts.hidden; mo.setAttribute("aria-expanded", acts.hidden ? "false" : "true"); });
-    if (net.circles.length) {
-      var lab = el("span", "small muted", T("In your small circles")); lab.style.flexBasis = "100%"; acts.appendChild(lab);
-      var chips = el("div", "aud"); chips.style.flexBasis = "100%";
-      net.circles.forEach(function (c) { chips.appendChild(circleToggle(m, c)); });
-      acts.appendChild(chips);
-    }
-    var rm = el("button", "btn sm", T("Remove from my circle")); rm.type = "button"; rm.addEventListener("click", function () { unlinkPerson(m); }); acts.appendChild(rm);
-    var bl = el("button", "btn sm", T("Block")); bl.type = "button"; bl.addEventListener("click", function () { blockPerson(m); }); acts.appendChild(bl);
-    var rp = el("button", "btn sm", T("Report")); rp.type = "button"; rp.addEventListener("click", function () { reportPerson(m, null); }); acts.appendChild(rp);
-    row.appendChild(mo); list.appendChild(row); list.appendChild(acts);
-  }
-  function personRow(m) {
-    var p = net.people[m] || {}, row = el("div", "person");
-    row.appendChild(el("span", "avatar", initial(p.display_name)));
-    var t = el("div", "t"); t.appendChild(el("b", null, p.display_name || T("Someone")));
-    var cs = circlesOf(m);
-    if (cs.length) { var tags = el("span", "dots"); cs.forEach(function (c) { var to = el("span", "to"), dt = el("i"); dt.style.setProperty("--cc", circleColor(c)); to.appendChild(dt); to.appendChild(document.createTextNode(c.name)); tags.appendChild(to); }); t.appendChild(tags); }
-    else t.appendChild(el("span", null, liveOf(m) ? T("sharing live location") : T("In your circle")));
-    row.appendChild(t);
-    if (p.phone) { var a = el("a", "btn sm", T("Call")); a.href = "tel:" + p.phone.replace(/[^\d+]/g, ""); row.appendChild(a); }
-    return row;
+  // ---------- the Circles tab: your circle as faces, small circles as tiles; tap one for details ----------
+  function face(id, cls) {
+    var b = el("button", "face" + (cls ? " " + cls : "")); b.type = "button";
+    var av = el("span", "avatar", initial(nameOf(id))); b.appendChild(av);
+    var dots = el("span", "fdots"); circlesOf(id).forEach(function (c) { var d = el("i"); d.style.setProperty("--cc", circleColor(c)); dots.appendChild(d); });
+    av.appendChild(dots);
+    if (liveOf(id)) av.appendChild(el("span", "live"));
+    b.appendChild(el("span", "fname", nameOf(id)));
+    return b;
   }
   function renderCircles() {
     var cl = $("circleList"); cl.innerHTML = "";
     var people = mates().sort(function (a, b) { return nameOf(a).localeCompare(nameOf(b)); });
-    // the big circle: everyone she's linked with, both ways
-    var big = el("div", "card circ"); big.id = "circ-main";
-    var hd = el("div", "cc-head"), ring = el("span", "ring"); ring.style.borderColor = "#7a5af8"; hd.appendChild(ring);
-    hd.appendChild(el("h2", null, T("Your circle")));
-    hd.appendChild(el("span", "small muted", people.length === 1 ? T("1 person") : T("{n} people", { n: people.length })));
+    var big = el("div", "card stack"); big.id = "circ-main";
+    var hd = el("div", "cc-head"); hd.appendChild(el("h2", null, T("Your circle"))); hd.appendChild(el("span", "small muted", people.length === 1 ? T("1 person") : T("{n} people", { n: people.length })));
     big.appendChild(hd);
-    big.appendChild(el("p", "small muted", people.length ? T("You're in each other's circle. They get what you send to everyone, and you get theirs.") : T("It's just you for now. Invite 3 to 5 people you trust. When they join, you're in each other's circle.")));
-    var list = el("div");
-    people.forEach(function (m) { personMenu(m, personRow(m), list); });
-    big.appendChild(list);
-    var r = el("div", "row circ-foot");
-    if (net.main && net.main.invite_code) { var cp = el("span", "code-pill", net.main.invite_code); cp.title = T("Invite code"); r.appendChild(cp); }
-    var inv = el("button", "btn primary sm", T("Invite people")); inv.type = "button"; inv.addEventListener("click", function () { state.inviteTo = null; save(); inviteTo(); }); r.appendChild(inv);
-    big.appendChild(r);
+    big.appendChild(el("p", "small muted", people.length ? T("You're in each other's circle. Tap someone to call, sort or remove them.") : T("It's just you for now. Invite 3 to 5 people you trust. When they join, you're in each other's circle.")));
+    var faces = el("div", "faces-grid");
+    var inv = el("button", "face add"); inv.type = "button"; inv.appendChild(el("span", "avatar", "+")); inv.appendChild(el("span", "fname", T("Invite")));
+    inv.addEventListener("click", function () { state.inviteTo = null; save(); inviteTo(); });
+    faces.appendChild(inv);
+    people.forEach(function (m) { var f = face(m); f.addEventListener("click", function () { openPerson(m); }); faces.appendChild(f); });
+    big.appendChild(faces);
     cl.appendChild(big);
 
-    // her small circles, each with its own colour; only she sees them
-    if (net.circles.length) { var st = el("span", "section-title", T("Your small circles")); cl.appendChild(st); }
+    var sc = el("div", "card stack");
+    var h2 = el("div", "cc-head"); h2.appendChild(el("h2", null, T("Small circles"))); sc.appendChild(h2);
+    sc.appendChild(el("p", "small muted", T("Groups only you see, like Family. Choose them when you press SOS, walk home or share plans.")));
+    var tiles = el("div", "tiles");
     net.circles.forEach(function (c) {
-      var card = el("div", "card circ"); card.id = "circ-" + c.id; card.style.setProperty("--cc", circleColor(c));
-      var h = el("div", "cc-head"); h.appendChild(el("span", "ring")); h.appendChild(el("h2", null, c.name));
-      var inC = mates(c.id);
-      h.appendChild(el("span", "small muted", inC.length === 1 ? T("1 person") : T("{n} people", { n: inC.length })));
-      card.appendChild(h);
-      var l = el("div");
-      if (!inC.length) l.appendChild(el("p", "small muted", T("Nobody in here yet. Add people from your circle, or invite someone new.")));
-      inC.forEach(function (m) {
-        var row = personRow(m);
-        var x = el("button", "more", "−"); x.type = "button"; x.setAttribute("aria-label", T("Take {name} out of {circle}", { name: nameOf(m), circle: c.name }));
-        x.addEventListener("click", function () { setInCircle(m, c, false); });
-        row.appendChild(x); l.appendChild(row);
-      });
-      card.appendChild(l);
-      // pick from the big circle
-      var pick = el("div", "stack"); pick.hidden = true;
-      var others = people.filter(function (m) { return inC.indexOf(m) < 0; });
-      if (others.length) {
-        var chips = el("div", "aud");
-        others.forEach(function (m) { var b = el("button"); b.type = "button"; b.setAttribute("aria-pressed", "false"); b.appendChild(el("i")); b.appendChild(document.createTextNode(nameOf(m))); b.addEventListener("click", function () { b.disabled = true; setInCircle(m, c, true); }); chips.appendChild(b); });
-        pick.appendChild(chips);
-      } else pick.appendChild(el("p", "small muted", people.length ? T("Everyone in your circle is in here.") : T("Your circle is empty. Invite someone new below.")));
-      card.appendChild(pick);
-      var f = el("div", "row circ-foot wrap");
-      if (c.invite_code) { var cp2 = el("span", "code-pill", c.invite_code); cp2.title = T("Invite code"); f.appendChild(cp2); }
-      var add = el("button", "btn sm", T("Add from my circle")); add.type = "button"; add.addEventListener("click", function () { pick.hidden = !pick.hidden; }); f.appendChild(add);
-      var inv2 = el("button", "btn primary sm", T("Invite someone new")); inv2.type = "button"; inv2.addEventListener("click", function () { invite(c); }); f.appendChild(inv2);
-      var dl = el("button", "btn ghost sm", T("Delete circle")); dl.type = "button";
-      dl.addEventListener("click", function () { if (dl.getAttribute("data-armed") !== "1") { dl.setAttribute("data-armed", "1"); dl.textContent = T("Tap again to confirm"); return; } deleteCircle(c); });
-      f.appendChild(dl); card.appendChild(f);
-      cl.appendChild(card);
+      var t = el("button", "tile"); t.type = "button"; t.id = "circ-" + c.id; t.style.setProperty("--cc", circleColor(c));
+      t.appendChild(el("span", "ring"));
+      t.appendChild(el("b", null, c.name));
+      var inC = mates(c.id), st = el("span", "stack-av");
+      inC.slice(0, 4).forEach(function (m) { st.appendChild(el("span", "avatar", initial(nameOf(m)))); });
+      if (!inC.length) st.appendChild(el("span", "small muted", T("Empty")));
+      t.appendChild(st);
+      t.addEventListener("click", function () { openCircleSheet(c.id); });
+      tiles.appendChild(t);
     });
-    var nb = el("button", "btn block", "+ " + T("New small circle")); nb.type = "button"; nb.addEventListener("click", function () { openAdd("new"); });
-    cl.appendChild(nb);
+    var nt = el("button", "tile new"); nt.type = "button"; nt.appendChild(el("span", "plus", "+")); nt.appendChild(el("b", null, T("New small circle")));
+    nt.addEventListener("click", function () { openAdd("new"); });
+    tiles.appendChild(nt);
+    sc.appendChild(tiles);
+    cl.appendChild(sc);
+    if (!$("infoSheet").hidden && info.render) info.render();
+  }
+  var info = { render: null };
+  function openInfo(render) { info.render = render; render(); $("infoSheet").hidden = false; }
+  function closeInfo() { $("infoSheet").hidden = true; info.render = null; }
+  // one person: call, which small circles, remove, block, report
+  function openPerson(m) {
+    openInfo(function () {
+      var box = $("infoCard"); box.innerHTML = "";
+      if (net.links.indexOf(m) < 0) { closeInfo(); return; }
+      var p = net.people[m] || {};
+      box.appendChild(el("span", "grab"));
+      var top = el("div", "sheet-person"); top.appendChild(el("span", "avatar big", initial(p.display_name)));
+      var t = el("div"); var h = el("h2", null, p.display_name || T("Someone")); h.id = "infoTitle"; t.appendChild(h); t.appendChild(el("span", "small muted", T("In your circle"))); top.appendChild(t);
+      box.appendChild(top);
+      var acts = el("div", "row");
+      if (p.phone) { var c = el("a", "btn primary", T("Call")); c.href = "tel:" + p.phone.replace(/[^\d+]/g, ""); acts.appendChild(c); }
+      if (liveOf(m)) { var mp = el("button", "btn", T("Show on the map")); mp.type = "button"; mp.addEventListener("click", function () { closeInfo(); openMap(m); }); acts.appendChild(mp); }
+      if (acts.childNodes.length) box.appendChild(acts);
+      box.appendChild(el("b", "small", T("Small circles")));
+      if (net.circles.length) net.circles.forEach(function (c) { box.appendChild(checkRow(c.name, circleColor(c), c.members.indexOf(m) >= 0, function (on) { setInCircle(m, c, on); })); });
+      else box.appendChild(el("p", "small muted", T("You have no small circles yet.")));
+      var more = el("div", "row");
+      var rm = el("button", "btn sm", T("Remove from my circle")); rm.type = "button"; rm.addEventListener("click", function () { unlinkPerson(m); }); more.appendChild(rm);
+      var bl = el("button", "btn sm", T("Block")); bl.type = "button"; bl.addEventListener("click", function () { blockPerson(m); }); more.appendChild(bl);
+      var rp = el("button", "btn sm", T("Report")); rp.type = "button"; rp.addEventListener("click", function () { reportPerson(m, null); }); more.appendChild(rp);
+      box.appendChild(more);
+      var done = el("button", "btn ghost block", T("Done")); done.type = "button"; done.addEventListener("click", closeInfo); box.appendChild(done);
+    });
+  }
+  // one small circle: tick who's in it, invite someone new, delete
+  function openCircleSheet(id) {
+    openInfo(function () {
+      var c = circleById(id), box = $("infoCard"); box.innerHTML = "";
+      if (!c) { closeInfo(); return; }
+      box.appendChild(el("span", "grab"));
+      var hd = el("div", "cc-head"); hd.style.setProperty("--cc", circleColor(c)); hd.appendChild(el("span", "ring")); var h = el("h2", null, c.name); h.id = "infoTitle"; hd.appendChild(h); box.appendChild(hd);
+      var people = mates().sort(function (a, b) { return nameOf(a).localeCompare(nameOf(b)); });
+      box.appendChild(el("b", "small", T("Who's in it")));
+      if (people.length) people.forEach(function (m) { box.appendChild(checkRow(nameOf(m), null, c.members.indexOf(m) >= 0, function (on) { setInCircle(m, c, on); }, initial(nameOf(m)))); });
+      else box.appendChild(el("p", "small muted", T("Your circle is empty. Invite someone new below.")));
+      var inv = el("button", "btn primary block", T("Invite someone new")); inv.type = "button"; inv.addEventListener("click", function () { invite(c); }); box.appendChild(inv);
+      if (c.invite_code) box.appendChild(el("p", "xs muted", T("Or they enter the code {code}. They'll join {circle} and your circle.", { code: c.invite_code, circle: c.name })));
+      var row = el("div", "row");
+      var dl = el("button", "btn ghost", T("Delete circle")); dl.type = "button";
+      dl.addEventListener("click", function () { if (dl.getAttribute("data-armed") !== "1") { dl.setAttribute("data-armed", "1"); dl.textContent = T("Tap again to confirm"); return; } closeInfo(); deleteCircle(c); });
+      var done = el("button", "btn", T("Done")); done.type = "button"; done.addEventListener("click", closeInfo);
+      row.appendChild(dl); row.appendChild(done); box.appendChild(row);
+    });
+  }
+  function checkRow(label, color, on, change, letter) {
+    var l = el("label", "check crow"), x = el("input"); x.type = "checkbox"; x.checked = !!on;
+    x.addEventListener("change", function () { change(x.checked); });
+    l.appendChild(x);
+    if (letter) l.appendChild(el("span", "avatar", letter));
+    else if (color) { var d = el("i", "cdot"); d.style.setProperty("--cc", color); l.appendChild(d); }
+    l.appendChild(el("span", null, label));
+    return l;
   }
   function renderWhole() {
     var all = mates(), small = smallCircles();
@@ -1993,7 +2040,7 @@ details.set.free > summary .ic { background: var(--pink); color: #fff; }
       var x = el("button", "bubble"); x.type = "button";
       var d = el("span", "dotc", String(mates(c.id).length)); d.style.setProperty("--cc", circleColor(c));
       x.appendChild(d); x.appendChild(document.createTextNode(c.name));
-      x.addEventListener("click", function () { setSeg("people"); flashCard("circ-" + c.id, true); });
+      x.addEventListener("click", function () { openCircleSheet(c.id); });
       b.appendChild(x);
     });
     var add = el("button", "bubble add", "+ " + T("New circle")); add.type = "button";
@@ -2047,7 +2094,7 @@ details.set.free > summary .ic { background: var(--pink); color: #fff; }
   }
   // ---------- live map ----------
   // MapLibre (bundled in the app) with free OpenStreetMap tiles from OpenFreeMap; only the tiles need internet
-  var MAP_STYLE = "https://tiles.openfreemap.org/styles/positron";
+  var MAP_STYLE = "https://tiles.openfreemap.org/styles/liberty";
   var map = { m: null, loading: null, pins: {}, me: null, focus: null, fitted: false, ok: false, wantSos: false };
   function mapVisible() { var p = document.querySelector('[data-pane="map"]'), v = document.querySelector('.view[data-view="circle"]'); return !!(p && v && !p.hidden && !v.hidden && netOn()); }
   function loadMapLib() {
@@ -3050,6 +3097,7 @@ details.set.free > summary .ic { background: var(--pink); color: #fff; }
       case "add-open": openAdd(a.getAttribute("data-pane")); break;
       case "add-close": closeAdd(); break;
       case "place-close": $("placeSheet").hidden = true; break;
+      case "info-close": closeInfo(); break;
       case "practice-sos": openPractice(); break;
       case "timer-start": startTimer({ minutes: parseInt($("tmMinutes").value, 10), note: v("tmNote"), tell: $("tmTell").checked, to: audOf("timer") }); break;
       case "walk-start":
