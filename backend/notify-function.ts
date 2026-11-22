@@ -13,7 +13,7 @@ const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...cors, "Content-Type": "application/json" } });
 
 const ALERT_TEXT: Record<string, (n: string, msg: string) => [string, string, boolean]> = {
-  sos: (n, m) => [`${n} needs help`, m || "Open Shecurity to see where she is.", true],
+  sos: (n, m) => [`${n} needs help`, m || "Tap to see where she is and go to her.", true],
   missed_checkin: (n, m) => [`${n} missed her check-in`, m || "She hasn't said she's safe. Open Shecurity to see where she is.", true],
   walk: (n, m) => [`${n} is walking home`, m || "Tap to follow her live location.", false],
   location: (n) => [`${n} shared her location`, "Tap to see where she is.", false],
@@ -83,13 +83,9 @@ Deno.serve(async (req) => {
     const { data: alert } = await admin.from("alerts").select("*").eq("id", alert_id).maybeSingle();
     if (!alert) return json({ error: "alert not found" }, 404);
 
-    // sent to one small circle, or to everyone in all the sender's circles
-    const { data: senderCircles } = await admin.from("circle_members").select("circle_id").eq("user_id", alert.sender_id);
-    const circleIds = (senderCircles || []).map((r) => r.circle_id).filter((id) => !alert.circle_id || id === alert.circle_id);
-    const { data: mates } = circleIds.length
-      ? await admin.from("circle_members").select("user_id").in("circle_id", circleIds)
-      : { data: [] as { user_id: string }[] };
-    const mateIds = [...new Set((mates || []).map((m) => m.user_id))];
+    // who gets this alert: her big circle, or one of her small circles. The database decides (circles-v3.sql).
+    const { data: aud } = await admin.rpc("alert_audience", { p_alert: alert.id });
+    const mateIds = [...new Set(((aud || []) as unknown[]).map((x) => typeof x === "string" ? x : Object.values(x as Record<string, string>)[0]))];
 
     let recipients: string[] = [];
     let title = "", body = "", urgent = false;
