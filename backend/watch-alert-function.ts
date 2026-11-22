@@ -82,12 +82,9 @@ Deno.serve(async (req) => {
     const { data: alert, error } = await admin.from("alerts").insert(row).select().single();
     if (error) return json({ error: error.message }, 400);
 
-    const { data: mine } = await admin.from("circle_members").select("circle_id").eq("user_id", me);
-    const circleIds = (mine || []).map((r) => r.circle_id);
-    const { data: mates } = circleIds.length
-      ? await admin.from("circle_members").select("user_id").in("circle_id", circleIds)
-      : { data: [] as { user_id: string }[] };
-    const recipients = [...new Set((mates || []).map((m) => m.user_id))].filter((id) => id !== me);
+    // the database decides who is in her circle (circles-v3.sql)
+    const { data: aud } = await admin.rpc("alert_audience", { p_alert: alert.id });
+    const recipients = [...new Set(((aud || []) as unknown[]).map((x) => typeof x === "string" ? x : Object.values(x as Record<string, string>)[0]))];
     await admin.from("alerts").update({ notified_at: new Date().toISOString() }).eq("id", alert.id);
     if (!recipients.length) return json({ id: alert.id, sent: 0, note: "no one in your circle yet" });
 
