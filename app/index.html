@@ -356,7 +356,7 @@ body { background: radial-gradient(120% 60% at 50% -10%, var(--brand-soft), tran
 .mark { width: 30px; height: 30px; display: block; filter: drop-shadow(0 4px 10px rgba(229, 72, 127, .28)); }
 .mark svg { width: 100%; height: 100%; display: block; }
 .exit { background: var(--surface); box-shadow: var(--shadow); color: var(--ink); }
-main { padding-bottom: calc(118px + env(safe-area-inset-bottom, 0px)); }
+main { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 .view { gap: 18px; }
 h1 { font-size: 30px; letter-spacing: -0.03em; }
 .section-title { margin: 0; padding: 0 2px; font-size: 13px; text-transform: none; }
@@ -387,15 +387,14 @@ h1 { font-size: 30px; letter-spacing: -0.03em; }
 button.trust.link { justify-content: center; text-align: center; padding: 4px 0 0; align-items: center; font-size: 13px; gap: 6px; }
 button.trust.link svg { color: var(--muted); width: 16px; height: 16px; margin: 0; }
 
-/* floating tab bar */
-nav.tabs { left: 50%; right: auto; transform: translateX(-50%); bottom: calc(12px + env(safe-area-inset-bottom, 0px)); width: min(440px, calc(100% - 28px)); border-radius: 28px; padding: 0; background: color-mix(in srgb, var(--surface) 86%, transparent); -webkit-backdrop-filter: saturate(1.6) blur(18px); backdrop-filter: saturate(1.6) blur(18px); box-shadow: 0 0 0 1px var(--line), 0 14px 36px rgba(42, 33, 82, .16); }
-nav.tabs .in { padding: 6px; }
-nav.tabs button { padding: 6px 2px; border-radius: 22px; gap: 2px; font-size: 11px; transition: background .2s ease, color .2s ease; }
-nav.tabs button svg { padding: 0; width: 24px; height: 24px; background: none !important; }
-nav.tabs button[aria-current="page"] { background: var(--brand-soft); }
-nav.tabs .badge { top: 5px; }
-.toast { bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
-.nudge { bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+/* tab bar: flush with the bottom of the screen, solid so nothing shows through */
+nav.tabs { background: var(--surface); box-shadow: 0 -1px 0 var(--line); }
+nav.tabs .in { grid-template-columns: repeat(5, 1fr); padding: 6px 4px 2px; }
+nav.tabs button { padding: 4px 0 6px; gap: 3px; font-size: 10.5px; letter-spacing: -0.01em; transition: color .2s ease; }
+nav.tabs button svg { width: 52px; height: 30px; padding: 4px 14px; border-radius: 999px; transition: background .2s ease; }
+nav.tabs .badge { top: 3px; left: calc(50% + 7px); }
+.toast { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+.nudge { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
 
 /* feature pages */
 .back { width: 40px; height: 40px; justify-content: center; border-radius: 50%; background: var(--surface); box-shadow: var(--shadow); font-size: 0; gap: 0; color: var(--ink); padding: 0; margin-bottom: -6px; }
@@ -418,6 +417,8 @@ nav.tabs .badge { top: 5px; }
 /* live map */
 .card.map-card { padding: 0; overflow: hidden; position: relative; }
 .map { height: 56vh; min-height: 300px; max-height: 560px; background: var(--surface-2); }
+[data-view="map"] .map { height: calc(100dvh - 330px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); min-height: 340px; max-height: 640px; }
+.round-add.soft { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
 .map-msg { position: absolute; left: 12px; right: 12px; bottom: 12px; margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--surface); box-shadow: var(--shadow); }
 .map-msg[hidden] { display: none; }
 .pin-wrap { width: 46px; height: 52px; display: grid; place-items: center; cursor: pointer; }
@@ -535,6 +536,8 @@ details.set.free > summary .ic { background: var(--pink); color: #fff; }
   <symbol id="i-home" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/></symbol>
   <symbol id="i-people" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6.5 6.5 0 0 1 4 6"/></symbol>
   <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01"/></symbol>
+  <symbol id="i-map" viewBox="0 0 24 24"><path d="M9 4 3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5L9 4zM9 4v13.5M15 6.5V20"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></symbol>
   <symbol id="i-me" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
   <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3M15 8l2 2"/></symbol>
@@ -647,9 +650,8 @@ details.set.free > summary .ic { background: var(--pink); color: #fff; }
         <button class="btn primary block" type="button" id="pushBtn" data-action="push-on">Turn on alerts</button>
       </div>
 
-      <div class="seg three" role="tablist" aria-label="Circle">
+      <div class="seg" role="tablist" aria-label="Circle">
         <button type="button" role="tab" data-seg="now" aria-selected="true">Now</button>
-        <button type="button" role="tab" data-seg="map" aria-selected="false">Map</button>
         <button type="button" role="tab" data-seg="people" aria-selected="false">Circles</button>
       </div>
 
@@ -685,7 +687,21 @@ details.set.free > summary .ic { background: var(--pink); color: #fff; }
 
       </div>
 
-      <div class="pane view" data-pane="map" hidden>
+      <div class="pane view" data-pane="people" hidden>
+        <div id="circleList" class="view"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAP -->
+  <section class="view" data-view="map" hidden>
+    <div class="page-head"><h1>Map</h1><button class="round-add soft" type="button" id="mapFit" data-action="map-fit" aria-label="Show everyone" hidden><svg class="i"><use href="#i-target"/></svg></button></div>
+    <div class="card brand" id="mapJoin" hidden>
+      <h2>See your circle on the map</h2>
+      <p class="small">Set up your circle first. Then you can follow each other live here, and when someone presses SOS the map takes you to her.</p>
+      <button class="btn primary block" type="button" data-go="circle">Set up my circle</button>
+    </div>
+    <div id="mapArea" class="view" hidden>
         <div class="card map-card"><div id="map" class="map" aria-label="Map of your circle"></div><p class="map-msg small" id="mapMsg" hidden></p></div>
         <div class="card stack" id="mapPeople"></div>
         <div class="card stack">
@@ -696,12 +712,7 @@ details.set.free > summary .ic { background: var(--pink); color: #fff; }
           </div>
           <p class="xs muted">Only people in your circle can see it. During an SOS your circle always sees where you are, if you allow it under SOS settings.</p>
         </div>
-      </div>
-
-      <div class="pane view" data-pane="people" hidden>
-        <div id="circleList" class="view"></div>
-      </div>
-    </div>
+          </div>
   </section>
 
   <!-- PLANS -->
@@ -993,6 +1004,7 @@ details.set.free > summary .ic { background: var(--pink); color: #fff; }
   <div class="in">
     <button type="button" data-go="home" aria-current="page"><svg class="i"><use href="#i-home"/></svg>Home</button>
     <button type="button" data-go="circle"><svg class="i"><use href="#i-people"/></svg>Circle<span class="badge" id="circleBadge" hidden></span></button>
+    <button type="button" data-go="map"><svg class="i"><use href="#i-map"/></svg>Map</button>
     <button type="button" data-go="help"><svg class="i"><use href="#i-help"/></svg>Help lines</button>
     <button type="button" data-go="me"><svg class="i"><use href="#i-me"/></svg>You</button>
   </div>
@@ -2096,7 +2108,7 @@ details.set.free > summary .ic { background: var(--pink); color: #fff; }
   // MapLibre (bundled in the app) with free OpenStreetMap tiles from OpenFreeMap; only the tiles need internet
   var MAP_STYLE = "https://tiles.openfreemap.org/styles/liberty";
   var map = { m: null, loading: null, pins: {}, me: null, focus: null, fitted: false, ok: false, wantSos: false };
-  function mapVisible() { var p = document.querySelector('[data-pane="map"]'), v = document.querySelector('.view[data-view="circle"]'); return !!(p && v && !p.hidden && !v.hidden && netOn()); }
+  function mapVisible() { var v = document.querySelector('.view[data-view="map"]'); return !!(v && !v.hidden && netOn()); }
   function loadMapLib() {
     if (!map.css) { map.css = true; var l = document.createElement("link"); l.rel = "stylesheet"; l.href = "vendor/maplibre-gl.css"; document.head.appendChild(l); }
     if (window.maplibregl) return Promise.resolve();
@@ -2106,7 +2118,7 @@ details.set.free > summary .ic { background: var(--pink); color: #fff; }
     });
     return map.loading;
   }
-  function openMap(focusId) { map.focus = focusId || null; go("circle"); setSeg("map"); }
+  function openMap(focusId) { map.focus = focusId || null; go("map"); }
   function mapMsg(t) { var m = $("mapMsg"); if (m) { m.textContent = t; m.hidden = !t; } }
   // who's on the map: anyone in an SOS first (with her live location, or where the alert was sent), then everyone sharing
   function mapPoints() {
@@ -2124,6 +2136,7 @@ details.set.free > summary .ic { background: var(--pink); color: #fff; }
   }
   function renderMap() {
     if (!$("mapPeople")) return;
+    var on = netOn(); $("mapJoin").hidden = on || (!!net.error && !PREVIEW); $("mapArea").hidden = !on; $("mapFit").hidden = !on;
     renderMapShare(); renderMapPeople();
     if (!mapVisible()) return;
     if (!navigator.onLine && !map.ok) mapMsg(T("The map needs an internet connection. You can still open places in your maps app below."));
@@ -2234,7 +2247,7 @@ details.set.free > summary .ic { background: var(--pink); color: #fff; }
   }
 
   // ---------- navigation ----------
-  var TABS = { home: "home", circle: "circle", help: "help", me: "me", plan: "circle", widget: "home" };
+  var TABS = { home: "home", circle: "circle", map: "map", help: "help", me: "me", plan: "circle", widget: "home" };
   function go(view) {
     var sh = document.getElementById("addSheet"); if (sh) sh.hidden = true;
     document.querySelectorAll(".view[data-view]").forEach(function (v) { v.hidden = v.getAttribute("data-view") !== view; });
@@ -2242,6 +2255,7 @@ details.set.free > summary .ic { background: var(--pink); color: #fff; }
     document.querySelectorAll("nav.tabs button").forEach(function (b) { if (b.getAttribute("data-go") === tab) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
     window.scrollTo(0, 0);
     if (view === "me") renderMe();
+    if (view === "map") renderMap();
     if (view === "circle" && net.sb && netOn()) Promise.all([loadFeed(), loadLive(), loadPlans()]).then(renderNet);
     if (view === "plan") renderPlanForm();
     if (view === "widget") renderWidgetGuide();
@@ -3065,7 +3079,6 @@ details.set.free > summary .ic { background: var(--pink); color: #fff; }
   function setSeg(k) {
     document.querySelectorAll("[data-seg]").forEach(function (b) { b.setAttribute("aria-selected", b.getAttribute("data-seg") === k ? "true" : "false"); });
     document.querySelectorAll("[data-pane]").forEach(function (p) { p.hidden = p.getAttribute("data-pane") !== k; });
-    if (k === "map") { renderMap(); var sg = document.querySelector(".seg.three"); if (sg && sg.getBoundingClientRect().top > 120) setTimeout(function () { sg.scrollIntoView({ behavior: "smooth", block: "start" }); }, 60); }
   }
   function addPane(k) {
     document.querySelectorAll("[data-addpane]").forEach(function (b) { b.setAttribute("aria-selected", b.getAttribute("data-addpane") === k ? "true" : "false"); });
@@ -3094,6 +3107,7 @@ details.set.free > summary .ic { background: var(--pink); color: #fff; }
       case "call-decline": case "call-end": endCall(); break;
       case "sos-widen": widenSos(); break;
       case "invite-to": inviteTo(); break;
+      case "map-fit": map.focus = null; fitAll(); break;
       case "add-open": openAdd(a.getAttribute("data-pane")); break;
       case "add-close": closeAdd(); break;
       case "place-close": $("placeSheet").hidden = true; break;
@@ -3191,7 +3205,7 @@ details.set.free > summary .ic { background: var(--pink); color: #fff; }
     if (h === "sos") { go("home"); startCountdown(); return true; }
     if (h === "fakecall-now") { $("fcDelay").value = "5"; scheduleCall(); return true; }
     if (/^q-/.test(h) && QUICK[h.slice(2)]) { QUICK[h.slice(2)].run(); return true; }
-    if (h === "circle" || h === "map") { go("circle"); map.wantSos = true; setTimeout(function () { map.wantSos = false; }, 20000); if (h === "map") setSeg("map"); renderIncoming(); return true; }
+    if (h === "circle" || h === "map") { go(h); map.wantSos = true; setTimeout(function () { map.wantSos = false; }, 20000); renderIncoming(); return true; }
     if (["walk", "timer", "fakecall", "help", "me", "places", "ride", "date", "record", "plan", "widget"].indexOf(h) >= 0) { go(h); return true; }
     return false;
   }
